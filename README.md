@@ -1,4 +1,6 @@
-# Forge system understanding. Automate threat modeling.
+# ModelForge
+`Forge system understanding. Automate threat modeling.`  
+
 ModelForge is an AI-native platform that transforms code, cloud infrastructure,
 architecture diagrams, documents, and natural language into a unified system model.
 

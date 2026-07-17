@@ -76,12 +76,36 @@ questions.md
 
 ## Phase 5: Optional LLM
 
-* Structured extraction from README
-* Threat refinement
-* Mitigation refinement
-* Question wording improvement
+LLM support should enhance deterministic outputs, not replace them.
 
-LLM must be optional.
+Recommended initial uses:
+
+* Extract structured system model candidates from README and architecture docs
+* Convert natural-language design notes into proposed nodes, edges, unknowns, and evidence
+* Refine wording for deterministic STRIDE, ATT&CK, risk, and mitigation descriptions
+* Improve clarification question wording
+* Assist with non-structured document ingestion such as ADRs, design notes, and wiki exports
+
+Constraints:
+
+* LLM output must never be the source of truth
+* LLM output must be validated before it can update `system_model.json`
+* LLM extraction must produce structured candidates, not free-form reports
+* Unsupported or ambiguous facts must remain `unknown` or become clarification questions
+* External LLM calls must be opt-in
+* Unit tests must mock LLM interactions
+
+Goal:
+
+```text
+Unstructured Docs
+  ↓
+LLM structured candidates
+  ↓
+Validation
+  ↓
+system_model.json
+```
 
 ## Phase 6: DevSecOps Integration
 

@@ -1,0 +1,24 @@
+flowchart LR
+  %% Generated from system_model.json. Do not edit manually.
+  subgraph n_2aac25e38c["aws_subnet.private\n(trust_boundary)"]
+    n_ed57bad244["payments-api\n(component)"]
+  end
+  n_f238dbc2fb(["API Client\n(actor)"])
+  n_3d72efd63f(["Customer\n(actor)"])
+  n_40ff02c3aa(["Internet\n(actor)"])
+  n_8380f54a1c["GET /payments/{paymentId}\n(api)"]
+  n_9cd32496f4["POST /payments\n(api)"]
+  n_4762e743ba["Payments API\n(component)"]
+  n_c07feb1b52["Sample Payments API\n(component)"]
+  n_ed1588d808["Sample Payments API\n(component)"]
+  n_40b4a18fad["payments-public-lb\n(component)"]
+  n_f14744ba15[("Payment\n(data_asset)")]
+  n_6daccfe197[("PaymentRequest\n(data_asset)")]
+  n_6fac5d208b[("Payments DB\n(database)")]
+  n_7d5776cd37[("payments-db\n(database)")]
+  n_f238dbc2fb -->|"communicates_with / HTTPS"| n_8380f54a1c
+  n_f238dbc2fb -->|"communicates_with / HTTPS"| n_9cd32496f4
+  n_40ff02c3aa -->|"communicates_with"| n_40b4a18fad
+  n_8380f54a1c -->|"invokes"| n_c07feb1b52
+  n_9cd32496f4 -->|"invokes"| n_c07feb1b52
+  n_ed57bad244 -->|"stores"| n_7d5776cd37

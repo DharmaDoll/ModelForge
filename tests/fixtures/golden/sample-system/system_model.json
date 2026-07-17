@@ -1,0 +1,576 @@
+{
+  "description": "Sample service that accepts payment requests and exposes a REST API.",
+  "edges": [
+    {
+      "authentication": "apiKey header:X-API-Key",
+      "authorization": "unknown",
+      "data_assets": [
+        "data-asset:openapi:payment"
+      ],
+      "description": "Client calls GET /payments/{paymentId}.",
+      "evidence": [
+        {
+          "detail": "GET /payments/{paymentId}",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "edge:actor-openapi-api-client:api-get-payments-paymentid:request",
+      "metadata": {},
+      "protocol": "HTTPS",
+      "source": "actor:openapi:api-client",
+      "target": "api:get:payments-paymentid",
+      "type": "communicates_with"
+    },
+    {
+      "authentication": "apiKey header:X-API-Key",
+      "authorization": "unknown",
+      "data_assets": [
+        "data-asset:openapi:payment",
+        "data-asset:openapi:paymentrequest"
+      ],
+      "description": "Client calls POST /payments.",
+      "evidence": [
+        {
+          "detail": "POST /payments",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "edge:actor-openapi-api-client:api-post-payments:request",
+      "metadata": {},
+      "protocol": "HTTPS",
+      "source": "actor:openapi:api-client",
+      "target": "api:post:payments",
+      "type": "communicates_with"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Public network access to payments-public-lb is implied by Terraform exposure.",
+      "evidence": [
+        {
+          "detail": "resource \"aws_lb\" \"public\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "edge:actor-terraform-internet:terraform-aws-lb-public:public-access",
+      "metadata": {},
+      "protocol": "unknown",
+      "source": "actor:terraform:internet",
+      "target": "terraform:aws-lb:public",
+      "type": "communicates_with"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [
+        "data-asset:openapi:payment"
+      ],
+      "description": "GET /payments/{paymentId} is handled by Sample Payments API.",
+      "evidence": [
+        {
+          "detail": "GET /payments/{paymentId}",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "edge:api-get-payments-paymentid:component-openapi-sample-payments-api:handler",
+      "metadata": {},
+      "protocol": "unknown",
+      "source": "api:get:payments-paymentid",
+      "target": "component:openapi:sample-payments-api",
+      "type": "invokes"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [
+        "data-asset:openapi:payment",
+        "data-asset:openapi:paymentrequest"
+      ],
+      "description": "POST /payments is handled by Sample Payments API.",
+      "evidence": [
+        {
+          "detail": "POST /payments",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "edge:api-post-payments:component-openapi-sample-payments-api:handler",
+      "metadata": {},
+      "protocol": "unknown",
+      "source": "api:post:payments",
+      "target": "component:openapi:sample-payments-api",
+      "type": "invokes"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Terraform reference from payments-api to aws_subnet.private.",
+      "evidence": [
+        {
+          "detail": "resource \"aws_lambda_function\" \"api\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "edge:terraform-aws-lambda-function-api:terraform-aws-subnet-private:invokes",
+      "metadata": {},
+      "protocol": "unknown",
+      "source": "terraform:aws-lambda-function:api",
+      "target": "terraform:aws-subnet:private",
+      "type": "invokes"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Terraform reference from aws_subnet.private to aws_vpc.main.",
+      "evidence": [
+        {
+          "detail": "resource \"aws_subnet\" \"private\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "edge:terraform-aws-subnet-private:terraform-aws-vpc-main:invokes",
+      "metadata": {},
+      "protocol": "unknown",
+      "source": "terraform:aws-subnet:private",
+      "target": "terraform:aws-vpc:main",
+      "type": "invokes"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Terraform reference from payments-api to payments-db.",
+      "evidence": [
+        {
+          "detail": "resource \"aws_lambda_function\" \"api\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "edge:terraform-aws-lambda-function-api:terraform-aws-db-instance-payments:stores",
+      "metadata": {},
+      "protocol": "unknown",
+      "source": "terraform:aws-lambda-function:api",
+      "target": "terraform:aws-db-instance:payments",
+      "type": "stores"
+    }
+  ],
+  "id": "system",
+  "metadata": {
+    "mentions_authentication": false,
+    "mentions_authorization": false,
+    "mentions_encryption": false,
+    "mentions_logging": false,
+    "mentions_monitoring": false,
+    "mentions_rate_limiting": false,
+    "openapi_path": "tests/fixtures/sample-system/openapi.yaml",
+    "openapi_version": "3.0.3",
+    "readme_path": "tests/fixtures/sample-system/README.md",
+    "terraform_files": [
+      "tests/fixtures/sample-system/main.tf"
+    ]
+  },
+  "name": "Sample Payments API",
+  "nodes": [
+    {
+      "description": "Client role implied by the OpenAPI contract.",
+      "evidence": [
+        {
+          "detail": "OpenAPI",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "actor:openapi:api-client",
+      "metadata": {},
+      "name": "API Client",
+      "type": "actor"
+    },
+    {
+      "description": "Customer",
+      "evidence": [
+        {
+          "detail": "README section: Actors",
+          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_type": "readme"
+        }
+      ],
+      "id": "actor:readme:customer",
+      "metadata": {},
+      "name": "Customer",
+      "type": "actor"
+    },
+    {
+      "description": "External network source implied by public Terraform exposure.",
+      "evidence": [
+        {
+          "detail": "internet exposure",
+          "source_path": "derived",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "actor:terraform:internet",
+      "metadata": {},
+      "name": "Internet",
+      "type": "actor"
+    },
+    {
+      "description": "Read a payment",
+      "evidence": [
+        {
+          "detail": "GET /payments/{paymentId}",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "api:get:payments-paymentid",
+      "metadata": {},
+      "name": "GET /payments/{paymentId}",
+      "type": "api"
+    },
+    {
+      "description": "Create a payment",
+      "evidence": [
+        {
+          "detail": "POST /payments",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "api:post:payments",
+      "metadata": {},
+      "name": "POST /payments",
+      "type": "api"
+    },
+    {
+      "description": "REST API for creating and reading payments.",
+      "evidence": [
+        {
+          "detail": "OpenAPI",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "component:openapi:sample-payments-api",
+      "metadata": {},
+      "name": "Sample Payments API",
+      "type": "component"
+    },
+    {
+      "description": "Payments API: handles payment requests.",
+      "evidence": [
+        {
+          "detail": "README section: Components",
+          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_type": "readme"
+        }
+      ],
+      "id": "component:readme:payments-api",
+      "metadata": {},
+      "name": "Payments API",
+      "type": "component"
+    },
+    {
+      "description": "Sample service that accepts payment requests and exposes a REST API.",
+      "evidence": [
+        {
+          "detail": "README",
+          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_type": "readme"
+        }
+      ],
+      "id": "component:readme:sample-payments-api",
+      "metadata": {},
+      "name": "Sample Payments API",
+      "type": "component"
+    },
+    {
+      "description": "Terraform resource aws_lambda_function.api",
+      "evidence": [
+        {
+          "detail": "resource \"aws_lambda_function\" \"api\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "terraform:aws-lambda-function:api",
+      "metadata": {
+        "terraform_name": "api",
+        "terraform_type": "aws_lambda_function"
+      },
+      "name": "payments-api",
+      "trust_boundary_id": "terraform:aws-subnet:private",
+      "type": "component"
+    },
+    {
+      "description": "Terraform resource aws_lb.public",
+      "evidence": [
+        {
+          "detail": "resource \"aws_lb\" \"public\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "terraform:aws-lb:public",
+      "metadata": {
+        "internet_exposed": true,
+        "terraform_name": "public",
+        "terraform_type": "aws_lb"
+      },
+      "name": "payments-public-lb",
+      "type": "component"
+    },
+    {
+      "description": "OpenAPI schema",
+      "evidence": [
+        {
+          "detail": "components.schemas.Payment",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "data-asset:openapi:payment",
+      "metadata": {
+        "schema_name": "Payment"
+      },
+      "name": "Payment",
+      "type": "data_asset"
+    },
+    {
+      "description": "OpenAPI schema",
+      "evidence": [
+        {
+          "detail": "components.schemas.PaymentRequest",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_type": "openapi"
+        }
+      ],
+      "id": "data-asset:openapi:paymentrequest",
+      "metadata": {
+        "schema_name": "PaymentRequest"
+      },
+      "name": "PaymentRequest",
+      "type": "data_asset"
+    },
+    {
+      "description": "Payments DB: stores payment records.",
+      "evidence": [
+        {
+          "detail": "README section: Databases",
+          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_type": "readme"
+        }
+      ],
+      "id": "database:readme:payments-db",
+      "metadata": {},
+      "name": "Payments DB",
+      "type": "database"
+    },
+    {
+      "description": "Terraform resource aws_db_instance.payments",
+      "evidence": [
+        {
+          "detail": "resource \"aws_db_instance\" \"payments\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "terraform:aws-db-instance:payments",
+      "metadata": {
+        "terraform_name": "payments",
+        "terraform_type": "aws_db_instance"
+      },
+      "name": "payments-db",
+      "type": "database"
+    },
+    {
+      "description": "Terraform resource aws_subnet.private",
+      "evidence": [
+        {
+          "detail": "resource \"aws_subnet\" \"private\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "terraform:aws-subnet:private",
+      "metadata": {
+        "terraform_name": "private",
+        "terraform_type": "aws_subnet"
+      },
+      "name": "aws_subnet.private",
+      "type": "trust_boundary"
+    },
+    {
+      "description": "Terraform resource aws_vpc.main",
+      "evidence": [
+        {
+          "detail": "resource \"aws_vpc\" \"main\"",
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "terraform:aws-vpc:main",
+      "metadata": {
+        "terraform_name": "main",
+        "terraform_type": "aws_vpc"
+      },
+      "name": "aws_vpc.main",
+      "type": "trust_boundary"
+    }
+  ],
+  "schema_version": "0.1",
+  "unknowns": [
+    {
+      "category": "authorization",
+      "description": "Authorization requirements for GET /payments/{paymentId} are not specified.",
+      "evidence": {
+        "detail": "OpenAPI",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_type": "openapi"
+      },
+      "id": "unknown:openapi:api-get-payments-paymentid:authorization",
+      "related_element_id": "edge:actor-openapi-api-client:api-get-payments-paymentid:request"
+    },
+    {
+      "category": "authorization",
+      "description": "Authorization requirements for POST /payments are not specified.",
+      "evidence": {
+        "detail": "OpenAPI",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_type": "openapi"
+      },
+      "id": "unknown:openapi:api-post-payments:authorization",
+      "related_element_id": "edge:actor-openapi-api-client:api-post-payments:request"
+    },
+    {
+      "category": "data_classification",
+      "description": "Data classification for schema Payment is unknown.",
+      "evidence": {
+        "detail": "OpenAPI",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_type": "openapi"
+      },
+      "id": "unknown:openapi:payment:data-classification",
+      "related_element_id": "data-asset:openapi:payment"
+    },
+    {
+      "category": "data_classification",
+      "description": "Data classification for schema PaymentRequest is unknown.",
+      "evidence": {
+        "detail": "OpenAPI",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_type": "openapi"
+      },
+      "id": "unknown:openapi:paymentrequest:data-classification",
+      "related_element_id": "data-asset:openapi:paymentrequest"
+    },
+    {
+      "category": "authentication",
+      "description": "Authentication behavior is not described in the README.",
+      "evidence": {
+        "detail": "README",
+        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_type": "readme"
+      },
+      "id": "unknown:readme:authentication",
+      "related_element_id": "component:readme:sample-payments-api"
+    },
+    {
+      "category": "authorization",
+      "description": "Authorization behavior is not described in the README.",
+      "evidence": {
+        "detail": "README",
+        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_type": "readme"
+      },
+      "id": "unknown:readme:authorization",
+      "related_element_id": "component:readme:sample-payments-api"
+    },
+    {
+      "category": "encryption",
+      "description": "Transport or storage encryption is not described in the README.",
+      "evidence": {
+        "detail": "README",
+        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_type": "readme"
+      },
+      "id": "unknown:readme:encryption",
+      "related_element_id": "component:readme:sample-payments-api"
+    },
+    {
+      "category": "logging",
+      "description": "Logging or audit behavior is not described in the README.",
+      "evidence": {
+        "detail": "README",
+        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_type": "readme"
+      },
+      "id": "unknown:readme:logging",
+      "related_element_id": "component:readme:sample-payments-api"
+    },
+    {
+      "category": "monitoring",
+      "description": "Monitoring behavior is not described in the README.",
+      "evidence": {
+        "detail": "README",
+        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_type": "readme"
+      },
+      "id": "unknown:readme:monitoring",
+      "related_element_id": "component:readme:sample-payments-api"
+    },
+    {
+      "category": "rate_limiting",
+      "description": "Rate limiting behavior is not described in the README.",
+      "evidence": {
+        "detail": "README",
+        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_type": "readme"
+      },
+      "id": "unknown:readme:rate-limiting",
+      "related_element_id": "component:readme:sample-payments-api"
+    },
+    {
+      "category": "encryption",
+      "description": "Encryption configuration for payments-db is unknown.",
+      "evidence": {
+        "detail": "resource \"aws_db_instance\" \"payments\"",
+        "source_path": "tests/fixtures/sample-system/main.tf",
+        "source_type": "terraform"
+      },
+      "id": "unknown:terraform:terraform-aws-db-instance-payments:encryption",
+      "related_element_id": "terraform:aws-db-instance:payments"
+    },
+    {
+      "category": "authentication",
+      "description": "Authentication for internet-exposed resource payments-public-lb is unknown.",
+      "evidence": {
+        "detail": "resource \"aws_lb\" \"public\"",
+        "source_path": "tests/fixtures/sample-system/main.tf",
+        "source_type": "terraform"
+      },
+      "id": "unknown:terraform:terraform-aws-lb-public:authentication",
+      "related_element_id": "terraform:aws-lb:public"
+    },
+    {
+      "category": "rate_limiting",
+      "description": "Rate limiting for internet-exposed resource payments-public-lb is unknown.",
+      "evidence": {
+        "detail": "resource \"aws_lb\" \"public\"",
+        "source_path": "tests/fixtures/sample-system/main.tf",
+        "source_type": "terraform"
+      },
+      "id": "unknown:terraform:terraform-aws-lb-public:rate-limiting",
+      "related_element_id": "terraform:aws-lb:public"
+    }
+  ]
+}

@@ -94,6 +94,9 @@ uv run ruff check .
 uv run tm-ai analyze ./examples/sample-system --out ./out
 ```
 
+Golden regression fixtures live in `tests/fixtures/golden/sample-system`. Update
+them only when generated artifact changes are intentional.
+
 ## Supported Inputs
 
 The MVP supports:

@@ -80,6 +80,12 @@ What they mean:
 Unknown information is expected. ModelForge records it as questions instead of
 guessing.
 
+## Validation And Errors
+
+ModelForge validates the generated graph before writing reports. Invalid references,
+duplicate model IDs, blank required fields, missing inputs, and malformed OpenAPI or
+Terraform files fail fast with `Error`, `Detail`, and `Hint` lines in the CLI.
+
 ## Development
 
 ```bash

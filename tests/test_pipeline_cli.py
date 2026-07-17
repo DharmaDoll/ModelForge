@@ -40,6 +40,68 @@ def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "questions.md").exists()
 
 
+def test_cli_reports_missing_supported_inputs(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["analyze", str(tmp_path), "--out", str(tmp_path / "out")])
+
+    assert result.exit_code == 1
+    assert "No supported input files were found" in result.output
+    assert "Hint:" in result.output
+
+
+def test_cli_reports_missing_explicit_input_file(tmp_path: Path) -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        [
+            "analyze",
+            str(FIXTURE),
+            "--readme",
+            str(tmp_path / "missing.md"),
+            "--out",
+            str(tmp_path / "out"),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Input file was not found." in result.output
+    assert "--readme" in result.output
+
+
+def test_cli_reports_invalid_openapi_input(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "openapi.yaml").write_text(
+        "info:\n  title: Missing version\npaths: {}\n",
+        encoding="utf-8",
+    )
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["analyze", str(project), "--out", str(tmp_path / "out")])
+
+    assert result.exit_code == 1
+    assert "OpenAPI input is missing a version field" in result.output
+    assert "Hint:" in result.output
+
+
+def test_cli_reports_invalid_terraform_input(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "main.tf").write_text(
+        'resource "aws_instance" "web" {\n  ami = "ami-123456"\n',
+        encoding="utf-8",
+    )
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["analyze", str(project), "--out", str(tmp_path / "out")])
+
+    assert result.exit_code == 1
+    assert "Terraform input has an unterminated resource block" in result.output
+    assert "terraform fmt/validate" in result.output
+
+
 def test_discover_inputs_rejects_missing_explicit_file(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         discover_inputs(FIXTURE, readme=tmp_path / "missing.md")

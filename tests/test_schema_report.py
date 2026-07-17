@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from threatmodel_ai.attack.models import AttackFinding, AttackTechnique
-from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
+from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel, Unknown
 from threatmodel_ai.questions import Question
 from threatmodel_ai.report import (
     render_attack_markdown,
@@ -25,6 +25,105 @@ def test_system_model_rejects_edges_with_missing_nodes() -> None:
                 )
             ],
         )
+
+
+def test_system_model_rejects_duplicate_graph_ids() -> None:
+    with pytest.raises(ValidationError, match="duplicate node ids"):
+        SystemModel(
+            nodes=[
+                Node(id="actor:user", name="User", type=NodeType.ACTOR),
+                Node(id="actor:user", name="Duplicate User", type=NodeType.ACTOR),
+            ]
+        )
+
+    with pytest.raises(ValidationError, match="duplicate edge ids"):
+        SystemModel(
+            nodes=[
+                Node(id="actor:user", name="User", type=NodeType.ACTOR),
+                Node(id="api:orders", name="Orders API", type=NodeType.API),
+            ],
+            edges=[
+                Edge(
+                    id="edge:user-api",
+                    source="actor:user",
+                    target="api:orders",
+                    type=EdgeType.COMMUNICATES_WITH,
+                ),
+                Edge(
+                    id="edge:user-api",
+                    source="actor:user",
+                    target="api:orders",
+                    type=EdgeType.COMMUNICATES_WITH,
+                ),
+            ],
+        )
+
+    with pytest.raises(ValidationError, match="duplicate unknown ids"):
+        SystemModel(
+            unknowns=[
+                Unknown(id="unknown:auth", category="authentication", description="Auth unknown."),
+                Unknown(id="unknown:auth", category="authentication", description="Auth unknown."),
+            ]
+        )
+
+
+def test_system_model_rejects_missing_related_references() -> None:
+    with pytest.raises(ValidationError, match="missing trust boundary"):
+        SystemModel(
+            nodes=[
+                Node(
+                    id="api:orders",
+                    name="Orders API",
+                    type=NodeType.API,
+                    trust_boundary_id="boundary:missing",
+                )
+            ]
+        )
+
+    with pytest.raises(ValidationError, match="missing data assets"):
+        SystemModel(
+            nodes=[
+                Node(id="actor:user", name="User", type=NodeType.ACTOR),
+                Node(id="api:orders", name="Orders API", type=NodeType.API),
+            ],
+            edges=[
+                Edge(
+                    id="edge:user-api",
+                    source="actor:user",
+                    target="api:orders",
+                    type=EdgeType.COMMUNICATES_WITH,
+                    data_assets=["data:missing"],
+                )
+            ],
+        )
+
+    with pytest.raises(ValidationError, match="references missing element"):
+        SystemModel(
+            unknowns=[
+                Unknown(
+                    id="unknown:auth",
+                    category="authentication",
+                    description="Authentication is unknown.",
+                    related_element_id="edge:missing",
+                )
+            ]
+        )
+
+
+def test_model_required_fields_reject_blank_values() -> None:
+    with pytest.raises(ValidationError):
+        Node(id="", name="User", type=NodeType.ACTOR)
+
+    with pytest.raises(ValidationError):
+        Edge(
+            id="edge:user-api",
+            source="",
+            target="api:orders",
+            type=EdgeType.COMMUNICATES_WITH,
+        )
+
+    with pytest.raises(ValidationError):
+        SystemModel(id="")
 
 
 def test_system_model_json_schema_exposes_graph_fields() -> None:

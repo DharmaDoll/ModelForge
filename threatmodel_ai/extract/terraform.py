@@ -6,6 +6,7 @@ import re
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
+from threatmodel_ai.errors import InputFormatError
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import (
     Edge,
@@ -164,18 +165,24 @@ class _TerraformResource:
 def _collect_resources(paths: Iterable[Path]) -> Iterator[_TerraformResource]:
     for path in sorted(paths):
         text = path.read_text(encoding="utf-8")
-        for resource_type, name, body in _iter_resource_blocks(text):
+        for resource_type, name, body in _iter_resource_blocks(text, path):
             yield _TerraformResource(path=path, resource_type=resource_type, name=name, body=body)
 
 
-def _iter_resource_blocks(text: str) -> Iterator[tuple[str, str, str]]:
+def _iter_resource_blocks(text: str, path: Path) -> Iterator[tuple[str, str, str]]:
     position = 0
     while match := _RESOURCE_START_RE.search(text, position):
         open_brace_index = match.end() - 1
         close_brace_index = _find_matching_brace(text, open_brace_index)
         if close_brace_index is None:
-            position = match.end()
-            continue
+            raise InputFormatError(
+                f"Terraform input has an unterminated resource block: {path}",
+                detail=(
+                    f'resource "{match.group(1)}" "{match.group(2)}" '
+                    "is missing a closing brace."
+                ),
+                hint="Run terraform fmt/validate, then retry the analysis.",
+            )
         yield match.group(1), match.group(2), text[open_brace_index + 1 : close_brace_index]
         position = close_brace_index + 1
 

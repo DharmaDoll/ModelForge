@@ -46,8 +46,8 @@ class Evidence(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     source_type: SourceType
-    source_path: str
-    detail: str = "unknown"
+    source_path: str = Field(min_length=1)
+    detail: str = Field(default="unknown", min_length=1)
 
 
 class Unknown(BaseModel):
@@ -55,9 +55,9 @@ class Unknown(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
-    category: str
-    description: str
+    id: str = Field(min_length=1)
+    category: str = Field(min_length=1)
+    description: str = Field(min_length=1)
     related_element_id: str | None = None
     evidence: Evidence | None = None
 
@@ -67,10 +67,10 @@ class Node(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
-    name: str
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
     type: NodeType
-    description: str = "unknown"
+    description: str = Field(default="unknown", min_length=1)
     trust_boundary_id: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     evidence: list[Evidence] = Field(default_factory=list)
@@ -81,14 +81,14 @@ class Edge(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
-    source: str
-    target: str
+    id: str = Field(min_length=1)
+    source: str = Field(min_length=1)
+    target: str = Field(min_length=1)
     type: EdgeType
-    description: str = "unknown"
-    protocol: str = "unknown"
-    authentication: str = "unknown"
-    authorization: str = "unknown"
+    description: str = Field(default="unknown", min_length=1)
+    protocol: str = Field(default="unknown", min_length=1)
+    authentication: str = Field(default="unknown", min_length=1)
+    authorization: str = Field(default="unknown", min_length=1)
     data_assets: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
     evidence: list[Evidence] = Field(default_factory=list)
@@ -99,10 +99,10 @@ class SystemModel(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    schema_version: str = "0.1"
-    id: str = "system"
-    name: str = "unknown"
-    description: str = "unknown"
+    schema_version: str = Field(default="0.1", min_length=1)
+    id: str = Field(default="system", min_length=1)
+    name: str = Field(default="unknown", min_length=1)
+    description: str = Field(default="unknown", min_length=1)
     nodes: list[Node] = Field(default_factory=list)
     edges: list[Edge] = Field(default_factory=list)
     unknowns: list[Unknown] = Field(default_factory=list)
@@ -114,12 +114,15 @@ class SystemModel(BaseModel):
 
         node_ids = {node.id for node in self.nodes}
         edge_ids = {edge.id for edge in self.edges}
+        unknown_ids = {unknown.id for unknown in self.unknowns}
         all_ids = node_ids | edge_ids
 
         if len(node_ids) != len(self.nodes):
             raise ValueError("system model contains duplicate node ids")
         if len(edge_ids) != len(self.edges):
             raise ValueError("system model contains duplicate edge ids")
+        if len(unknown_ids) != len(self.unknowns):
+            raise ValueError("system model contains duplicate unknown ids")
 
         for node in self.nodes:
             if node.trust_boundary_id and node.trust_boundary_id not in node_ids:

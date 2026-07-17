@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable, Iterator, Mapping
+from json import JSONDecodeError
 from pathlib import Path
 from typing import Any
 
 import yaml
+from yaml import YAMLError
 
+from threatmodel_ai.errors import InputFormatError
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import (
     Edge,
@@ -29,7 +32,23 @@ def extract_openapi(path: Path) -> SystemModel:
 
     document = _load_document(path)
     if not isinstance(document, Mapping):
-        raise ValueError(f"{path} does not contain an OpenAPI object")
+        raise InputFormatError(
+            f"OpenAPI input must be a YAML or JSON object: {path}",
+            detail=f"Found {type(document).__name__}.",
+            hint="Provide an OpenAPI/Swagger document with top-level info and paths fields.",
+        )
+    if "openapi" not in document and "swagger" not in document:
+        raise InputFormatError(
+            f"OpenAPI input is missing a version field: {path}",
+            detail="Expected a top-level 'openapi' or 'swagger' field.",
+            hint="Check that --openapi points to an OpenAPI/Swagger file.",
+        )
+    if not isinstance(document.get("paths"), Mapping):
+        raise InputFormatError(
+            f"OpenAPI input is missing a paths object: {path}",
+            detail="Expected top-level 'paths' to be a mapping of API paths.",
+            hint="Add a paths object or pass the correct OpenAPI/Swagger file.",
+        )
 
     info = _mapping(document.get("info"))
     title = str(info.get("title") or path.stem)
@@ -191,9 +210,22 @@ def method_upper(method: str) -> str:
 
 def _load_document(path: Path) -> Any:
     raw = path.read_text(encoding="utf-8")
-    if path.suffix.lower() == ".json":
-        return json.loads(raw)
-    return yaml.safe_load(raw)
+    try:
+        if path.suffix.lower() == ".json":
+            return json.loads(raw)
+        return yaml.safe_load(raw)
+    except JSONDecodeError as exc:
+        raise InputFormatError(
+            f"OpenAPI input is invalid JSON: {path}",
+            detail=f"Line {exc.lineno}, column {exc.colno}: {exc.msg}.",
+            hint="Fix the JSON syntax or pass a valid OpenAPI YAML/JSON file.",
+        ) from exc
+    except YAMLError as exc:
+        raise InputFormatError(
+            f"OpenAPI input is invalid YAML: {path}",
+            detail=str(exc),
+            hint="Fix the YAML syntax or pass a valid OpenAPI YAML/JSON file.",
+        ) from exc
 
 
 def _mapping(value: Any) -> Mapping[str, Any]:

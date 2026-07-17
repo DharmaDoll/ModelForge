@@ -7,6 +7,7 @@ from pathlib import Path
 
 from threatmodel_ai.attack import generate_attack_findings
 from threatmodel_ai.dfd import render_mermaid
+from threatmodel_ai.errors import AnalysisInputError
 from threatmodel_ai.extract import extract_openapi, extract_readme, extract_terraform
 from threatmodel_ai.ingest import AnalysisInputs
 from threatmodel_ai.model.io import write_system_model
@@ -44,8 +45,13 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
     if inputs.terraform:
         models.append(extract_terraform(inputs.terraform))
     if not models:
-        raise ValueError(
-            "No supported input files were found. Provide README, OpenAPI, or Terraform."
+        raise AnalysisInputError(
+            f"No supported input files were found under {inputs.target}.",
+            detail="ModelForge needs at least one README, OpenAPI/Swagger, or Terraform input.",
+            hint=(
+                "Add README.md, openapi.yaml, swagger.yaml, or .tf files under the target, "
+                "or pass --readme, --openapi, or --terraform explicitly."
+            ),
         )
 
     model = merge_system_models(models)

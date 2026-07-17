@@ -8,8 +8,9 @@ This document defines the actionable implementation tasks for ModelForge, focusi
 - **Objective**: Establish a fail-safe analytical pipeline that suppresses LLM hallucinations while deterministically validating known STRIDE patterns.
 - **Requirements**:
   1. **Frontend Processing**: Implement a deterministic topology analysis layer utilizing `NetworkX` or similar libraries to parse Data Flow Diagrams (DFDs). It must automatically flag foundational STRIDE threats based on element types (Processes, Data Stores, Trust Boundaries, External Entities).
-  2. **Context Enrichment**: Feed the output of the static rule engine as pre-established context into the LLM backend. The LLM should strictly focus on refining and contextualizing advanced threat scenarios based on attributes like Internet exposure or data classification.
-  3. **Human-in-the-Loop (HITL)**: Define a structured JSON schema output that seamlessly enables a security engineer UI to "Approve," "Reject," or "Modify" generated threats.
+  2. **ATT&CK Mapping**: Generate MITRE ATT&CK Enterprise technique candidates from the same intermediate model without replacing STRIDE. ATT&CK findings must link back to model evidence and affected graph elements.
+  3. **Context Enrichment**: Feed the output of the static rule engine as pre-established context into the LLM backend. The LLM should strictly focus on refining and contextualizing advanced threat scenarios based on attributes like Internet exposure or data classification.
+  4. **Human-in-the-Loop (HITL)**: Define a structured JSON schema output that seamlessly enables a security engineer UI to "Approve," "Reject," or "Modify" generated threats.
 
 ## Task 2: Data Privacy & Anonymization Guard
 - **Objective**: Anonymize sensitive assets in source code or Infrastructure-as-Code (IaC) configuration files prior to external LLM API transit to prevent data leakage.

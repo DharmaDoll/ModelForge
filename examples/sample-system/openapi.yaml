@@ -1,0 +1,56 @@
+openapi: 3.0.3
+info:
+  title: Sample Payments API
+  description: REST API for creating and reading payments.
+servers:
+  - url: https://api.example.test
+security:
+  - ApiKeyAuth: []
+paths:
+  /payments:
+    post:
+      summary: Create a payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+  /payments/{paymentId}:
+    get:
+      summary: Read a payment
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    PaymentRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string

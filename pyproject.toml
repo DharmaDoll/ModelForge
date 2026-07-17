@@ -1,0 +1,40 @@
+[project]
+name = "model-forge"
+version = "0.1.0"
+description = "AI-native threat modeling from structured system models."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "ModelForge contributors" }]
+dependencies = [
+  "pydantic>=2.8,<3",
+  "pyyaml>=6.0,<7",
+  "typer>=0.12,<1",
+]
+
+[project.scripts]
+tm-ai = "threatmodel_ai.cli.app:app"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2,<9",
+  "ruff>=0.6,<1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["threatmodel_ai"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

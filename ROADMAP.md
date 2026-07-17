@@ -41,6 +41,23 @@ system_model.json
 threats.md
 ```
 
+## Phase 3.5: MITRE ATT&CK Mapping
+
+* Generate deterministic MITRE ATT&CK Enterprise technique candidates
+* Keep ATT&CK mappings separate from STRIDE categories
+* Map candidates to model evidence, affected nodes, and affected edges
+* Start with public entrypoints, authenticated surfaces, insecure transport,
+  storage mutation paths, and modeled secrets
+* Keep technique catalog data curated and version-reviewable
+
+Goal:
+
+```text
+system_model.json
+  ↓
+attack.md
+```
+
 ## Phase 4: Missing Questions
 
 * Detect missing authentication info
@@ -295,4 +312,3 @@ Ultimately, every artifact that contains architectural knowledge should become a
 Regardless of whether the information originates from source code, cloud infrastructure, documentation, diagrams, or human conversation, the system should normalize all inputs into the same intermediate representation (`system_model.json`).
 
 This unified representation enables deterministic DFD generation, STRIDE analysis, continuous threat modeling, and future AI-assisted security workflows.
-

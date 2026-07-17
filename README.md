@@ -1,25 +1,59 @@
 # ModelForge
-`Forge system understanding. Automate threat modeling.`  
 
-ModelForge is an AI-native platform that transforms code, cloud infrastructure,
-architecture diagrams, documents, and natural language into a unified system model.
+Forge system understanding. Automate threat modeling.
 
-From this model, it automatically generates DFDs, applies STRIDE-based threat analysis,
-identifies missing information, and produces review-ready threat modeling artifacts.
+ModelForge creates a first-draft threat model from repository artifacts. It reads
+README, OpenAPI, and Terraform files, builds a structured `system_model.json`, then
+generates DFD, STRIDE, MITRE ATT&CK, and clarification-question reports.
 
-## threatmodel-ai
+The current MVP is deterministic and does not call external LLM APIs. No API key is
+required.
 
-AI-assisted threat modeling tool.
+## Quick Start
 
-This tool generates a reviewable threat modeling draft from repository inputs.
+Requirements:
 
-## MVP Inputs
+* Python 3.12+
+* `uv`
 
-* README
-* OpenAPI
-* Terraform
+Run the sample project:
 
-## MVP Outputs
+```bash
+git clone https://github.com/DharmaDoll/ModelForge.git
+cd ModelForge
+uv run tm-ai analyze ./examples/sample-system --out ./out
+```
+
+The generated files will be in `./out`.
+
+## Analyze Your Own Project
+
+If your project uses common filenames, ModelForge can auto-discover inputs:
+
+```bash
+uv run tm-ai analyze /path/to/your/project --out ./out
+```
+
+Auto-discovery looks for:
+
+* `README.md` or `readme.md` in the project root
+* `openapi.yaml`, `openapi.yml`, `openapi.json`, `swagger.yaml`, `swagger.yml`, or
+  `swagger.json` in the project root
+* `*.tf` Terraform files recursively, excluding `.terraform`
+
+You can also pass files explicitly:
+
+```bash
+uv run tm-ai analyze /path/to/your/project \
+  --readme /path/to/your/project/README.md \
+  --openapi /path/to/your/project/openapi.yaml \
+  --terraform /path/to/your/project/main.tf \
+  --out ./out
+```
+
+Use `--terraform` more than once when a project has multiple Terraform files.
+
+## Output Files
 
 * `system_model.json`
 * `dfd.mmd`
@@ -27,29 +61,24 @@ This tool generates a reviewable threat modeling draft from repository inputs.
 * `attack.md`
 * `questions.md`
 
-## Usage
+What they mean:
 
-```bash
-tm-ai analyze ./examples/sample-system \
-  --readme ./examples/sample-system/README.md \
-  --openapi ./examples/sample-system/openapi.yaml \
-  --terraform ./examples/sample-system/main.tf \
-  --out ./out
-```
+* `system_model.json` - the structured intermediate model and source of truth
+* `dfd.mmd` - Mermaid data-flow diagram
+* `threats.md` - deterministic STRIDE threat candidates
+* `attack.md` - deterministic MITRE ATT&CK technique candidates
+* `questions.md` - missing information to ask reviewers or system owners
 
-The command writes:
+## Review Workflow
 
-* `out/system_model.json`
-* `out/dfd.mmd`
-* `out/threats.md` - STRIDE threat candidates
-* `out/attack.md` - MITRE ATT&CK technique candidates
-* `out/questions.md`
+1. Run `tm-ai analyze`.
+2. Review `out/system_model.json` first. It should not contain invented architecture.
+3. Open `out/dfd.mmd` in a Mermaid viewer.
+4. Review `out/threats.md`, `out/attack.md`, and `out/questions.md`.
+5. Answer the questions or improve the input files, then run the command again.
 
-Input paths are optional when files use the default names under the target directory:
-
-```bash
-tm-ai analyze ./examples/sample-system --out ./out
-```
+Unknown information is expected. ModelForge records it as questions instead of
+guessing.
 
 ## Development
 
@@ -58,6 +87,17 @@ uv run pytest
 uv run ruff check .
 uv run tm-ai analyze ./examples/sample-system --out ./out
 ```
+
+## Supported Inputs
+
+The MVP supports:
+
+* README
+* OpenAPI / Swagger
+* Terraform
+
+Future versions may add Kubernetes, cloud inventory, CI/CD, source-code, SBOM, and
+runtime telemetry ingestion.
 
 ## Package Layout
 
@@ -76,9 +116,7 @@ threatmodel_ai/
 
 ## Design Philosophy
 
-The LLM is not the source of truth.
-
-The source of truth is the intermediate model:
+The LLM is not the source of truth. The source of truth is the intermediate model:
 
 ```text
 Input Files
@@ -96,11 +134,7 @@ LLM Refinement
 Reports
 ```
 
-## MVP Scope
-
-The MVP should work without an LLM.
-
-LLM usage is optional and should only be used for:
+LLM usage, when added, must be optional and limited to:
 
 * extracting structure from unstructured text
 * improving wording
@@ -110,8 +144,6 @@ LLM usage is optional and should only be used for:
 ## Security Note
 
 This tool may process sensitive architecture and source-code information.
-
-External LLM calls must be disabled by default.
 
 The current MVP does not call external LLM APIs.
 

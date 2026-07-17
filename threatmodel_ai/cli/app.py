@@ -49,7 +49,7 @@ def analyze(
         typer.Option("--out", "-o", help="Output directory for generated artifacts."),
     ] = Path("out"),
 ) -> None:
-    """Analyze inputs and write system_model.json, dfd.mmd, threats.md, and questions.md."""
+    """Analyze inputs and write deterministic threat modeling artifacts."""
 
     try:
         inputs = discover_inputs(
@@ -84,6 +84,7 @@ def analyze(
     typer.echo(f"Wrote {result.dfd_path}")
     typer.echo(f"Wrote {result.threats_path}")
     typer.echo(f"Wrote {result.attack_path}")
+    typer.echo(f"Wrote {result.risk_path}")
     typer.echo(f"Wrote {result.questions_path}")
 
 

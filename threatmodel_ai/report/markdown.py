@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from threatmodel_ai.attack.models import AttackFinding
 from threatmodel_ai.questions.generator import Question
+from threatmodel_ai.risk.models import RiskFinding
 from threatmodel_ai.stride.models import Threat
 
 
@@ -118,6 +119,60 @@ def render_threats_markdown(threats: list[Threat]) -> str:
     return "\n".join(lines)
 
 
+def render_risks_markdown(risks: list[RiskFinding]) -> str:
+    """Render deterministic risk priorities as review-ready Markdown."""
+
+    lines = [
+        "# Risk Priorities",
+        "",
+        "Generated deterministically from `system_model.json`, STRIDE candidates, "
+        "and MITRE ATT&CK candidates.",
+        "",
+        f"Total risk findings: {len(risks)}",
+        "",
+    ]
+    if not risks:
+        lines.extend(["No deterministic risk priorities were generated.", ""])
+        return "\n".join(lines)
+
+    lines.extend(
+        [
+            "| ID | Rating | Score | Title |",
+            "| --- | --- | --- | --- |",
+        ]
+    )
+    for risk in risks:
+        lines.append(
+            f"| `{risk.id}` | {risk.rating.value} | {risk.score} | "
+            f"{_escape_table(risk.title)} |"
+        )
+    lines.append("")
+
+    for risk in risks:
+        lines.extend(
+            [
+                f"## {risk.title}",
+                "",
+                f"- ID: `{risk.id}`",
+                f"- Rating: {risk.rating.value}",
+                f"- Score: {risk.score}",
+                f"- Status: {risk.status}",
+                "- Affected elements: "
+                f"{', '.join(f'`{item}`' for item in risk.affected_elements)}",
+                "- Related STRIDE threats: "
+                f"{_format_optional_ids(risk.related_threats)}",
+                "- Related ATT&CK findings: "
+                f"{_format_optional_ids(risk.related_attack_findings)}",
+                "",
+                "Rationale:",
+                "",
+            ]
+        )
+        lines.extend(f"- {item}" for item in risk.rationale)
+        lines.append("")
+    return "\n".join(lines)
+
+
 def render_questions_markdown(questions: list[Question]) -> str:
     """Render clarification questions as Markdown."""
 
@@ -164,3 +219,7 @@ def render_questions_markdown(questions: list[Question]) -> str:
 
 def _escape_table(value: str) -> str:
     return value.replace("|", "\\|").replace("\n", " ")
+
+
+def _format_optional_ids(values: list[str]) -> str:
+    return ", ".join(f"`{item}`" for item in values) if values else "none"

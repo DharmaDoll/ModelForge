@@ -4,7 +4,7 @@ Forge system understanding. Automate threat modeling.
 
 ModelForge creates a first-draft threat model from repository artifacts. It reads
 README, OpenAPI, and Terraform files, builds a structured `system_model.json`, then
-generates DFD, STRIDE, MITRE ATT&CK, and clarification-question reports.
+generates DFD, STRIDE, MITRE ATT&CK, risk-priority, and clarification-question reports.
 
 The current MVP is deterministic and does not call external LLM APIs. No API key is
 required.
@@ -59,6 +59,7 @@ Use `--terraform` more than once when a project has multiple Terraform files.
 * `dfd.mmd`
 * `threats.md`
 * `attack.md`
+* `risk.md`
 * `questions.md`
 
 What they mean:
@@ -67,6 +68,7 @@ What they mean:
 * `dfd.mmd` - Mermaid data-flow diagram
 * `threats.md` - deterministic STRIDE threat candidates
 * `attack.md` - deterministic MITRE ATT&CK technique candidates
+* `risk.md` - deterministic High / Medium / Low review priorities
 * `questions.md` - missing information to ask reviewers or system owners
 
 ## Review Workflow
@@ -74,7 +76,7 @@ What they mean:
 1. Run `tm-ai analyze`.
 2. Review `out/system_model.json` first. It should not contain invented architecture.
 3. Open `out/dfd.mmd` in a Mermaid viewer.
-4. Review `out/threats.md`, `out/attack.md`, and `out/questions.md`.
+4. Review `out/risk.md`, then `out/threats.md`, `out/attack.md`, and `out/questions.md`.
 5. Answer the questions or improve the input files, then run the command again.
 
 Unknown information is expected. ModelForge records it as questions instead of
@@ -118,6 +120,7 @@ threatmodel_ai/
   dfd/          Mermaid DFD renderer
   stride/       deterministic STRIDE rule engine
   attack/       deterministic MITRE ATT&CK technique mapping
+  risk/         deterministic risk scoring
   questions/    clarification question generator
   report/       Markdown report renderers
   cli/          Typer CLI
@@ -156,13 +159,14 @@ This tool may process sensitive architecture and source-code information.
 
 The current MVP does not call external LLM APIs.
 
-## Threat Frameworks
+## Threat Analysis
 
-ModelForge currently generates two deterministic threat-analysis views from the
+ModelForge currently generates deterministic threat-analysis views from the
 same `system_model.json`:
 
 * STRIDE candidates in `threats.md`
 * MITRE ATT&CK Enterprise technique candidates in `attack.md`
+* High / Medium / Low review priorities in `risk.md`
 
 ATT&CK mappings are intentionally conservative. They describe plausible TTP
 candidates implied by the modeled topology, not proof that an attack occurred.

@@ -17,8 +17,10 @@ from threatmodel_ai.questions import generate_questions
 from threatmodel_ai.report import (
     render_attack_markdown,
     render_questions_markdown,
+    render_risks_markdown,
     render_threats_markdown,
 )
+from threatmodel_ai.risk import score_risks
 from threatmodel_ai.stride import generate_threats
 
 
@@ -31,6 +33,7 @@ class AnalysisResult:
     dfd_path: Path
     threats_path: Path
     attack_path: Path
+    risk_path: Path
     questions_path: Path
 
 
@@ -57,6 +60,7 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
     model = merge_system_models(models)
     threats = generate_threats(model)
     attack_findings = generate_attack_findings(model)
+    risks = score_risks(model, threats, attack_findings)
     questions = generate_questions(model)
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -64,12 +68,14 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
     dfd_path = out_dir / "dfd.mmd"
     threats_path = out_dir / "threats.md"
     attack_path = out_dir / "attack.md"
+    risk_path = out_dir / "risk.md"
     questions_path = out_dir / "questions.md"
 
     write_system_model(model, system_model_path)
     dfd_path.write_text(render_mermaid(model), encoding="utf-8")
     threats_path.write_text(render_threats_markdown(threats), encoding="utf-8")
     attack_path.write_text(render_attack_markdown(attack_findings), encoding="utf-8")
+    risk_path.write_text(render_risks_markdown(risks), encoding="utf-8")
     questions_path.write_text(render_questions_markdown(questions), encoding="utf-8")
 
     return AnalysisResult(
@@ -78,5 +84,6 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
         dfd_path=dfd_path,
         threats_path=threats_path,
         attack_path=attack_path,
+        risk_path=risk_path,
         questions_path=questions_path,
     )

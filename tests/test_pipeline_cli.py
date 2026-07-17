@@ -14,6 +14,7 @@ FIXTURE = Path(__file__).parent / "fixtures" / "sample-system"
 def test_pipeline_writes_all_mvp_artifacts(tmp_path: Path) -> None:
     inputs = discover_inputs(FIXTURE)
     result = analyze_project(inputs, tmp_path)
+    model = read_system_model(result.system_model_path)
 
     assert result.system_model_path.exists()
     assert result.dfd_path.exists()
@@ -21,7 +22,8 @@ def test_pipeline_writes_all_mvp_artifacts(tmp_path: Path) -> None:
     assert result.attack_path.exists()
     assert result.risk_path.exists()
     assert result.questions_path.exists()
-    assert read_system_model(result.system_model_path).nodes
+    assert model.nodes
+    assert any(node.name == "Payments Gateway" for node in model.nodes)
     assert "flowchart LR" in result.dfd_path.read_text(encoding="utf-8")
     assert "Spoofing" in result.threats_path.read_text(encoding="utf-8")
     assert "MITRE ATT&CK" in result.attack_path.read_text(encoding="utf-8")
@@ -41,6 +43,34 @@ def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "attack.md").exists()
     assert (tmp_path / "risk.md").exists()
     assert (tmp_path / "questions.md").exists()
+
+
+def test_cli_accepts_explicit_markdown_doc_with_mermaid(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    doc = project / "architecture.md"
+    doc.write_text(
+        "\n".join(
+            [
+                "```mermaid",
+                "flowchart LR",
+                '  Client["Client"] -->|gRPC| Api["API"]',
+                "```",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        ["analyze", str(project), "--doc", str(doc), "--out", str(tmp_path / "out")],
+    )
+
+    assert result.exit_code == 0, result.output
+    model = read_system_model(tmp_path / "out" / "system_model.json")
+    assert any(node.name == "API" for node in model.nodes)
+    assert any(edge.protocol == "gRPC" for edge in model.edges)
 
 
 def test_cli_reports_missing_supported_inputs(tmp_path: Path) -> None:

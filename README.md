@@ -3,8 +3,9 @@
 Forge system understanding. Automate threat modeling.
 
 ModelForge creates a first-draft threat model from repository artifacts. It reads
-README, OpenAPI, and Terraform files, builds a structured `system_model.json`, then
-generates DFD, STRIDE, MITRE ATT&CK, risk-priority, and clarification-question reports.
+README, Markdown docs with Mermaid diagrams, OpenAPI, and Terraform files, builds a
+structured `system_model.json`, then generates DFD, STRIDE, MITRE ATT&CK,
+risk-priority, and clarification-question reports.
 
 The current MVP is deterministic and does not call external LLM APIs. No API key is
 required.
@@ -37,6 +38,7 @@ uv run tm-ai analyze /path/to/your/project --out ./out
 Auto-discovery looks for:
 
 * `README.md` or `readme.md` in the project root
+* Markdown docs with Mermaid fenced blocks under the project tree
 * `openapi.yaml`, `openapi.yml`, `openapi.json`, `swagger.yaml`, `swagger.yml`, or
   `swagger.json` in the project root
 * `*.tf` Terraform files recursively, excluding `.terraform`
@@ -46,12 +48,14 @@ You can also pass files explicitly:
 ```bash
 uv run tm-ai analyze /path/to/your/project \
   --readme /path/to/your/project/README.md \
+  --doc /path/to/your/project/docs/architecture.md \
   --openapi /path/to/your/project/openapi.yaml \
   --terraform /path/to/your/project/main.tf \
   --out ./out
 ```
 
 Use `--terraform` more than once when a project has multiple Terraform files.
+Use `--doc` more than once when a project has multiple Markdown architecture docs.
 
 ## Output Files
 
@@ -104,6 +108,7 @@ them only when generated artifact changes are intentional.
 The MVP supports:
 
 * README
+* Markdown docs with Mermaid `flowchart` or `graph` fenced blocks
 * OpenAPI / Swagger
 * Terraform
 
@@ -114,8 +119,8 @@ runtime telemetry ingestion.
 
 ```text
 threatmodel_ai/
-  ingest/      input discovery for README, OpenAPI, and Terraform
-  extract/      README, OpenAPI, and Terraform extractors
+  ingest/      input discovery for README, Markdown docs, OpenAPI, and Terraform
+  extract/      README, Mermaid, OpenAPI, and Terraform extractors
   model/        Pydantic intermediate model, ids, merge, IO
   dfd/          Mermaid DFD renderer
   stride/       deterministic STRIDE rule engine

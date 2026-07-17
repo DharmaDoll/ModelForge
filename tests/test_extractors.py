@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from threatmodel_ai.extract import extract_openapi, extract_readme, extract_terraform
+from threatmodel_ai.extract import (
+    extract_mermaid_markdown,
+    extract_openapi,
+    extract_readme,
+    extract_terraform,
+)
 from threatmodel_ai.model.schema import EdgeType, NodeType
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample-system"
@@ -45,3 +50,43 @@ def test_terraform_extractor_maps_resources_and_dependencies() -> None:
     assert any(node.type == NodeType.TRUST_BOUNDARY for node in model.nodes)
     assert any(node.type == NodeType.ACTOR and node.name == "Internet" for node in model.nodes)
     assert any(edge.type == EdgeType.STORES for edge in model.edges)
+
+
+def test_mermaid_extractor_reads_markdown_flowcharts() -> None:
+    model = extract_mermaid_markdown(FIXTURE / "docs" / "architecture.md")
+
+    assert any(
+        node.type == NodeType.COMPONENT
+        and node.name == "Web Client"
+        and node.metadata["source_format"] == "mermaid"
+        for node in model.nodes
+    )
+    assert any(
+        edge.type == EdgeType.COMMUNICATES_WITH
+        and edge.protocol == "HTTPS"
+        and edge.metadata["mermaid_label"] == "HTTPS"
+        for edge in model.edges
+    )
+    assert any(unknown.category == "authentication" for unknown in model.unknowns)
+    assert any(unknown.category == "protocol" for unknown in model.unknowns)
+
+
+def test_mermaid_extractor_reads_bare_edges(tmp_path: Path) -> None:
+    markdown = tmp_path / "architecture.md"
+    markdown.write_text(
+        "\n".join(
+            [
+                "```mermaid",
+                "graph LR",
+                "  A --> B",
+                "```",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    model = extract_mermaid_markdown(markdown)
+
+    assert {node.name for node in model.nodes} == {"A", "B"}
+    assert len(model.edges) == 1
+    assert model.edges[0].protocol == "unknown"

@@ -44,6 +44,10 @@ def analyze(
         list[Path] | None,
         typer.Option("--terraform", "-t", help="Terraform .tf file. Repeat for multiple files."),
     ] = None,
+    doc: Annotated[
+        list[Path] | None,
+        typer.Option("--doc", "-d", help="Markdown doc to scan for Mermaid. Repeatable."),
+    ] = None,
     out: Annotated[
         Path,
         typer.Option("--out", "-o", help="Output directory for generated artifacts."),
@@ -57,6 +61,7 @@ def analyze(
             readme=readme,
             openapi=openapi,
             terraform=tuple(terraform) if terraform else None,
+            docs=tuple(doc) if doc else None,
         )
         result = analyze_project(inputs, out)
     except ModelForgeError as exc:
@@ -66,7 +71,7 @@ def analyze(
         _echo_error(
             "Input file was not found.",
             detail=str(exc),
-            hint="Check the path passed to --readme, --openapi, or --terraform.",
+            hint="Check the path passed to --readme, --doc, --openapi, or --terraform.",
         )
         raise typer.Exit(code=1) from exc
     except ValidationError as exc:

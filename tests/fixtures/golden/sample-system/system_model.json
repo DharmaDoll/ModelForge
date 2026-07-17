@@ -66,6 +66,75 @@
     {
       "authentication": "unknown",
       "authorization": "unknown",
+      "data_assets": [],
+      "description": "Mermaid flow from Web Client to Payments Gateway: HTTPS.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "edge:component-mermaid-client:component-mermaid-gateway:mermaid",
+      "metadata": {
+        "mermaid_arrow": "-->",
+        "mermaid_label": "HTTPS",
+        "source_format": "mermaid"
+      },
+      "protocol": "HTTPS",
+      "source": "component:mermaid:client",
+      "target": "component:mermaid:gateway",
+      "type": "communicates_with"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Mermaid flow from Gateway to Payment Processor.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 3",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid",
+      "metadata": {
+        "mermaid_arrow": "-->",
+        "mermaid_label": "",
+        "source_format": "mermaid"
+      },
+      "protocol": "unknown",
+      "source": "component:mermaid:gateway",
+      "target": "component:mermaid:processor",
+      "type": "communicates_with"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Mermaid flow from Processor to Payment Store.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 4",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "edge:component-mermaid-processor:component-mermaid-store:mermaid",
+      "metadata": {
+        "mermaid_arrow": "-->",
+        "mermaid_label": "",
+        "source_format": "mermaid"
+      },
+      "protocol": "unknown",
+      "source": "component:mermaid:processor",
+      "target": "component:mermaid:store",
+      "type": "communicates_with"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
       "data_assets": [
         "data-asset:openapi:payment"
       ],
@@ -172,6 +241,9 @@
     "mentions_logging": false,
     "mentions_monitoring": false,
     "mentions_rate_limiting": false,
+    "mermaid_files": [
+      "tests/fixtures/sample-system/docs/architecture.md"
+    ],
     "openapi_path": "tests/fixtures/sample-system/openapi.yaml",
     "openapi_version": "3.0.3",
     "readme_path": "tests/fixtures/sample-system/README.md",
@@ -250,6 +322,84 @@
       "metadata": {},
       "name": "POST /payments",
       "type": "api"
+    },
+    {
+      "description": "Mermaid node Client.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "component:mermaid:client",
+      "metadata": {
+        "mermaid_alias": "Client",
+        "source_format": "mermaid"
+      },
+      "name": "Web Client",
+      "type": "component"
+    },
+    {
+      "description": "Mermaid node Gateway.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        },
+        {
+          "detail": "mermaid block 1, line 3",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "component:mermaid:gateway",
+      "metadata": {
+        "mermaid_alias": "Gateway",
+        "source_format": "mermaid"
+      },
+      "name": "Payments Gateway",
+      "type": "component"
+    },
+    {
+      "description": "Mermaid node Processor.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 3",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        },
+        {
+          "detail": "mermaid block 1, line 4",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "component:mermaid:processor",
+      "metadata": {
+        "mermaid_alias": "Processor",
+        "source_format": "mermaid"
+      },
+      "name": "Payment Processor",
+      "type": "component"
+    },
+    {
+      "description": "Mermaid node Store.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 4",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "component:mermaid:store",
+      "metadata": {
+        "mermaid_alias": "Store",
+        "source_format": "mermaid"
+      },
+      "name": "Payment Store",
+      "type": "component"
     },
     {
       "description": "REST API for creating and reading payments.",
@@ -429,6 +579,94 @@
   ],
   "schema_version": "0.1",
   "unknowns": [
+    {
+      "category": "authentication",
+      "description": "Authentication for Mermaid flow Web Client to Payments Gateway is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 2",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-client-component-mermaid-gateway-mermaid:authentication",
+      "related_element_id": "edge:component-mermaid-client:component-mermaid-gateway:mermaid"
+    },
+    {
+      "category": "authorization",
+      "description": "Authorization for Mermaid flow Web Client to Payments Gateway is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 2",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-client-component-mermaid-gateway-mermaid:authorization",
+      "related_element_id": "edge:component-mermaid-client:component-mermaid-gateway:mermaid"
+    },
+    {
+      "category": "authentication",
+      "description": "Authentication for Mermaid flow Gateway to Payment Processor is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 3",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authentication",
+      "related_element_id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid"
+    },
+    {
+      "category": "authorization",
+      "description": "Authorization for Mermaid flow Gateway to Payment Processor is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 3",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authorization",
+      "related_element_id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid"
+    },
+    {
+      "category": "protocol",
+      "description": "Protocol for Mermaid flow Gateway to Payment Processor is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 3",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:protocol",
+      "related_element_id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid"
+    },
+    {
+      "category": "authentication",
+      "description": "Authentication for Mermaid flow Processor to Payment Store is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 4",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authentication",
+      "related_element_id": "edge:component-mermaid-processor:component-mermaid-store:mermaid"
+    },
+    {
+      "category": "authorization",
+      "description": "Authorization for Mermaid flow Processor to Payment Store is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 4",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authorization",
+      "related_element_id": "edge:component-mermaid-processor:component-mermaid-store:mermaid"
+    },
+    {
+      "category": "protocol",
+      "description": "Protocol for Mermaid flow Processor to Payment Store is unknown.",
+      "evidence": {
+        "detail": "mermaid block 1, line 4",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_type": "markdown"
+      },
+      "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:protocol",
+      "related_element_id": "edge:component-mermaid-processor:component-mermaid-store:mermaid"
+    },
     {
       "category": "authorization",
       "description": "Authorization requirements for GET /payments/{paymentId} are not specified.",

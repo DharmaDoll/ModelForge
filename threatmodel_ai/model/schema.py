@@ -12,6 +12,7 @@ class SourceType(StrEnum):
     """Supported MVP input source types."""
 
     README = "readme"
+    MARKDOWN = "markdown"
     OPENAPI = "openapi"
     TERRAFORM = "terraform"
     DERIVED = "derived"

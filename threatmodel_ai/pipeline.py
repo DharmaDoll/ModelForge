@@ -8,7 +8,12 @@ from pathlib import Path
 from threatmodel_ai.attack import generate_attack_findings
 from threatmodel_ai.dfd import render_mermaid
 from threatmodel_ai.errors import AnalysisInputError
-from threatmodel_ai.extract import extract_openapi, extract_readme, extract_terraform
+from threatmodel_ai.extract import (
+    extract_mermaid_markdown,
+    extract_openapi,
+    extract_readme,
+    extract_terraform,
+)
 from threatmodel_ai.ingest import AnalysisInputs
 from threatmodel_ai.model.io import write_system_model
 from threatmodel_ai.model.merge import merge_system_models
@@ -43,6 +48,10 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
     models: list[SystemModel] = []
     if inputs.readme:
         models.append(extract_readme(inputs.readme))
+    for markdown_path in _markdown_paths(inputs):
+        mermaid_model = extract_mermaid_markdown(markdown_path)
+        if mermaid_model.nodes or mermaid_model.edges:
+            models.append(mermaid_model)
     if inputs.openapi:
         models.append(extract_openapi(inputs.openapi))
     if inputs.terraform:
@@ -52,8 +61,9 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
             f"No supported input files were found under {inputs.target}.",
             detail="ModelForge needs at least one README, OpenAPI/Swagger, or Terraform input.",
             hint=(
-                "Add README.md, openapi.yaml, swagger.yaml, or .tf files under the target, "
-                "or pass --readme, --openapi, or --terraform explicitly."
+                "Add README.md, Markdown docs with Mermaid, openapi.yaml, swagger.yaml, "
+                "or .tf files under the target, or pass --readme, --doc, --openapi, "
+                "or --terraform explicitly."
             ),
         )
 
@@ -87,3 +97,12 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
         risk_path=risk_path,
         questions_path=questions_path,
     )
+
+
+def _markdown_paths(inputs: AnalysisInputs) -> tuple[Path, ...]:
+    paths: dict[Path, Path] = {}
+    if inputs.readme:
+        paths[inputs.readme.resolve()] = inputs.readme
+    for path in inputs.docs:
+        paths[path.resolve()] = path
+    return tuple(paths[key] for key in sorted(paths))

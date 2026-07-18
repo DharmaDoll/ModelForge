@@ -75,6 +75,9 @@ What they mean:
 * `risk.md` - deterministic High / Medium / Low review priorities
 * `questions.md` - missing information to ask reviewers or system owners
 
+Mermaid node types are inferred only from explicit label or alias keywords. Ambiguous
+or unsupported Mermaid nodes remain `component`.
+
 ## Review Workflow
 
 1. Run `tm-ai analyze`.

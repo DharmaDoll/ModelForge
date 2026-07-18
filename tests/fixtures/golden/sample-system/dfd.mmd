@@ -6,6 +6,7 @@ flowchart LR
   n_f238dbc2fb(["API Client\n(actor)"])
   n_3d72efd63f(["Customer\n(actor)"])
   n_40ff02c3aa(["Internet\n(actor)"])
+  n_f5a5bcaa64(["Web Client\n(actor)"])
   n_8380f54a1c["GET /payments/{paymentId}\n(api)"]
   n_9cd32496f4["POST /payments\n(api)"]
   n_8fbd39c839["Payment Processor\n(component)"]
@@ -14,16 +15,15 @@ flowchart LR
   n_18b953a710["Payments Gateway\n(component)"]
   n_c07feb1b52["Sample Payments API\n(component)"]
   n_ed1588d808["Sample Payments API\n(component)"]
-  n_e335f2f307["Web Client\n(component)"]
   n_40b4a18fad["payments-public-lb\n(component)"]
   n_f14744ba15[("Payment\n(data_asset)")]
   n_6daccfe197[("PaymentRequest\n(data_asset)")]
   n_6fac5d208b[("Payments DB\n(database)")]
   n_7d5776cd37[("payments-db\n(database)")]
+  n_f5a5bcaa64 -->|"communicates_with / HTTPS"| n_18b953a710
   n_f238dbc2fb -->|"communicates_with / HTTPS"| n_8380f54a1c
   n_f238dbc2fb -->|"communicates_with / HTTPS"| n_9cd32496f4
   n_40ff02c3aa -->|"communicates_with"| n_40b4a18fad
-  n_e335f2f307 -->|"communicates_with / HTTPS"| n_18b953a710
   n_18b953a710 -->|"communicates_with"| n_8fbd39c839
   n_8fbd39c839 -->|"communicates_with"| n_90805b71d3
   n_8380f54a1c -->|"invokes"| n_c07feb1b52

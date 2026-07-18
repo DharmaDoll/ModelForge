@@ -2,13 +2,14 @@
 
 Generated deterministically from `system_model.json`, STRIDE candidates, and MITRE ATT&CK candidates.
 
-Total risk findings: 4
+Total risk findings: 5
 
 | ID | Rating | Score | Title |
 | --- | --- | --- | --- |
 | `risk:entrypoint:edge-actor-openapi-api-client-api-get-payments-paymentid-request` | High | 8 | Review priority for GET /payments/{paymentId} entry point |
 | `risk:entrypoint:edge-actor-openapi-api-client-api-post-payments-request` | High | 8 | Review priority for POST /payments entry point |
 | `risk:entrypoint:edge-actor-terraform-internet-terraform-aws-lb-public-public-access` | High | 8 | Review priority for payments-public-lb entry point |
+| `risk:entrypoint:edge-actor-mermaid-client-component-mermaid-gateway-mermaid` | High | 7 | Review priority for Payments Gateway entry point |
 | `risk:storage:edge-terraform-aws-lambda-function-api-terraform-aws-db-instance-payments-stores` | Medium | 5 | Review priority for storage path to payments-db |
 
 ## Review priority for GET /payments/{paymentId} entry point
@@ -63,6 +64,23 @@ Rationale:
 - Authentication is unknown.
 - Authorization requirements are unknown.
 - Transport protection is unknown.
+- Rate limiting or abuse controls are not proven.
+
+## Review priority for Payments Gateway entry point
+
+- ID: `risk:entrypoint:edge-actor-mermaid-client-component-mermaid-gateway-mermaid`
+- Rating: High
+- Score: 7
+- Status: candidate
+- Affected elements: `actor:mermaid:client`, `component:mermaid:gateway`, `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`
+- Related STRIDE threats: `threat:entrypoint-denial-of-service:edge-actor-mermaid-client-component-mermaid-gateway-mermaid`, `threat:entrypoint-elevation-of-privilege:edge-actor-mermaid-client-component-mermaid-gateway-mermaid`, `threat:entrypoint-information-disclosure:edge-actor-mermaid-client-component-mermaid-gateway-mermaid`, `threat:entrypoint-repudiation:edge-actor-mermaid-client-component-mermaid-gateway-mermaid`, `threat:entrypoint-spoofing:edge-actor-mermaid-client-component-mermaid-gateway-mermaid`, `threat:entrypoint-tampering:edge-actor-mermaid-client-component-mermaid-gateway-mermaid`
+- Related ATT&CK findings: none
+
+Rationale:
+
+- Entry point is public or internet-exposed.
+- Authentication is unknown.
+- Authorization requirements are unknown.
 - Rate limiting or abuse controls are not proven.
 
 ## Review priority for storage path to payments-db

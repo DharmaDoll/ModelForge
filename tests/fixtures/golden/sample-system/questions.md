@@ -2,20 +2,22 @@
 
 Questions generated from unknown or incomplete model facts.
 
-Total questions: 38
+Total questions: 42
 
 | ID | Category | Question |
 | --- | --- | --- |
+| `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authentication` | authentication | How is Payments Gateway authenticated when called by Web Client? |
 | `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:authentication` | authentication | How is payments-public-lb authenticated when called by Internet? |
-| `question:unknown-mermaid-edge-component-mermaid-client-component-mermaid-gatew-a43e456158` | authentication | How is authentication implemented? |
+| `question:unknown-mermaid-edge-actor-mermaid-client-component-mermaid-gateway-m-952977b1e8` | authentication | How is authentication implemented? |
 | `question:unknown-mermaid-edge-component-mermaid-gateway-component-mermaid-proc-70315ff90f` | authentication | How is authentication implemented? |
 | `question:unknown-mermaid-edge-component-mermaid-processor-component-mermaid-st-033953d7c7` | authentication | How is authentication implemented? |
 | `question:unknown-readme-authentication` | authentication | How is authentication implemented for Sample Payments API? |
 | `question:unknown-terraform-terraform-aws-lb-public-authentication` | authentication | How is authentication implemented for payments-public-lb? |
+| `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authorization` | authorization | What authorization checks protect Payments Gateway? |
 | `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:authorization` | authorization | What authorization checks protect GET /payments/{paymentId}? |
 | `question:edge-actor-openapi-api-client-api-post-payments-request:authorization` | authorization | What authorization checks protect POST /payments? |
 | `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:authorization` | authorization | What authorization checks protect payments-public-lb? |
-| `question:unknown-mermaid-edge-component-mermaid-client-component-mermaid-gatew-ece205ed39` | authorization | What authorization rules are enforced? |
+| `question:unknown-mermaid-edge-actor-mermaid-client-component-mermaid-gateway-m-cddd8ff9ad` | authorization | What authorization rules are enforced? |
 | `question:unknown-mermaid-edge-component-mermaid-gateway-component-mermaid-proc-391731b442` | authorization | What authorization rules are enforced? |
 | `question:unknown-mermaid-edge-component-mermaid-processor-component-mermaid-st-4e978dc9f6` | authorization | What authorization rules are enforced? |
 | `question:unknown-openapi-api-get-payments-paymentid-authorization` | authorization | What authorization rules are enforced? |
@@ -33,17 +35,27 @@ Total questions: 38
 | `question:unknown-readme-encryption` | encryption | What encryption is used in transit and at rest for Sample Payments API? |
 | `question:unknown-terraform-terraform-aws-db-instance-payments-encryption` | encryption | What encryption is used in transit and at rest for payments-db? |
 | `question:unknown-readme-logging` | logging | What security-relevant events are logged for Sample Payments API? |
+| `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:logging-monitoring` | logging_monitoring | What logging and monitoring exists for Payments Gateway? |
 | `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:logging-monitoring` | logging_monitoring | What logging and monitoring exists for GET /payments/{paymentId}? |
 | `question:edge-actor-openapi-api-client-api-post-payments-request:logging-monitoring` | logging_monitoring | What logging and monitoring exists for POST /payments? |
 | `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:logging-monitoring` | logging_monitoring | What logging and monitoring exists for payments-public-lb? |
 | `question:unknown-readme-monitoring` | monitoring | What monitoring and alerting exists for Sample Payments API? |
 | `question:unknown-mermaid-edge-component-mermaid-gateway-component-mermaid-proc-53d2409de0` | protocol | What is the missing protocol detail? |
 | `question:unknown-mermaid-edge-component-mermaid-processor-component-mermaid-st-75e904e3ff` | protocol | What is the missing protocol detail? |
+| `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:rate-limiting` | rate_limiting | What rate limits protect Payments Gateway? |
 | `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:rate-limiting` | rate_limiting | What rate limits protect GET /payments/{paymentId}? |
 | `question:edge-actor-openapi-api-client-api-post-payments-request:rate-limiting` | rate_limiting | What rate limits protect POST /payments? |
 | `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:rate-limiting` | rate_limiting | What rate limits protect payments-public-lb? |
 | `question:unknown-readme-rate-limiting` | rate_limiting | What rate limits or abuse controls are enforced for Sample Payments API? |
 | `question:unknown-terraform-terraform-aws-lb-public-rate-limiting` | rate_limiting | What rate limits or abuse controls are enforced for payments-public-lb? |
+
+## How is Payments Gateway authenticated when called by Web Client?
+
+- ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authentication`
+- Category: authentication
+- Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+
+Rationale: Authentication is unknown for this external entry point.
 
 ## How is payments-public-lb authenticated when called by Internet?
 
@@ -55,9 +67,9 @@ Rationale: Authentication is unknown for this external entry point.
 
 ## How is authentication implemented?
 
-- ID: `question:unknown-mermaid-edge-component-mermaid-client-component-mermaid-gatew-a43e456158`
+- ID: `question:unknown-mermaid-edge-actor-mermaid-client-component-mermaid-gateway-m-952977b1e8`
 - Category: authentication
-- Related elements: `edge:component-mermaid-client:component-mermaid-gateway:mermaid`
+- Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`
 
 Rationale: Authentication for Mermaid flow Web Client to Payments Gateway is unknown.
 
@@ -93,6 +105,14 @@ Rationale: Authentication behavior is not described in the README.
 
 Rationale: Authentication for internet-exposed resource payments-public-lb is unknown.
 
+## What authorization checks protect Payments Gateway?
+
+- ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authorization`
+- Category: authorization
+- Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+
+Rationale: Authorization is unknown for this external entry point.
+
 ## What authorization checks protect GET /payments/{paymentId}?
 
 - ID: `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:authorization`
@@ -119,9 +139,9 @@ Rationale: Authorization is unknown for this external entry point.
 
 ## What authorization rules are enforced?
 
-- ID: `question:unknown-mermaid-edge-component-mermaid-client-component-mermaid-gatew-ece205ed39`
+- ID: `question:unknown-mermaid-edge-actor-mermaid-client-component-mermaid-gateway-m-cddd8ff9ad`
 - Category: authorization
-- Related elements: `edge:component-mermaid-client:component-mermaid-gateway:mermaid`
+- Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`
 
 Rationale: Authorization for Mermaid flow Web Client to Payments Gateway is unknown.
 
@@ -261,6 +281,14 @@ Rationale: Encryption configuration for payments-db is unknown.
 
 Rationale: Logging or audit behavior is not described in the README.
 
+## What logging and monitoring exists for Payments Gateway?
+
+- ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:logging-monitoring`
+- Category: logging_monitoring
+- Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+
+Rationale: Audit logging and monitoring are not proven for this external entry point.
+
 ## What logging and monitoring exists for GET /payments/{paymentId}?
 
 - ID: `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:logging-monitoring`
@@ -308,6 +336,14 @@ Rationale: Protocol for Mermaid flow Gateway to Payment Processor is unknown.
 - Related elements: `edge:component-mermaid-processor:component-mermaid-store:mermaid`
 
 Rationale: Protocol for Mermaid flow Processor to Payment Store is unknown.
+
+## What rate limits protect Payments Gateway?
+
+- ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:rate-limiting`
+- Category: rate_limiting
+- Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+
+Rationale: Rate limiting is not proven for this external entry point.
 
 ## What rate limits protect GET /payments/{paymentId}?
 

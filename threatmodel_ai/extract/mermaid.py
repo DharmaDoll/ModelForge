@@ -32,6 +32,13 @@ _KNOWN_PROTOCOLS = {
     "HTTPS": "HTTPS",
     "GRPC": "gRPC",
 }
+_TYPE_KEYWORDS: tuple[tuple[NodeType, tuple[str, ...]], ...] = (
+    (NodeType.ACTOR, ("user", "client", "customer")),
+    (NodeType.DATABASE, ("db", "database", "postgres", "mysql", "rds")),
+    (NodeType.DATA_ASSET, ("bucket", "storage", "object store", "s3")),
+    (NodeType.EXTERNAL_SERVICE, ("external", "third party", "partner")),
+    (NodeType.SECRET, ("secret", "token", "api key", "credential")),
+)
 
 
 def extract_mermaid_markdown(path: Path) -> SystemModel:
@@ -157,15 +164,40 @@ def _parse_node(raw: str) -> _ParsedNode | None:
 
 
 def _node(parsed: _ParsedNode, evidence: Evidence) -> Node:
-    node_id = make_id("component", "mermaid", parsed.alias)
+    node_type, inference_metadata = _infer_node_type(parsed)
+    node_id = make_id(node_type.value, "mermaid", parsed.alias)
     return Node(
         id=node_id,
         name=parsed.label,
-        type=NodeType.COMPONENT,
+        type=node_type,
         description=f"Mermaid node {parsed.alias}.",
-        metadata={"source_format": "mermaid", "mermaid_alias": parsed.alias},
+        metadata={
+            "source_format": "mermaid",
+            "mermaid_alias": parsed.alias,
+            **inference_metadata,
+        },
         evidence=[evidence],
     )
+
+
+def _infer_node_type(parsed: _ParsedNode) -> tuple[NodeType, dict[str, str]]:
+    matches: list[tuple[NodeType, str, str]] = []
+    for source, source_name in ((parsed.label, "mermaid_label"), (parsed.alias, "mermaid_alias")):
+        tokens = _tokens(source)
+        for node_type, keywords in _TYPE_KEYWORDS:
+            for keyword in keywords:
+                if _keyword_matches(keyword, tokens):
+                    matches.append((node_type, keyword, source_name))
+
+    unique_types = {node_type for node_type, _keyword, _source_name in matches}
+    if len(unique_types) != 1:
+        return NodeType.COMPONENT, {}
+
+    node_type, keyword, source_name = matches[0]
+    return node_type, {
+        "type_inferred_from": source_name,
+        "type_inference_keyword": keyword,
+    }
 
 
 def _merge_node(existing: Node | None, incoming: Node) -> Node:
@@ -217,6 +249,22 @@ def _protocol_from_label(label: str) -> str:
         if token in _KNOWN_PROTOCOLS:
             return _KNOWN_PROTOCOLS[token]
     return "unknown"
+
+
+def _tokens(value: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"[a-z0-9]+", value.lower()))
+
+
+def _keyword_matches(keyword: str, tokens: tuple[str, ...]) -> bool:
+    keyword_tokens = tuple(re.findall(r"[a-z0-9]+", keyword.lower()))
+    if not keyword_tokens:
+        return False
+    if len(keyword_tokens) == 1:
+        return keyword_tokens[0] in tokens
+    return any(
+        tokens[index : index + len(keyword_tokens)] == keyword_tokens
+        for index in range(0, len(tokens) - len(keyword_tokens) + 1)
+    )
 
 
 def _edge_unknowns(edge: Edge, source: Node, target: Node, evidence: Evidence) -> list[Unknown]:

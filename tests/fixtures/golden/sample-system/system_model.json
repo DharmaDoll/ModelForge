@@ -2,6 +2,29 @@
   "description": "Sample service that accepts payment requests and exposes a REST API.",
   "edges": [
     {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Mermaid flow from Web Client to Payments Gateway: HTTPS.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "edge:actor-mermaid-client:component-mermaid-gateway:mermaid",
+      "metadata": {
+        "mermaid_arrow": "-->",
+        "mermaid_label": "HTTPS",
+        "source_format": "mermaid"
+      },
+      "protocol": "HTTPS",
+      "source": "actor:mermaid:client",
+      "target": "component:mermaid:gateway",
+      "type": "communicates_with"
+    },
+    {
       "authentication": "apiKey header:X-API-Key",
       "authorization": "unknown",
       "data_assets": [
@@ -61,29 +84,6 @@
       "protocol": "unknown",
       "source": "actor:terraform:internet",
       "target": "terraform:aws-lb:public",
-      "type": "communicates_with"
-    },
-    {
-      "authentication": "unknown",
-      "authorization": "unknown",
-      "data_assets": [],
-      "description": "Mermaid flow from Web Client to Payments Gateway: HTTPS.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 2",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "edge:component-mermaid-client:component-mermaid-gateway:mermaid",
-      "metadata": {
-        "mermaid_arrow": "-->",
-        "mermaid_label": "HTTPS",
-        "source_format": "mermaid"
-      },
-      "protocol": "HTTPS",
-      "source": "component:mermaid:client",
-      "target": "component:mermaid:gateway",
       "type": "communicates_with"
     },
     {
@@ -254,6 +254,25 @@
   "name": "Sample Payments API",
   "nodes": [
     {
+      "description": "Mermaid node Client.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "actor:mermaid:client",
+      "metadata": {
+        "mermaid_alias": "Client",
+        "source_format": "mermaid",
+        "type_inference_keyword": "client",
+        "type_inferred_from": "mermaid_label"
+      },
+      "name": "Web Client",
+      "type": "actor"
+    },
+    {
       "description": "Client role implied by the OpenAPI contract.",
       "evidence": [
         {
@@ -322,23 +341,6 @@
       "metadata": {},
       "name": "POST /payments",
       "type": "api"
-    },
-    {
-      "description": "Mermaid node Client.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 2",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "component:mermaid:client",
-      "metadata": {
-        "mermaid_alias": "Client",
-        "source_format": "mermaid"
-      },
-      "name": "Web Client",
-      "type": "component"
     },
     {
       "description": "Mermaid node Gateway.",
@@ -587,8 +589,8 @@
         "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-client-component-mermaid-gateway-mermaid:authentication",
-      "related_element_id": "edge:component-mermaid-client:component-mermaid-gateway:mermaid"
+      "id": "unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authentication",
+      "related_element_id": "edge:actor-mermaid-client:component-mermaid-gateway:mermaid"
     },
     {
       "category": "authorization",
@@ -598,8 +600,8 @@
         "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-client-component-mermaid-gateway-mermaid:authorization",
-      "related_element_id": "edge:component-mermaid-client:component-mermaid-gateway:mermaid"
+      "id": "unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authorization",
+      "related_element_id": "edge:actor-mermaid-client:component-mermaid-gateway:mermaid"
     },
     {
       "category": "authentication",

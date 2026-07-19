@@ -1,5 +1,13 @@
 from threatmodel_ai.attack.models import AttackFinding, AttackTechnique
-from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
+from threatmodel_ai.model.schema import (
+    Edge,
+    EdgeType,
+    Evidence,
+    Node,
+    NodeType,
+    SourceType,
+    SystemModel,
+)
 from threatmodel_ai.risk import RiskRating, score_risks
 from threatmodel_ai.stride import StrideCategory, Threat
 
@@ -21,6 +29,14 @@ def test_risk_scoring_prioritizes_public_unknown_entrypoints() -> None:
                 authentication="unknown",
                 authorization="unknown",
                 data_assets=["data:payment"],
+                evidence=[
+                    Evidence(
+                        source_type=SourceType.OPENAPI,
+                        source_path="openapi.yaml",
+                        extractor="openapi",
+                        detail="GET /payments",
+                    )
+                ],
             )
         ],
     )
@@ -57,6 +73,9 @@ def test_risk_scoring_prioritizes_public_unknown_entrypoints() -> None:
     assert risks[0].score >= 7
     assert "threat:spoofing" in risks[0].related_threats
     assert "attack:t1190" in risks[0].related_attack_findings
+    assert "threat:spoofing" in risks[0].derived_from
+    assert "attack:t1190" in risks[0].derived_from
+    assert risks[0].evidence[0].extractor == "openapi"
     assert any("Authentication is unknown" in item for item in risks[0].rationale)
     assert any("Data classification is unknown" in item for item in risks[0].rationale)
 

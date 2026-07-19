@@ -6,6 +6,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from threatmodel_ai.model.schema import Evidence
+
 
 class StrideCategory(StrEnum):
     """STRIDE categories."""
@@ -31,5 +33,7 @@ class Threat(BaseModel):
     impact: str
     mitigation: str
     affected_elements: list[str] = Field(default_factory=list)
+    derived_from: list[str] = Field(default_factory=list)
+    evidence: list[Evidence] = Field(default_factory=list)
     confidence: str = "medium"
     status: str = "candidate"

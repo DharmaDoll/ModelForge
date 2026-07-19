@@ -6,6 +6,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from threatmodel_ai.model.schema import Evidence
+
 
 class RiskRating(StrEnum):
     """Qualitative deterministic risk ratings."""
@@ -28,4 +30,6 @@ class RiskFinding(BaseModel):
     related_threats: list[str] = Field(default_factory=list)
     related_attack_findings: list[str] = Field(default_factory=list)
     affected_elements: list[str] = Field(default_factory=list)
+    derived_from: list[str] = Field(default_factory=list)
+    evidence: list[Evidence] = Field(default_factory=list)
     status: str = "candidate"

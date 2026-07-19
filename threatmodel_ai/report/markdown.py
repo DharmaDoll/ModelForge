@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from threatmodel_ai.attack.models import AttackFinding
+from threatmodel_ai.model.schema import Evidence
 from threatmodel_ai.questions.generator import Question
 from threatmodel_ai.risk.models import RiskFinding
 from threatmodel_ai.stride.models import Threat
@@ -55,6 +56,8 @@ def render_attack_markdown(findings: list[AttackFinding]) -> str:
                 f"- Status: {finding.status}",
                 "- Affected elements: "
                 f"{', '.join(f'`{item}`' for item in finding.affected_elements)}",
+                f"- Derived from: {_format_optional_ids(finding.derived_from)}",
+                f"- Evidence: {_format_evidence(finding.evidence)}",
                 "",
                 f"Scenario: {finding.scenario}",
                 "",
@@ -107,6 +110,8 @@ def render_threats_markdown(threats: list[Threat]) -> str:
                 f"- Status: {threat.status}",
                 "- Affected elements: "
                 f"{', '.join(f'`{item}`' for item in threat.affected_elements)}",
+                f"- Derived from: {_format_optional_ids(threat.derived_from)}",
+                f"- Evidence: {_format_evidence(threat.evidence)}",
                 "",
                 f"Scenario: {threat.scenario}",
                 "",
@@ -163,6 +168,8 @@ def render_risks_markdown(risks: list[RiskFinding]) -> str:
                 f"{_format_optional_ids(risk.related_threats)}",
                 "- Related ATT&CK findings: "
                 f"{_format_optional_ids(risk.related_attack_findings)}",
+                f"- Derived from: {_format_optional_ids(risk.derived_from)}",
+                f"- Evidence: {_format_evidence(risk.evidence)}",
                 "",
                 "Rationale:",
                 "",
@@ -209,6 +216,8 @@ def render_questions_markdown(questions: list[Question]) -> str:
                 f"- Category: {question.category}",
                 "- Related elements: "
                 f"{', '.join(f'`{item}`' for item in question.related_elements)}",
+                f"- Derived from: {_format_optional_ids(question.derived_from)}",
+                f"- Evidence: {_format_evidence(question.evidence)}",
                 "",
                 f"Rationale: {question.rationale}",
                 "",
@@ -223,3 +232,23 @@ def _escape_table(value: str) -> str:
 
 def _format_optional_ids(values: list[str]) -> str:
     return ", ".join(f"`{item}`" for item in values) if values else "none"
+
+
+def _format_evidence(values: list[Evidence]) -> str:
+    if not values:
+        return "none"
+
+    displayed = values[:3]
+    formatted = "; ".join(_format_evidence_item(item) for item in displayed)
+    remaining = len(values) - len(displayed)
+    if remaining > 0:
+        formatted += f"; +{remaining} more"
+    return formatted
+
+
+def _format_evidence_item(value: Evidence) -> str:
+    location = value.source_path
+    if value.line is not None:
+        location = f"{location}:{value.line}"
+    detail = "" if value.detail == "unknown" else f", {value.detail}"
+    return f"`{location}` ({value.extractor}/{value.source_type.value}{detail})"

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from threatmodel_ai.attack.catalog import TECHNIQUES
 from threatmodel_ai.attack.models import AttackFinding
+from threatmodel_ai.model.evidence import evidence_from_model
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
 
@@ -80,6 +81,7 @@ def _rate_limit_unknown(model: SystemModel) -> bool:
 
 
 def _attack_finding(
+    model: SystemModel,
     rule_id: str,
     technique_id: str,
     title: str,
@@ -99,6 +101,8 @@ def _attack_finding(
         detection=detection,
         mitigation=mitigation,
         affected_elements=affected_elements,
+        derived_from=affected_elements,
+        evidence=evidence_from_model(model, affected_elements),
         confidence=confidence,
     )
 
@@ -111,6 +115,7 @@ def _public_facing_application(
 ) -> AttackFinding:
     confidence = "high" if target.metadata.get("internet_exposed") else "medium"
     return _attack_finding(
+        model,
         "attack-public-entrypoint",
         "T1190",
         f"Public-facing application technique candidate for {target.name}",
@@ -133,6 +138,7 @@ def _endpoint_denial_of_service(
     target: Node,
 ) -> AttackFinding:
     return _attack_finding(
+        model,
         "attack-entrypoint-dos",
         "T1499",
         f"Endpoint denial-of-service technique candidate for {target.name}",
@@ -149,6 +155,7 @@ def _endpoint_denial_of_service(
 
 def _brute_force(model: SystemModel, edge: Edge, source: Node, target: Node) -> AttackFinding:
     return _attack_finding(
+        model,
         "attack-authenticated-entrypoint-bruteforce",
         "T1110",
         f"Brute-force technique candidate for {target.name}",
@@ -167,6 +174,7 @@ def _brute_force(model: SystemModel, edge: Edge, source: Node, target: Node) -> 
 
 def _valid_accounts(model: SystemModel, edge: Edge, source: Node, target: Node) -> AttackFinding:
     return _attack_finding(
+        model,
         "attack-authenticated-entrypoint-valid-accounts",
         "T1078",
         f"Valid-accounts abuse candidate for {target.name}",
@@ -190,6 +198,7 @@ def _adversary_in_the_middle(
 ) -> AttackFinding:
     confidence = "medium" if edge.protocol == "HTTP" else "low"
     return _attack_finding(
+        model,
         "attack-entrypoint-aitm",
         "T1557",
         f"Adversary-in-the-middle candidate for {target.name}",
@@ -208,6 +217,7 @@ def _adversary_in_the_middle(
 
 def _data_manipulation(model: SystemModel, edge: Edge, source: Node, target: Node) -> AttackFinding:
     return _attack_finding(
+        model,
         "attack-stored-data-manipulation",
         "T1565",
         f"Data manipulation technique candidate for {target.name}",
@@ -226,6 +236,7 @@ def _data_manipulation(model: SystemModel, edge: Edge, source: Node, target: Nod
 
 def _unsecured_credentials(model: SystemModel, node: Node) -> AttackFinding:
     return _attack_finding(
+        model,
         "attack-secret-unsecured-credentials",
         "T1552",
         f"Unsecured credentials technique candidate for {node.name}",

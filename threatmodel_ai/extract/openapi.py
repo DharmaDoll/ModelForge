@@ -53,7 +53,12 @@ def extract_openapi(path: Path) -> SystemModel:
     info = _mapping(document.get("info"))
     title = str(info.get("title") or path.stem)
     description = str(info.get("description") or "unknown")
-    evidence = Evidence(source_type=SourceType.OPENAPI, source_path=str(path), detail="OpenAPI")
+    evidence = Evidence(
+        source_type=SourceType.OPENAPI,
+        source_path=str(path),
+        extractor="openapi",
+        detail="OpenAPI",
+    )
     service_id = make_id("component", "openapi", title)
     actor_id = make_id("actor", "openapi", "api client")
 
@@ -102,6 +107,7 @@ def extract_openapi(path: Path) -> SystemModel:
                     Evidence(
                         source_type=SourceType.OPENAPI,
                         source_path=str(path),
+                        extractor="openapi",
                         detail=f"{method_upper(method_lower)} {api_path}",
                     )
                 ],
@@ -133,6 +139,7 @@ def extract_openapi(path: Path) -> SystemModel:
                     Evidence(
                         source_type=SourceType.OPENAPI,
                         source_path=str(path),
+                        extractor="openapi",
                         detail=f"{method_upper(method_lower)} {api_path}",
                     )
                 ],
@@ -148,6 +155,7 @@ def extract_openapi(path: Path) -> SystemModel:
                     Evidence(
                         source_type=SourceType.OPENAPI,
                         source_path=str(path),
+                        extractor="openapi",
                         detail=f"{method_upper(method_lower)} {api_path}",
                     )
                 ],
@@ -325,6 +333,7 @@ def _extract_schema_nodes(
                 Evidence(
                     source_type=SourceType.OPENAPI,
                     source_path=str(path),
+                    extractor="openapi",
                     detail=f"components.schemas.{schema_name}",
                 )
             ],

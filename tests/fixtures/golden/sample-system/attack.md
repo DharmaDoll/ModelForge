@@ -29,6 +29,8 @@ Total ATT&CK findings: 12
 - Confidence: medium
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: GET /payments/{paymentId} requires apiKey header:X-API-Key, but authorization requirements are not proven by the system model.
 
@@ -46,6 +48,8 @@ Mitigation: Enforce least privilege, MFA, session controls, and explicit per-ope
 - Confidence: medium
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: POST /payments requires apiKey header:X-API-Key, but authorization requirements are not proven by the system model.
 
@@ -63,6 +67,8 @@ Mitigation: Enforce least privilege, MFA, session controls, and explicit per-ope
 - Confidence: medium
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: GET /payments/{paymentId} has an authentication surface documented as apiKey header:X-API-Key, but abuse controls are not proven.
 
@@ -80,6 +86,8 @@ Mitigation: Use MFA, throttling, lockouts, credential stuffing detection, and br
 - Confidence: medium
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: POST /payments has an authentication surface documented as apiKey header:X-API-Key, but abuse controls are not proven.
 
@@ -97,6 +105,8 @@ Mitigation: Use MFA, throttling, lockouts, credential stuffing detection, and br
 - Confidence: medium
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: GET /payments/{paymentId} is reachable from API Client. The model does not prove patching, WAF coverage, or exploit prevention controls.
 
@@ -114,6 +124,8 @@ Mitigation: Patch exposed software, minimize exposed endpoints, validate inputs,
 - Confidence: medium
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: POST /payments is reachable from API Client. The model does not prove patching, WAF coverage, or exploit prevention controls.
 
@@ -131,6 +143,8 @@ Mitigation: Patch exposed software, minimize exposed endpoints, validate inputs,
 - Confidence: high
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: payments-public-lb is reachable from Internet. The model does not prove patching, WAF coverage, or exploit prevention controls.
 
@@ -148,6 +162,8 @@ Mitigation: Patch exposed software, minimize exposed endpoints, validate inputs,
 - Confidence: high
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: GET /payments/{paymentId} receives traffic from API Client, and rate limiting or capacity controls are not proven in the model.
 
@@ -165,6 +181,8 @@ Mitigation: Apply rate limits, request budgets, autoscaling, backpressure, and u
 - Confidence: high
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: POST /payments receives traffic from API Client, and rate limiting or capacity controls are not proven in the model.
 
@@ -182,6 +200,8 @@ Mitigation: Apply rate limits, request budgets, autoscaling, backpressure, and u
 - Confidence: high
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: payments-public-lb receives traffic from Internet, and rate limiting or capacity controls are not proven in the model.
 
@@ -199,6 +219,8 @@ Mitigation: Apply rate limits, request budgets, autoscaling, backpressure, and u
 - Confidence: low
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: Transport protection for traffic from Internet to payments-public-lb is unknown in the system model.
 
@@ -216,6 +238,8 @@ Mitigation: Require TLS, certificate validation, HSTS where applicable, and secu
 - Confidence: medium
 - Status: candidate
 - Affected elements: `edge:terraform-aws-lambda-function-api:terraform-aws-db-instance-payments:stores`, `terraform:aws-lambda-function:api`, `terraform:aws-db-instance:payments`
+- Derived from: `edge:terraform-aws-lambda-function-api:terraform-aws-db-instance-payments:stores`, `terraform:aws-lambda-function:api`, `terraform:aws-db-instance:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:14` (terraform/terraform, resource "aws_lambda_function" "api"); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:10` (terraform/terraform, resource "aws_db_instance" "payments")
 
 Scenario: payments-api stores or modifies data in payments-db. Integrity controls and recovery behavior are not proven.
 

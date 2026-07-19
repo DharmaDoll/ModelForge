@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from threatmodel_ai.attack.models import AttackFinding
+from threatmodel_ai.model.evidence import evidence_from_model
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
 from threatmodel_ai.risk.models import RiskFinding, RiskRating
@@ -44,6 +45,7 @@ def score_risks(
 
         if edge.type == EdgeType.STORES:
             risk = _score_storage_flow(
+                model,
                 edge,
                 source,
                 target,
@@ -117,6 +119,7 @@ def _score_entrypoint(
         rationale.append("Rate limiting or abuse controls are not proven.")
 
     affected_elements = [edge.id, source.id, target.id, *[node.id for node in data_nodes]]
+    model_elements = _unique_sorted(affected_elements)
     return RiskFinding(
         id=make_id("risk", "entrypoint", edge.id),
         title=f"Review priority for {target.name} entry point",
@@ -125,11 +128,16 @@ def _score_entrypoint(
         rationale=rationale,
         related_threats=related_threats,
         related_attack_findings=related_attack_findings,
-        affected_elements=_unique_sorted(affected_elements),
+        affected_elements=model_elements,
+        derived_from=_unique_sorted(
+            [*model_elements, *related_threats, *related_attack_findings]
+        ),
+        evidence=evidence_from_model(model, model_elements),
     )
 
 
 def _score_storage_flow(
+    model: SystemModel,
     edge: Edge,
     source: Node,
     target: Node,
@@ -147,6 +155,7 @@ def _score_storage_flow(
         score += 1
         rationale.append("Data classification is unknown for the storage target.")
 
+    model_elements = _unique_sorted([edge.id, source.id, target.id])
     return RiskFinding(
         id=make_id("risk", "storage", edge.id),
         title=f"Review priority for storage path to {target.name}",
@@ -155,7 +164,11 @@ def _score_storage_flow(
         rationale=rationale,
         related_threats=related_threats,
         related_attack_findings=related_attack_findings,
-        affected_elements=_unique_sorted([edge.id, source.id, target.id]),
+        affected_elements=model_elements,
+        derived_from=_unique_sorted(
+            [*model_elements, *related_threats, *related_attack_findings]
+        ),
+        evidence=evidence_from_model(model, model_elements),
     )
 
 

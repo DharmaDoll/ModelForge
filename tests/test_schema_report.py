@@ -2,7 +2,16 @@ import pytest
 from pydantic import ValidationError
 
 from threatmodel_ai.attack.models import AttackFinding, AttackTechnique
-from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel, Unknown
+from threatmodel_ai.model.schema import (
+    Edge,
+    EdgeType,
+    Evidence,
+    Node,
+    NodeType,
+    SourceType,
+    SystemModel,
+    Unknown,
+)
 from threatmodel_ai.questions import Question
 from threatmodel_ai.report import (
     render_attack_markdown,
@@ -135,6 +144,13 @@ def test_system_model_json_schema_exposes_graph_fields() -> None:
 
 
 def test_markdown_reports_are_reviewable() -> None:
+    evidence = Evidence(
+        source_type=SourceType.OPENAPI,
+        source_path="openapi.yaml",
+        extractor="openapi",
+        detail="GET /orders",
+        line=12,
+    )
     attack = AttackFinding(
         id="attack:1",
         rule_id="attack-rule",
@@ -149,6 +165,8 @@ def test_markdown_reports_are_reviewable() -> None:
         detection="Detection",
         mitigation="Mitigation",
         affected_elements=["edge:1"],
+        derived_from=["edge:1"],
+        evidence=[evidence],
     )
     threat = Threat(
         id="threat:1",
@@ -159,6 +177,8 @@ def test_markdown_reports_are_reviewable() -> None:
         impact="Impact",
         mitigation="Mitigation",
         affected_elements=["edge:1"],
+        derived_from=["edge:1"],
+        evidence=[evidence],
     )
     question = Question(
         id="question:1",
@@ -166,6 +186,8 @@ def test_markdown_reports_are_reviewable() -> None:
         question="How is the API authenticated?",
         rationale="Authentication is unknown.",
         related_elements=["edge:1"],
+        derived_from=["unknown:1", "edge:1"],
+        evidence=[evidence],
     )
 
     attack_md = render_attack_markdown([attack])
@@ -175,7 +197,10 @@ def test_markdown_reports_are_reviewable() -> None:
     assert "MITRE ATT&CK Technique Candidates" in attack_md
     assert "T1190 Exploit Public-Facing Application" in attack_md
     assert "Detection: Detection" in attack_md
+    assert "- Derived from: `edge:1`" in attack_md
     assert "| `threat:1` | Spoofing | Spoofing risk | medium |" in threats_md
     assert "Mitigation: Mitigation" in threats_md
+    assert "- Evidence: `openapi.yaml:12` (openapi/openapi, GET /orders)" in threats_md
     assert "| `question:1` | authentication | How is the API authenticated? |" in questions_md
+    assert "- Derived from: `unknown:1`, `edge:1`" in questions_md
     assert "Rationale: Authentication is unknown." in questions_md

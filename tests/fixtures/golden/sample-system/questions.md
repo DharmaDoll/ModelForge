@@ -54,6 +54,8 @@ Total questions: 42
 - ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authentication`
 - Category: authentication
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
 
 Rationale: Authentication is unknown for this external entry point.
 
@@ -62,6 +64,8 @@ Rationale: Authentication is unknown for this external entry point.
 - ID: `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:authentication`
 - Category: authentication
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Authentication is unknown for this external entry point.
 
@@ -70,6 +74,8 @@ Rationale: Authentication is unknown for this external entry point.
 - ID: `question:unknown-mermaid-edge-actor-mermaid-client-component-mermaid-gateway-m-952977b1e8`
 - Category: authentication
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`
+- Derived from: `unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authentication`, `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2)
 
 Rationale: Authentication for Mermaid flow Web Client to Payments Gateway is unknown.
 
@@ -78,6 +84,8 @@ Rationale: Authentication for Mermaid flow Web Client to Payments Gateway is unk
 - ID: `question:unknown-mermaid-edge-component-mermaid-gateway-component-mermaid-proc-70315ff90f`
 - Category: authentication
 - Related elements: `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
+- Derived from: `unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authentication`, `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
 
 Rationale: Authentication for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -86,6 +94,8 @@ Rationale: Authentication for Mermaid flow Gateway to Payment Processor is unkno
 - ID: `question:unknown-mermaid-edge-component-mermaid-processor-component-mermaid-st-033953d7c7`
 - Category: authentication
 - Related elements: `edge:component-mermaid-processor:component-mermaid-store:mermaid`
+- Derived from: `unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authentication`, `edge:component-mermaid-processor:component-mermaid-store:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authentication for Mermaid flow Processor to Payment Store is unknown.
 
@@ -94,6 +104,8 @@ Rationale: Authentication for Mermaid flow Processor to Payment Store is unknown
 - ID: `question:unknown-readme-authentication`
 - Category: authentication
 - Related elements: `component:readme:sample-payments-api`
+- Derived from: `unknown:readme:authentication`, `component:readme:sample-payments-api`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md` (readme/readme, README)
 
 Rationale: Authentication behavior is not described in the README.
 
@@ -102,6 +114,8 @@ Rationale: Authentication behavior is not described in the README.
 - ID: `question:unknown-terraform-terraform-aws-lb-public-authentication`
 - Category: authentication
 - Related elements: `terraform:aws-lb:public`
+- Derived from: `unknown:terraform:terraform-aws-lb-public:authentication`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public")
 
 Rationale: Authentication for internet-exposed resource payments-public-lb is unknown.
 
@@ -110,6 +124,8 @@ Rationale: Authentication for internet-exposed resource payments-public-lb is un
 - ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authorization`
 - Category: authorization
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -118,6 +134,8 @@ Rationale: Authorization is unknown for this external entry point.
 - ID: `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:authorization`
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -126,6 +144,8 @@ Rationale: Authorization is unknown for this external entry point.
 - ID: `question:edge-actor-openapi-api-client-api-post-payments-request:authorization`
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -134,6 +154,8 @@ Rationale: Authorization is unknown for this external entry point.
 - ID: `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:authorization`
 - Category: authorization
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -142,6 +164,8 @@ Rationale: Authorization is unknown for this external entry point.
 - ID: `question:unknown-mermaid-edge-actor-mermaid-client-component-mermaid-gateway-m-cddd8ff9ad`
 - Category: authorization
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`
+- Derived from: `unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authorization`, `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2)
 
 Rationale: Authorization for Mermaid flow Web Client to Payments Gateway is unknown.
 
@@ -150,6 +174,8 @@ Rationale: Authorization for Mermaid flow Web Client to Payments Gateway is unkn
 - ID: `question:unknown-mermaid-edge-component-mermaid-gateway-component-mermaid-proc-391731b442`
 - Category: authorization
 - Related elements: `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
+- Derived from: `unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authorization`, `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
 
 Rationale: Authorization for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -158,6 +184,8 @@ Rationale: Authorization for Mermaid flow Gateway to Payment Processor is unknow
 - ID: `question:unknown-mermaid-edge-component-mermaid-processor-component-mermaid-st-4e978dc9f6`
 - Category: authorization
 - Related elements: `edge:component-mermaid-processor:component-mermaid-store:mermaid`
+- Derived from: `unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authorization`, `edge:component-mermaid-processor:component-mermaid-store:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authorization for Mermaid flow Processor to Payment Store is unknown.
 
@@ -166,6 +194,8 @@ Rationale: Authorization for Mermaid flow Processor to Payment Store is unknown.
 - ID: `question:unknown-openapi-api-get-payments-paymentid-authorization`
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`
+- Derived from: `unknown:openapi:api-get-payments-paymentid:authorization`, `edge:actor-openapi-api-client:api-get-payments-paymentid:request`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId})
 
 Rationale: Authorization requirements for GET /payments/{paymentId} are not specified.
 
@@ -174,6 +204,8 @@ Rationale: Authorization requirements for GET /payments/{paymentId} are not spec
 - ID: `question:unknown-openapi-api-post-payments-authorization`
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`
+- Derived from: `unknown:openapi:api-post-payments:authorization`, `edge:actor-openapi-api-client:api-post-payments:request`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments)
 
 Rationale: Authorization requirements for POST /payments are not specified.
 
@@ -182,6 +214,8 @@ Rationale: Authorization requirements for POST /payments are not specified.
 - ID: `question:unknown-readme-authorization`
 - Category: authorization
 - Related elements: `component:readme:sample-payments-api`
+- Derived from: `unknown:readme:authorization`, `component:readme:sample-payments-api`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md` (readme/readme, README)
 
 Rationale: Authorization behavior is not described in the README.
 
@@ -190,6 +224,8 @@ Rationale: Authorization behavior is not described in the README.
 - ID: `question:data-asset-openapi-payment:data-classification`
 - Category: data_classification
 - Related elements: `data-asset:openapi:payment`
+- Derived from: `data-asset:openapi:payment`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.Payment)
 
 Rationale: Data asset classification is not present in the model.
 
@@ -198,6 +234,8 @@ Rationale: Data asset classification is not present in the model.
 - ID: `question:data-asset-openapi-paymentrequest:data-classification`
 - Category: data_classification
 - Related elements: `data-asset:openapi:paymentrequest`
+- Derived from: `data-asset:openapi:paymentrequest`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
 
 Rationale: Data asset classification is not present in the model.
 
@@ -206,6 +244,8 @@ Rationale: Data asset classification is not present in the model.
 - ID: `question:unknown-openapi-payment-data-classification`
 - Category: data_classification
 - Related elements: `data-asset:openapi:payment`
+- Derived from: `unknown:openapi:payment:data-classification`, `data-asset:openapi:payment`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.Payment)
 
 Rationale: Data classification for schema Payment is unknown.
 
@@ -214,6 +254,8 @@ Rationale: Data classification for schema Payment is unknown.
 - ID: `question:unknown-openapi-paymentrequest-data-classification`
 - Category: data_classification
 - Related elements: `data-asset:openapi:paymentrequest`
+- Derived from: `unknown:openapi:paymentrequest:data-classification`, `data-asset:openapi:paymentrequest`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
 
 Rationale: Data classification for schema PaymentRequest is unknown.
 
@@ -222,6 +264,8 @@ Rationale: Data classification for schema PaymentRequest is unknown.
 - ID: `question:data-asset-openapi-payment:encryption`
 - Category: encryption
 - Related elements: `data-asset:openapi:payment`
+- Derived from: `data-asset:openapi:payment`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.Payment)
 
 Rationale: Storage protection details are not present in the model.
 
@@ -230,6 +274,8 @@ Rationale: Storage protection details are not present in the model.
 - ID: `question:data-asset-openapi-paymentrequest:encryption`
 - Category: encryption
 - Related elements: `data-asset:openapi:paymentrequest`
+- Derived from: `data-asset:openapi:paymentrequest`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
 
 Rationale: Storage protection details are not present in the model.
 
@@ -238,6 +284,8 @@ Rationale: Storage protection details are not present in the model.
 - ID: `question:database-readme-payments-db:encryption`
 - Category: encryption
 - Related elements: `database:readme:payments-db`
+- Derived from: `database:readme:payments-db`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md:15` (readme/readme, README section: Databases)
 
 Rationale: Storage protection details are not present in the model.
 
@@ -246,6 +294,8 @@ Rationale: Storage protection details are not present in the model.
 - ID: `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:encryption`
 - Category: encryption
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Transport protection is not proven by the model.
 
@@ -254,6 +304,8 @@ Rationale: Transport protection is not proven by the model.
 - ID: `question:terraform-aws-db-instance-payments:encryption`
 - Category: encryption
 - Related elements: `terraform:aws-db-instance:payments`
+- Derived from: `terraform:aws-db-instance:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:10` (terraform/terraform, resource "aws_db_instance" "payments")
 
 Rationale: Storage protection details are not present in the model.
 
@@ -262,6 +314,8 @@ Rationale: Storage protection details are not present in the model.
 - ID: `question:unknown-readme-encryption`
 - Category: encryption
 - Related elements: `component:readme:sample-payments-api`
+- Derived from: `unknown:readme:encryption`, `component:readme:sample-payments-api`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md` (readme/readme, README)
 
 Rationale: Transport or storage encryption is not described in the README.
 
@@ -270,6 +324,8 @@ Rationale: Transport or storage encryption is not described in the README.
 - ID: `question:unknown-terraform-terraform-aws-db-instance-payments-encryption`
 - Category: encryption
 - Related elements: `terraform:aws-db-instance:payments`
+- Derived from: `unknown:terraform:terraform-aws-db-instance-payments:encryption`, `terraform:aws-db-instance:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:10` (terraform/terraform, resource "aws_db_instance" "payments")
 
 Rationale: Encryption configuration for payments-db is unknown.
 
@@ -278,6 +334,8 @@ Rationale: Encryption configuration for payments-db is unknown.
 - ID: `question:unknown-readme-logging`
 - Category: logging
 - Related elements: `component:readme:sample-payments-api`
+- Derived from: `unknown:readme:logging`, `component:readme:sample-payments-api`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md` (readme/readme, README)
 
 Rationale: Logging or audit behavior is not described in the README.
 
@@ -286,6 +344,8 @@ Rationale: Logging or audit behavior is not described in the README.
 - ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:logging-monitoring`
 - Category: logging_monitoring
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -294,6 +354,8 @@ Rationale: Audit logging and monitoring are not proven for this external entry p
 - ID: `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:logging-monitoring`
 - Category: logging_monitoring
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -302,6 +364,8 @@ Rationale: Audit logging and monitoring are not proven for this external entry p
 - ID: `question:edge-actor-openapi-api-client-api-post-payments-request:logging-monitoring`
 - Category: logging_monitoring
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -310,6 +374,8 @@ Rationale: Audit logging and monitoring are not proven for this external entry p
 - ID: `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:logging-monitoring`
 - Category: logging_monitoring
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -318,6 +384,8 @@ Rationale: Audit logging and monitoring are not proven for this external entry p
 - ID: `question:unknown-readme-monitoring`
 - Category: monitoring
 - Related elements: `component:readme:sample-payments-api`
+- Derived from: `unknown:readme:monitoring`, `component:readme:sample-payments-api`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md` (readme/readme, README)
 
 Rationale: Monitoring behavior is not described in the README.
 
@@ -326,6 +394,8 @@ Rationale: Monitoring behavior is not described in the README.
 - ID: `question:unknown-mermaid-edge-component-mermaid-gateway-component-mermaid-proc-53d2409de0`
 - Category: protocol
 - Related elements: `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
+- Derived from: `unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:protocol`, `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
 
 Rationale: Protocol for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -334,6 +404,8 @@ Rationale: Protocol for Mermaid flow Gateway to Payment Processor is unknown.
 - ID: `question:unknown-mermaid-edge-component-mermaid-processor-component-mermaid-st-75e904e3ff`
 - Category: protocol
 - Related elements: `edge:component-mermaid-processor:component-mermaid-store:mermaid`
+- Derived from: `unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:protocol`, `edge:component-mermaid-processor:component-mermaid-store:mermaid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Protocol for Mermaid flow Processor to Payment Store is unknown.
 
@@ -342,6 +414,8 @@ Rationale: Protocol for Mermaid flow Processor to Payment Store is unknown.
 - ID: `question:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:rate-limiting`
 - Category: rate_limiting
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -350,6 +424,8 @@ Rationale: Rate limiting is not proven for this external entry point.
 - ID: `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:rate-limiting`
 - Category: rate_limiting
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -358,6 +434,8 @@ Rationale: Rate limiting is not proven for this external entry point.
 - ID: `question:edge-actor-openapi-api-client-api-post-payments-request:rate-limiting`
 - Category: rate_limiting
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -366,6 +444,8 @@ Rationale: Rate limiting is not proven for this external entry point.
 - ID: `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:rate-limiting`
 - Category: rate_limiting
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -374,6 +454,8 @@ Rationale: Rate limiting is not proven for this external entry point.
 - ID: `question:unknown-readme-rate-limiting`
 - Category: rate_limiting
 - Related elements: `component:readme:sample-payments-api`
+- Derived from: `unknown:readme:rate-limiting`, `component:readme:sample-payments-api`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md` (readme/readme, README)
 
 Rationale: Rate limiting behavior is not described in the README.
 
@@ -382,5 +464,7 @@ Rationale: Rate limiting behavior is not described in the README.
 - ID: `question:unknown-terraform-terraform-aws-lb-public-rate-limiting`
 - Category: rate_limiting
 - Related elements: `terraform:aws-lb:public`
+- Derived from: `unknown:terraform:terraform-aws-lb-public:rate-limiting`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public")
 
 Rationale: Rate limiting for internet-exposed resource payments-public-lb is unknown.

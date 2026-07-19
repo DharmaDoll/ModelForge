@@ -32,7 +32,12 @@ def extract_readme(path: Path) -> SystemModel:
     """Extract explicitly documented architecture facts from a README file."""
 
     text = path.read_text(encoding="utf-8")
-    evidence = Evidence(source_type=SourceType.README, source_path=str(path), detail="README")
+    evidence = Evidence(
+        source_type=SourceType.README,
+        source_path=str(path),
+        extractor="readme",
+        detail="README",
+    )
     title = _first_heading(text) or "unknown"
     description = _first_paragraph(text) or "unknown"
     nodes: dict[str, Node] = {}
@@ -51,7 +56,7 @@ def extract_readme(path: Path) -> SystemModel:
 
     current_type: NodeType | None = None
     current_heading = "README"
-    for line in text.splitlines():
+    for line_number, line in enumerate(text.splitlines(), start=1):
         heading_match = _HEADING_RE.match(line)
         if heading_match:
             current_heading = heading_match.group(2).strip()
@@ -75,7 +80,9 @@ def extract_readme(path: Path) -> SystemModel:
                         Evidence(
                             source_type=SourceType.README,
                             source_path=str(path),
+                            extractor="readme",
                             detail=f"README section: {current_heading}",
+                            line=line_number,
                         )
                     ],
                 ),
@@ -158,7 +165,12 @@ def _readme_unknowns(
         "rate_limiting": "Rate limiting behavior is not described in the README.",
         "encryption": "Transport or storage encryption is not described in the README.",
     }
-    evidence = Evidence(source_type=SourceType.README, source_path=str(path), detail="README")
+    evidence = Evidence(
+        source_type=SourceType.README,
+        source_path=str(path),
+        extractor="readme",
+        detail="README",
+    )
 
     for category, description in checks.items():
         metadata_key = f"mentions_{category}"

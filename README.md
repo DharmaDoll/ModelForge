@@ -75,6 +75,10 @@ What they mean:
 * `risk.md` - deterministic High / Medium / Low review priorities
 * `questions.md` - missing information to ask reviewers or system owners
 
+Model facts in `system_model.json` include non-sensitive evidence pointers such as
+source file, extractor, section/detail, and line when available. Generated reports
+show `Derived from` model IDs and a short evidence summary for review traceability.
+
 Mermaid node types are inferred only from explicit label or alias keywords. Ambiguous
 or unsupported Mermaid nodes remain `component`.
 

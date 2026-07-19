@@ -48,7 +48,9 @@ class Evidence(BaseModel):
 
     source_type: SourceType
     source_path: str = Field(min_length=1)
+    extractor: str = Field(default="unknown", min_length=1)
     detail: str = Field(default="unknown", min_length=1)
+    line: int | None = Field(default=None, ge=1)
 
 
 class Unknown(BaseModel):

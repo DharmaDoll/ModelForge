@@ -9,7 +9,9 @@
       "evidence": [
         {
           "detail": "mermaid block 1, line 2",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 5,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -34,7 +36,8 @@
       "evidence": [
         {
           "detail": "GET /payments/{paymentId}",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -56,7 +59,8 @@
       "evidence": [
         {
           "detail": "POST /payments",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -75,7 +79,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_lb\" \"public\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 28,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -94,7 +100,9 @@
       "evidence": [
         {
           "detail": "mermaid block 1, line 3",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 6,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -117,7 +125,9 @@
       "evidence": [
         {
           "detail": "mermaid block 1, line 4",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 7,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -142,7 +152,8 @@
       "evidence": [
         {
           "detail": "GET /payments/{paymentId}",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -164,7 +175,8 @@
       "evidence": [
         {
           "detail": "POST /payments",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -183,7 +195,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_lambda_function\" \"api\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 14,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -202,7 +216,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_subnet\" \"private\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 5,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -221,7 +237,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_lambda_function\" \"api\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 14,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -242,13 +260,13 @@
     "mentions_monitoring": false,
     "mentions_rate_limiting": false,
     "mermaid_files": [
-      "tests/fixtures/sample-system/docs/architecture.md"
+      "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md"
     ],
-    "openapi_path": "tests/fixtures/sample-system/openapi.yaml",
+    "openapi_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
     "openapi_version": "3.0.3",
-    "readme_path": "tests/fixtures/sample-system/README.md",
+    "readme_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
     "terraform_files": [
-      "tests/fixtures/sample-system/main.tf"
+      "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf"
     ]
   },
   "name": "Sample Payments API",
@@ -258,7 +276,9 @@
       "evidence": [
         {
           "detail": "mermaid block 1, line 2",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 5,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -277,7 +297,8 @@
       "evidence": [
         {
           "detail": "OpenAPI",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -291,7 +312,9 @@
       "evidence": [
         {
           "detail": "README section: Actors",
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "extractor": "readme",
+          "line": 7,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -305,6 +328,7 @@
       "evidence": [
         {
           "detail": "internet exposure",
+          "extractor": "terraform",
           "source_path": "derived",
           "source_type": "terraform"
         }
@@ -319,7 +343,8 @@
       "evidence": [
         {
           "detail": "GET /payments/{paymentId}",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -333,7 +358,8 @@
       "evidence": [
         {
           "detail": "POST /payments",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -347,12 +373,16 @@
       "evidence": [
         {
           "detail": "mermaid block 1, line 2",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 5,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         },
         {
           "detail": "mermaid block 1, line 3",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 6,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -369,12 +399,16 @@
       "evidence": [
         {
           "detail": "mermaid block 1, line 3",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 6,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         },
         {
           "detail": "mermaid block 1, line 4",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 7,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -391,7 +425,9 @@
       "evidence": [
         {
           "detail": "mermaid block 1, line 4",
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "extractor": "mermaid",
+          "line": 7,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -408,7 +444,8 @@
       "evidence": [
         {
           "detail": "OpenAPI",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -422,7 +459,9 @@
       "evidence": [
         {
           "detail": "README section: Components",
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "extractor": "readme",
+          "line": 11,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -436,7 +475,8 @@
       "evidence": [
         {
           "detail": "README",
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "extractor": "readme",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -450,7 +490,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_lambda_function\" \"api\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 14,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -468,7 +510,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_lb\" \"public\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 28,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -486,7 +530,8 @@
       "evidence": [
         {
           "detail": "components.schemas.Payment",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -502,7 +547,8 @@
       "evidence": [
         {
           "detail": "components.schemas.PaymentRequest",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "extractor": "openapi",
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -518,7 +564,9 @@
       "evidence": [
         {
           "detail": "README section: Databases",
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "extractor": "readme",
+          "line": 15,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -532,7 +580,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_db_instance\" \"payments\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 10,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -549,7 +599,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_subnet\" \"private\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 5,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -566,7 +618,9 @@
       "evidence": [
         {
           "detail": "resource \"aws_vpc\" \"main\"",
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "extractor": "terraform",
+          "line": 1,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -586,7 +640,9 @@
       "description": "Authentication for Mermaid flow Web Client to Payments Gateway is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 2",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 5,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authentication",
@@ -597,7 +653,9 @@
       "description": "Authorization for Mermaid flow Web Client to Payments Gateway is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 2",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 5,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authorization",
@@ -608,7 +666,9 @@
       "description": "Authentication for Mermaid flow Gateway to Payment Processor is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 3",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 6,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authentication",
@@ -619,7 +679,9 @@
       "description": "Authorization for Mermaid flow Gateway to Payment Processor is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 3",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 6,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authorization",
@@ -630,7 +692,9 @@
       "description": "Protocol for Mermaid flow Gateway to Payment Processor is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 3",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 6,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:protocol",
@@ -641,7 +705,9 @@
       "description": "Authentication for Mermaid flow Processor to Payment Store is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 4",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 7,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authentication",
@@ -652,7 +718,9 @@
       "description": "Authorization for Mermaid flow Processor to Payment Store is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 4",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 7,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authorization",
@@ -663,7 +731,9 @@
       "description": "Protocol for Mermaid flow Processor to Payment Store is unknown.",
       "evidence": {
         "detail": "mermaid block 1, line 4",
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "extractor": "mermaid",
+        "line": 7,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:protocol",
@@ -674,7 +744,8 @@
       "description": "Authorization requirements for GET /payments/{paymentId} are not specified.",
       "evidence": {
         "detail": "OpenAPI",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "extractor": "openapi",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:api-get-payments-paymentid:authorization",
@@ -685,7 +756,8 @@
       "description": "Authorization requirements for POST /payments are not specified.",
       "evidence": {
         "detail": "OpenAPI",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "extractor": "openapi",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:api-post-payments:authorization",
@@ -696,7 +768,8 @@
       "description": "Data classification for schema Payment is unknown.",
       "evidence": {
         "detail": "OpenAPI",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "extractor": "openapi",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:payment:data-classification",
@@ -707,7 +780,8 @@
       "description": "Data classification for schema PaymentRequest is unknown.",
       "evidence": {
         "detail": "OpenAPI",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "extractor": "openapi",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:paymentrequest:data-classification",
@@ -718,7 +792,8 @@
       "description": "Authentication behavior is not described in the README.",
       "evidence": {
         "detail": "README",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "extractor": "readme",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:authentication",
@@ -729,7 +804,8 @@
       "description": "Authorization behavior is not described in the README.",
       "evidence": {
         "detail": "README",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "extractor": "readme",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:authorization",
@@ -740,7 +816,8 @@
       "description": "Transport or storage encryption is not described in the README.",
       "evidence": {
         "detail": "README",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "extractor": "readme",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:encryption",
@@ -751,7 +828,8 @@
       "description": "Logging or audit behavior is not described in the README.",
       "evidence": {
         "detail": "README",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "extractor": "readme",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:logging",
@@ -762,7 +840,8 @@
       "description": "Monitoring behavior is not described in the README.",
       "evidence": {
         "detail": "README",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "extractor": "readme",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:monitoring",
@@ -773,7 +852,8 @@
       "description": "Rate limiting behavior is not described in the README.",
       "evidence": {
         "detail": "README",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "extractor": "readme",
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:rate-limiting",
@@ -784,7 +864,9 @@
       "description": "Encryption configuration for payments-db is unknown.",
       "evidence": {
         "detail": "resource \"aws_db_instance\" \"payments\"",
-        "source_path": "tests/fixtures/sample-system/main.tf",
+        "extractor": "terraform",
+        "line": 10,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-db-instance-payments:encryption",
@@ -795,7 +877,9 @@
       "description": "Authentication for internet-exposed resource payments-public-lb is unknown.",
       "evidence": {
         "detail": "resource \"aws_lb\" \"public\"",
-        "source_path": "tests/fixtures/sample-system/main.tf",
+        "extractor": "terraform",
+        "line": 28,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-lb-public:authentication",
@@ -806,7 +890,9 @@
       "description": "Rate limiting for internet-exposed resource payments-public-lb is unknown.",
       "evidence": {
         "detail": "resource \"aws_lb\" \"public\"",
-        "source_path": "tests/fixtures/sample-system/main.tf",
+        "extractor": "terraform",
+        "line": 28,
+        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-lb-public:rate-limiting",

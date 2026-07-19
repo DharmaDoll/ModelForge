@@ -21,6 +21,8 @@ def test_attack_engine_generates_topology_based_techniques(tmp_path: Path) -> No
     assert "T1557" in technique_ids
     assert "T1565" in technique_ids
     assert all(finding.affected_elements for finding in findings)
+    assert all(finding.derived_from for finding in findings)
+    assert all(finding.evidence for finding in findings)
 
 
 def test_attack_engine_maps_secret_nodes_to_unsecured_credentials() -> None:

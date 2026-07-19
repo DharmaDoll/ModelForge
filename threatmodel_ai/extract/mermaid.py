@@ -49,8 +49,8 @@ def extract_mermaid_markdown(path: Path) -> SystemModel:
     edges: dict[str, Edge] = {}
     unknowns: dict[str, Unknown] = {}
 
-    for block_index, block in enumerate(_mermaid_blocks(text), start=1):
-        _extract_block(path, block_index, block, nodes, edges, unknowns)
+    for block_index, (block_start_line, block) in enumerate(_mermaid_blocks(text), start=1):
+        _extract_block(path, block_index, block_start_line, block, nodes, edges, unknowns)
 
     return SystemModel(
         name="unknown",
@@ -62,17 +62,19 @@ def extract_mermaid_markdown(path: Path) -> SystemModel:
     )
 
 
-def _mermaid_blocks(text: str) -> Iterator[list[str]]:
+def _mermaid_blocks(text: str) -> Iterator[tuple[int, list[str]]]:
     in_block = False
     block: list[str] = []
-    for line in text.splitlines():
+    block_start_line = 1
+    for line_number, line in enumerate(text.splitlines(), start=1):
         if not in_block and _FENCE_START_RE.match(line):
             in_block = True
             block = []
+            block_start_line = line_number + 1
             continue
         if in_block and _FENCE_END_RE.match(line):
             in_block = False
-            yield block
+            yield block_start_line, block
             block = []
             continue
         if in_block:
@@ -82,6 +84,7 @@ def _mermaid_blocks(text: str) -> Iterator[list[str]]:
 def _extract_block(
     path: Path,
     block_index: int,
+    block_start_line: int,
     block: list[str],
     nodes: dict[str, Node],
     edges: dict[str, Edge],
@@ -90,7 +93,7 @@ def _extract_block(
     if not any(_DIAGRAM_HEADER_RE.match(line) for line in block):
         return
 
-    for line_number, raw_line in enumerate(block, start=1):
+    for block_line_number, raw_line in enumerate(block, start=1):
         line = _strip_comment(raw_line).strip().rstrip(";")
         if not line or _DIAGRAM_HEADER_RE.match(line):
             continue
@@ -107,7 +110,9 @@ def _extract_block(
         evidence = Evidence(
             source_type=SourceType.MARKDOWN,
             source_path=str(path),
-            detail=f"mermaid block {block_index}, line {line_number}",
+            extractor="mermaid",
+            detail=f"mermaid block {block_index}, line {block_line_number}",
+            line=block_start_line + block_line_number - 1,
         )
         source = _node(left, evidence)
         target = _node(right, evidence)

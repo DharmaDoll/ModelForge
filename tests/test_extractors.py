@@ -30,6 +30,8 @@ def test_openapi_extractor_creates_endpoint_flows_and_data_assets() -> None:
     assert external_edges[0].authentication == "apiKey header:X-API-Key"
     assert external_edges[0].protocol == "HTTPS"
     assert external_edges[0].data_assets
+    assert external_edges[0].evidence[0].extractor == "openapi"
+    assert external_edges[0].evidence[0].detail == "POST /payments"
 
 
 def test_readme_extractor_keeps_explicit_documented_nodes() -> None:
@@ -41,6 +43,9 @@ def test_readme_extractor_keeps_explicit_documented_nodes() -> None:
         node.type == NodeType.DATABASE and node.name == "Payments DB" for node in model.nodes
     )
     assert any(unknown.category == "authentication" for unknown in model.unknowns)
+    customer = next(node for node in model.nodes if node.name == "Customer")
+    assert customer.evidence[0].extractor == "readme"
+    assert customer.evidence[0].line is not None
 
 
 def test_terraform_extractor_maps_resources_and_dependencies() -> None:
@@ -52,6 +57,9 @@ def test_terraform_extractor_maps_resources_and_dependencies() -> None:
     assert any(node.type == NodeType.TRUST_BOUNDARY for node in model.nodes)
     assert any(node.type == NodeType.ACTOR and node.name == "Internet" for node in model.nodes)
     assert any(edge.type == EdgeType.STORES for edge in model.edges)
+    database = next(node for node in model.nodes if node.name == "payments-db")
+    assert database.evidence[0].extractor == "terraform"
+    assert database.evidence[0].line is not None
 
 
 def test_mermaid_extractor_reads_markdown_flowcharts() -> None:
@@ -72,6 +80,9 @@ def test_mermaid_extractor_reads_markdown_flowcharts() -> None:
     )
     assert any(unknown.category == "authentication" for unknown in model.unknowns)
     assert any(unknown.category == "protocol" for unknown in model.unknowns)
+    mermaid_edge = next(edge for edge in model.edges if edge.metadata["mermaid_label"] == "HTTPS")
+    assert mermaid_edge.evidence[0].extractor == "mermaid"
+    assert mermaid_edge.evidence[0].line is not None
 
 
 def test_mermaid_extractor_reads_bare_edges(tmp_path: Path) -> None:

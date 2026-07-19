@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from threatmodel_ai.model.evidence import evidence_from_model
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
 from threatmodel_ai.stride.models import StrideCategory, Threat
@@ -57,6 +58,7 @@ def _known_none_or_unknown(value: str) -> bool:
 
 
 def _build_entrypoint_threat(
+    model: SystemModel,
     rule_id: str,
     category: StrideCategory,
     edge: Edge,
@@ -68,6 +70,7 @@ def _build_entrypoint_threat(
     mitigation: str,
     confidence: str = "medium",
 ) -> Threat:
+    derived_from = [edge.id, source.id, target.id]
     return Threat(
         id=make_id("threat", rule_id, edge.id),
         rule_id=rule_id,
@@ -76,7 +79,9 @@ def _build_entrypoint_threat(
         scenario=scenario.format(source=source.name, target=target.name),
         impact=impact.format(source=source.name, target=target.name),
         mitigation=mitigation.format(source=source.name, target=target.name),
-        affected_elements=[edge.id, source.id, target.id],
+        affected_elements=derived_from,
+        derived_from=derived_from,
+        evidence=evidence_from_model(model, derived_from),
         confidence=confidence,
     )
 
@@ -89,6 +94,7 @@ def _spoofing(model: SystemModel, edge: Edge, source: Node, target: Node) -> Thr
         else f"Authentication is documented as {edge.authentication}."
     )
     return _build_entrypoint_threat(
+        model,
         "entrypoint-spoofing",
         StrideCategory.SPOOFING,
         edge,
@@ -107,6 +113,7 @@ def _spoofing(model: SystemModel, edge: Edge, source: Node, target: Node) -> Thr
 def _tampering(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
     confidence = "high" if _crosses_boundary(edge, source, target) else "medium"
     return _build_entrypoint_threat(
+        model,
         "entrypoint-tampering",
         StrideCategory.TAMPERING,
         edge,
@@ -129,6 +136,7 @@ def _repudiation(model: SystemModel, edge: Edge, source: Node, target: Node) -> 
     )
     confidence = "medium" if logging_known else "high"
     return _build_entrypoint_threat(
+        model,
         "entrypoint-repudiation",
         StrideCategory.REPUDIATION,
         edge,
@@ -146,6 +154,7 @@ def _repudiation(model: SystemModel, edge: Edge, source: Node, target: Node) -> 
 def _information_disclosure(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
     confidence = "high" if edge.protocol in {"unknown", "HTTP"} or edge.data_assets else "medium"
     return _build_entrypoint_threat(
+        model,
         "entrypoint-information-disclosure",
         StrideCategory.INFORMATION_DISCLOSURE,
         edge,
@@ -164,6 +173,7 @@ def _information_disclosure(model: SystemModel, edge: Edge, source: Node, target
 def _denial_of_service(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
     confidence = "high" if not model.metadata.get("mentions_rate_limiting") else "medium"
     return _build_entrypoint_threat(
+        model,
         "entrypoint-denial-of-service",
         StrideCategory.DENIAL_OF_SERVICE,
         edge,
@@ -181,6 +191,7 @@ def _denial_of_service(model: SystemModel, edge: Edge, source: Node, target: Nod
 def _elevation_of_privilege(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
     confidence = "high" if edge.authorization == "unknown" else "medium"
     return _build_entrypoint_threat(
+        model,
         "entrypoint-elevation-of-privilege",
         StrideCategory.ELEVATION_OF_PRIVILEGE,
         edge,
@@ -201,6 +212,7 @@ def _store_information_disclosure(
     source: Node,
     target: Node,
 ) -> Threat:
+    derived_from = [edge.id, source.id, target.id]
     return Threat(
         id=make_id("threat", "store-information-disclosure", edge.id),
         rule_id="store-information-disclosure",
@@ -217,12 +229,15 @@ def _store_information_disclosure(
         mitigation=(
             "Classify the data, enforce least-privilege access, and enable encryption at rest."
         ),
-        affected_elements=[edge.id, source.id, target.id],
+        affected_elements=derived_from,
+        derived_from=derived_from,
+        evidence=evidence_from_model(model, derived_from),
         confidence="medium",
     )
 
 
 def _store_tampering(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
+    derived_from = [edge.id, source.id, target.id]
     return Threat(
         id=make_id("threat", "store-tampering", edge.id),
         rule_id="store-tampering",
@@ -233,7 +248,9 @@ def _store_tampering(model: SystemModel, edge: Edge, source: Node, target: Node)
         mitigation=(
             "Apply least-privilege write permissions, validation, integrity checks, and backups."
         ),
-        affected_elements=[edge.id, source.id, target.id],
+        affected_elements=derived_from,
+        derived_from=derived_from,
+        evidence=evidence_from_model(model, derived_from),
         confidence="medium",
     )
 

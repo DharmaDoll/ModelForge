@@ -96,7 +96,9 @@ def extract_terraform(paths: Iterable[Path]) -> SystemModel:
                 Evidence(
                     source_type=SourceType.TERRAFORM,
                     source_path=str(resource.path),
+                    extractor="terraform",
                     detail=f'resource "{resource.resource_type}" "{resource.name}"',
+                    line=resource.line,
                 )
             ],
         )
@@ -155,23 +157,38 @@ def extract_terraform(paths: Iterable[Path]) -> SystemModel:
 
 
 class _TerraformResource:
-    def __init__(self, path: Path, resource_type: str, name: str, body: str) -> None:
+    def __init__(
+        self,
+        path: Path,
+        resource_type: str,
+        name: str,
+        body: str,
+        line: int,
+    ) -> None:
         self.path = path
         self.resource_type = resource_type
         self.name = name
         self.body = body
+        self.line = line
 
 
 def _collect_resources(paths: Iterable[Path]) -> Iterator[_TerraformResource]:
     for path in sorted(paths):
         text = path.read_text(encoding="utf-8")
-        for resource_type, name, body in _iter_resource_blocks(text, path):
-            yield _TerraformResource(path=path, resource_type=resource_type, name=name, body=body)
+        for resource_type, name, body, line in _iter_resource_blocks(text, path):
+            yield _TerraformResource(
+                path=path,
+                resource_type=resource_type,
+                name=name,
+                body=body,
+                line=line,
+            )
 
 
-def _iter_resource_blocks(text: str, path: Path) -> Iterator[tuple[str, str, str]]:
+def _iter_resource_blocks(text: str, path: Path) -> Iterator[tuple[str, str, str, int]]:
     position = 0
     while match := _RESOURCE_START_RE.search(text, position):
+        line = text.count("\n", 0, match.start()) + 1
         open_brace_index = match.end() - 1
         close_brace_index = _find_matching_brace(text, open_brace_index)
         if close_brace_index is None:
@@ -183,7 +200,12 @@ def _iter_resource_blocks(text: str, path: Path) -> Iterator[tuple[str, str, str
                 ),
                 hint="Run terraform fmt/validate, then retry the analysis.",
             )
-        yield match.group(1), match.group(2), text[open_brace_index + 1 : close_brace_index]
+        yield (
+            match.group(1),
+            match.group(2),
+            text[open_brace_index + 1 : close_brace_index],
+            line,
+        )
         position = close_brace_index + 1
 
 
@@ -335,6 +357,7 @@ def _add_internet_entrypoints(nodes: dict[str, Node], edges: dict[str, Edge]) ->
                 Evidence(
                     source_type=SourceType.TERRAFORM,
                     source_path="derived",
+                    extractor="terraform",
                     detail="internet exposure",
                 )
             ],

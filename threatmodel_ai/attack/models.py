@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from threatmodel_ai.model.schema import Evidence
+
 
 class AttackTechnique(BaseModel):
     """A curated ATT&CK Enterprise technique reference."""
@@ -30,5 +32,7 @@ class AttackFinding(BaseModel):
     detection: str
     mitigation: str
     affected_elements: list[str] = Field(default_factory=list)
+    derived_from: list[str] = Field(default_factory=list)
+    evidence: list[Evidence] = Field(default_factory=list)
     confidence: str = "medium"
     status: str = "candidate"

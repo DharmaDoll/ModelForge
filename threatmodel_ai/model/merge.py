@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from threatmodel_ai.model.schema import Edge, Evidence, Node, SystemModel, Unknown
+from threatmodel_ai.model.evidence import merge_evidence
+from threatmodel_ai.model.schema import Edge, Node, SystemModel, Unknown
 
 
 def merge_system_models(models: Iterable[SystemModel]) -> SystemModel:
@@ -54,7 +55,7 @@ def _merge_node(left: Node, right: Node) -> Node:
             "description": _prefer_known(left.description, right.description),
             "trust_boundary_id": left.trust_boundary_id or right.trust_boundary_id,
             "metadata": {**left.metadata, **right.metadata},
-            "evidence": _merge_evidence(left.evidence, right.evidence),
+            "evidence": merge_evidence([*left.evidence, *right.evidence]),
         }
     )
 
@@ -68,7 +69,7 @@ def _merge_edge(left: Edge, right: Edge) -> Edge:
             "authorization": _prefer_known(left.authorization, right.authorization),
             "data_assets": sorted(set(left.data_assets) | set(right.data_assets)),
             "metadata": {**left.metadata, **right.metadata},
-            "evidence": _merge_evidence(left.evidence, right.evidence),
+            "evidence": merge_evidence([*left.evidence, *right.evidence]),
         }
     )
 
@@ -77,14 +78,3 @@ def _prefer_known(left: str, right: str) -> str:
     if left and left != "unknown":
         return left
     return right or "unknown"
-
-
-def _merge_evidence(left: list[Evidence], right: list[Evidence]) -> list[Evidence]:
-    seen: set[tuple[str, str, str]] = set()
-    merged: list[Evidence] = []
-    for evidence in [*left, *right]:
-        key = (evidence.source_type.value, evidence.source_path, evidence.detail)
-        if key not in seen:
-            seen.add(key)
-            merged.append(evidence)
-    return merged

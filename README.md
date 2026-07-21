@@ -82,6 +82,11 @@ show `Derived from` model IDs and a short evidence summary for review traceabili
 Mermaid node types are inferred only from explicit label or alias keywords. Ambiguous
 or unsupported Mermaid nodes remain `component`.
 
+Mermaid `subgraph` blocks and Terraform network resources are treated as explicit
+trust boundaries when the input states them. Missing entry-point boundary
+membership is reported in `questions.md`; ModelForge does not infer boundaries
+from names alone.
+
 ## Review Workflow
 
 1. Run `tm-ai analyze`.

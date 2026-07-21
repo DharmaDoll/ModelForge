@@ -111,7 +111,13 @@ def _spoofing(model: SystemModel, edge: Edge, source: Node, target: Node) -> Thr
 
 
 def _tampering(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
-    confidence = "high" if _crosses_boundary(edge, source, target) else "medium"
+    crosses_boundary = _crosses_boundary(edge, source, target)
+    confidence = "high" if crosses_boundary else "medium"
+    boundary_context = (
+        "This flow crosses a trust boundary or starts from an actor. "
+        if crosses_boundary
+        else ""
+    )
     return _build_entrypoint_threat(
         model,
         "entrypoint-tampering",
@@ -120,7 +126,9 @@ def _tampering(model: SystemModel, edge: Edge, source: Node, target: Node) -> Th
         source,
         target,
         "Request tampering risk on {target}",
-        "{source} sends input to {target}. The model does not prove input integrity or validation.",
+        boundary_context
+        + "{source} sends input to {target}. The model does not prove input integrity or "
+        "validation.",
         "Malformed or modified requests may change server-side state or bypass business rules.",
         "Validate all inputs, enforce schema constraints, and use integrity protections "
         "where applicable.",

@@ -21,6 +21,8 @@ from threatmodel_ai.model.schema import (
 _FENCE_START_RE = re.compile(r"^\s*```\s*mermaid\s*$", re.IGNORECASE)
 _FENCE_END_RE = re.compile(r"^\s*```\s*$")
 _DIAGRAM_HEADER_RE = re.compile(r"^\s*(flowchart|graph)\b", re.IGNORECASE)
+_SUBGRAPH_RE = re.compile(r"^\s*subgraph\s+(?P<body>.+?)\s*$", re.IGNORECASE)
+_END_RE = re.compile(r"^\s*end\s*$", re.IGNORECASE)
 _EDGE_RE = re.compile(
     r"^\s*(?P<left>.+?)\s*(?P<arrow>-->|==>|-\.->)\s*"
     r"(?:\|(?P<label>[^|]+)\|)?\s*(?P<right>.+?)\s*$"
@@ -93,10 +95,29 @@ def _extract_block(
     if not any(_DIAGRAM_HEADER_RE.match(line) for line in block):
         return
 
+    boundary_stack: list[str] = []
     for block_line_number, raw_line in enumerate(block, start=1):
         line = _strip_comment(raw_line).strip().rstrip(";")
         if not line or _DIAGRAM_HEADER_RE.match(line):
             continue
+        evidence = Evidence(
+            source_type=SourceType.MARKDOWN,
+            source_path=str(path),
+            extractor="mermaid",
+            detail=f"mermaid block {block_index}, line {block_line_number}",
+            line=block_start_line + block_line_number - 1,
+        )
+        subgraph_match = _SUBGRAPH_RE.match(line)
+        if subgraph_match:
+            boundary = _trust_boundary(subgraph_match.group("body"), evidence)
+            nodes[boundary.id] = _merge_node(nodes.get(boundary.id), boundary)
+            boundary_stack.append(boundary.id)
+            continue
+        if _END_RE.match(line):
+            if boundary_stack:
+                boundary_stack.pop()
+            continue
+
         match = _EDGE_RE.match(line)
         if not match:
             continue
@@ -107,15 +128,9 @@ def _extract_block(
             continue
 
         label = (match.group("label") or "").strip()
-        evidence = Evidence(
-            source_type=SourceType.MARKDOWN,
-            source_path=str(path),
-            extractor="mermaid",
-            detail=f"mermaid block {block_index}, line {block_line_number}",
-            line=block_start_line + block_line_number - 1,
-        )
-        source = _node(left, evidence)
-        target = _node(right, evidence)
+        trust_boundary_id = boundary_stack[-1] if boundary_stack else None
+        source = _node(left, evidence, trust_boundary_id)
+        target = _node(right, evidence, trust_boundary_id)
         nodes[source.id] = _merge_node(nodes.get(source.id), source)
         nodes[target.id] = _merge_node(nodes.get(target.id), target)
 
@@ -150,6 +165,30 @@ class _ParsedNode:
         self.label = label
 
 
+def _trust_boundary(raw: str, evidence: Evidence) -> Node:
+    parsed = _parse_boundary(raw)
+    return Node(
+        id=make_id("trust_boundary", "mermaid", parsed.alias),
+        name=parsed.label,
+        type=NodeType.TRUST_BOUNDARY,
+        description=f"Mermaid subgraph {parsed.alias}.",
+        metadata={
+            "source_format": "mermaid",
+            "mermaid_alias": parsed.alias,
+        },
+        evidence=[evidence],
+    )
+
+
+def _parse_boundary(raw: str) -> _ParsedNode:
+    parsed = _parse_node(raw)
+    if parsed:
+        return parsed
+
+    label = raw.strip().strip("\"'")
+    return _ParsedNode(alias=label, label=label or "unknown")
+
+
 def _parse_node(raw: str) -> _ParsedNode | None:
     token = raw.strip()
     match = _NODE_RE.match(token)
@@ -168,7 +207,7 @@ def _parse_node(raw: str) -> _ParsedNode | None:
     return _ParsedNode(alias=alias, label=label or alias)
 
 
-def _node(parsed: _ParsedNode, evidence: Evidence) -> Node:
+def _node(parsed: _ParsedNode, evidence: Evidence, trust_boundary_id: str | None) -> Node:
     node_type, inference_metadata = _infer_node_type(parsed)
     node_id = make_id(node_type.value, "mermaid", parsed.alias)
     return Node(
@@ -181,6 +220,7 @@ def _node(parsed: _ParsedNode, evidence: Evidence) -> Node:
             "mermaid_alias": parsed.alias,
             **inference_metadata,
         },
+        trust_boundary_id=trust_boundary_id,
         evidence=[evidence],
     )
 
@@ -217,10 +257,21 @@ def _merge_node(existing: Node | None, incoming: Node) -> Node:
                 incoming.name,
                 existing_alias or incoming_alias,
             ),
+            "trust_boundary_id": _merge_trust_boundary_id(existing, incoming),
             "metadata": {**existing.metadata, **incoming.metadata},
             "evidence": [*existing.evidence, *incoming.evidence],
         }
     )
+
+
+def _merge_trust_boundary_id(existing: Node, incoming: Node) -> str | None:
+    if existing.trust_boundary_id == incoming.trust_boundary_id:
+        return existing.trust_boundary_id
+    if not existing.trust_boundary_id:
+        return incoming.trust_boundary_id
+    if not incoming.trust_boundary_id:
+        return existing.trust_boundary_id
+    return None
 
 
 def _merge_edge(existing: Edge | None, incoming: Edge) -> Edge:

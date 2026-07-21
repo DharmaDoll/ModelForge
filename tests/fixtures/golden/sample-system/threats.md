@@ -42,7 +42,7 @@ Total threats: 26
 - Status: candidate
 - Affected elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Payments Gateway receives requests from Web Client, and rate limiting or capacity controls are not proven.
 
@@ -110,7 +110,7 @@ Mitigation: Apply rate limits, request size limits, timeouts, backpressure, and 
 - Status: candidate
 - Affected elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Authorization requirements for this flow are not fully proven by the system model.
 
@@ -178,7 +178,7 @@ Mitigation: Define authorization rules per operation and enforce them server-sid
 - Status: candidate
 - Affected elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: The flow may expose response data, and transport or data classification details are incomplete.
 
@@ -263,7 +263,7 @@ Mitigation: Classify the data, enforce least-privilege access, and enable encryp
 - Status: candidate
 - Affected elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Audit logging for this externally reachable flow is not proven by the system model.
 
@@ -331,7 +331,7 @@ Mitigation: Record authenticated principal, request metadata, decision outcomes,
 - Status: candidate
 - Affected elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Authentication is not specified for this data flow. A caller may impersonate another principal when reaching Payments Gateway.
 
@@ -399,9 +399,9 @@ Mitigation: Require explicit authentication, validate credentials server-side, a
 - Status: candidate
 - Affected elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
-Scenario: Web Client sends input to Payments Gateway. The model does not prove input integrity or validation.
+Scenario: This flow crosses a trust boundary or starts from an actor. Web Client sends input to Payments Gateway. The model does not prove input integrity or validation.
 
 Impact: Malformed or modified requests may change server-side state or bypass business rules.
 
@@ -418,7 +418,7 @@ Mitigation: Validate all inputs, enforce schema constraints, and use integrity p
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
-Scenario: API Client sends input to GET /payments/{paymentId}. The model does not prove input integrity or validation.
+Scenario: This flow crosses a trust boundary or starts from an actor. API Client sends input to GET /payments/{paymentId}. The model does not prove input integrity or validation.
 
 Impact: Malformed or modified requests may change server-side state or bypass business rules.
 
@@ -435,7 +435,7 @@ Mitigation: Validate all inputs, enforce schema constraints, and use integrity p
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
 
-Scenario: API Client sends input to POST /payments. The model does not prove input integrity or validation.
+Scenario: This flow crosses a trust boundary or starts from an actor. API Client sends input to POST /payments. The model does not prove input integrity or validation.
 
 Impact: Malformed or modified requests may change server-side state or bypass business rules.
 
@@ -452,7 +452,7 @@ Mitigation: Validate all inputs, enforce schema constraints, and use integrity p
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
-Scenario: Internet sends input to payments-public-lb. The model does not prove input integrity or validation.
+Scenario: This flow crosses a trust boundary or starts from an actor. Internet sends input to payments-public-lb. The model does not prove input integrity or validation.
 
 Impact: Malformed or modified requests may change server-side state or bypass business rules.
 

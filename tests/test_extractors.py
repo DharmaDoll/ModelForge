@@ -60,6 +60,35 @@ def test_terraform_extractor_maps_resources_and_dependencies() -> None:
     database = next(node for node in model.nodes if node.name == "payments-db")
     assert database.evidence[0].extractor == "terraform"
     assert database.evidence[0].line is not None
+    api = next(node for node in model.nodes if node.name == "payments-api")
+    assert api.trust_boundary_id == "terraform:aws-subnet:private"
+
+
+def test_terraform_extractor_prefers_specific_network_boundaries(tmp_path: Path) -> None:
+    terraform = tmp_path / "main.tf"
+    terraform.write_text(
+        "\n".join(
+            [
+                'resource "aws_vpc" "main" {}',
+                'resource "aws_subnet" "private" {',
+                "  vpc_id = aws_vpc.main.id",
+                "}",
+                'resource "aws_security_group" "app" {',
+                "  vpc_id = aws_vpc.main.id",
+                "}",
+                'resource "aws_instance" "web" {',
+                "  subnet_id              = aws_subnet.private.id",
+                "  vpc_security_group_ids = [aws_security_group.app.id]",
+                "}",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    model = extract_terraform((terraform,))
+    web = next(node for node in model.nodes if node.name == "aws_instance.web")
+
+    assert web.trust_boundary_id == "terraform:aws-security-group:app"
 
 
 def test_mermaid_extractor_reads_markdown_flowcharts() -> None:
@@ -104,6 +133,36 @@ def test_mermaid_extractor_reads_bare_edges(tmp_path: Path) -> None:
     assert {node.name for node in model.nodes} == {"A", "B"}
     assert len(model.edges) == 1
     assert model.edges[0].protocol == "unknown"
+
+
+def test_mermaid_extractor_maps_subgraphs_to_trust_boundaries(tmp_path: Path) -> None:
+    markdown = tmp_path / "architecture.md"
+    markdown.write_text(
+        "\n".join(
+            [
+                "```mermaid",
+                "flowchart LR",
+                '  Client["Web Client"] --> Api["Orders API"]',
+                '  subgraph Private["Private Zone"]',
+                '    Api --> Db["Orders DB"]',
+                "  end",
+                "```",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    model = extract_mermaid_markdown(markdown)
+    boundary = next(node for node in model.nodes if node.type == NodeType.TRUST_BOUNDARY)
+    api = next(node for node in model.nodes if node.name == "Orders API")
+    database = next(node for node in model.nodes if node.name == "Orders DB")
+    client = next(node for node in model.nodes if node.name == "Web Client")
+
+    assert boundary.name == "Private Zone"
+    assert boundary.evidence[0].line == 4
+    assert api.trust_boundary_id == boundary.id
+    assert database.trust_boundary_id == boundary.id
+    assert client.trust_boundary_id is None
 
 
 def test_mermaid_extractor_infers_explicit_node_types(tmp_path: Path) -> None:

@@ -99,9 +99,9 @@
       "description": "Mermaid flow from Gateway to Payment Processor.",
       "evidence": [
         {
-          "detail": "mermaid block 1, line 3",
+          "detail": "mermaid block 1, line 4",
           "extractor": "mermaid",
-          "line": 6,
+          "line": 7,
           "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
@@ -124,9 +124,9 @@
       "description": "Mermaid flow from Processor to Payment Store.",
       "evidence": [
         {
-          "detail": "mermaid block 1, line 4",
+          "detail": "mermaid block 1, line 5",
           "extractor": "mermaid",
-          "line": 7,
+          "line": 8,
           "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
@@ -379,9 +379,9 @@
           "source_type": "markdown"
         },
         {
-          "detail": "mermaid block 1, line 3",
+          "detail": "mermaid block 1, line 4",
           "extractor": "mermaid",
-          "line": 6,
+          "line": 7,
           "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
@@ -392,22 +392,23 @@
         "source_format": "mermaid"
       },
       "name": "Payments Gateway",
+      "trust_boundary_id": "trust-boundary:mermaid:appboundary",
       "type": "component"
     },
     {
       "description": "Mermaid node Processor.",
       "evidence": [
         {
-          "detail": "mermaid block 1, line 3",
+          "detail": "mermaid block 1, line 4",
           "extractor": "mermaid",
-          "line": 6,
+          "line": 7,
           "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         },
         {
-          "detail": "mermaid block 1, line 4",
+          "detail": "mermaid block 1, line 5",
           "extractor": "mermaid",
-          "line": 7,
+          "line": 8,
           "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
@@ -418,15 +419,16 @@
         "source_format": "mermaid"
       },
       "name": "Payment Processor",
+      "trust_boundary_id": "trust-boundary:mermaid:appboundary",
       "type": "component"
     },
     {
       "description": "Mermaid node Store.",
       "evidence": [
         {
-          "detail": "mermaid block 1, line 4",
+          "detail": "mermaid block 1, line 5",
           "extractor": "mermaid",
-          "line": 7,
+          "line": 8,
           "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
@@ -437,6 +439,7 @@
         "source_format": "mermaid"
       },
       "name": "Payment Store",
+      "trust_boundary_id": "trust-boundary:mermaid:appboundary",
       "type": "component"
     },
     {
@@ -631,6 +634,25 @@
       },
       "name": "aws_vpc.main",
       "type": "trust_boundary"
+    },
+    {
+      "description": "Mermaid subgraph AppBoundary.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 3",
+          "extractor": "mermaid",
+          "line": 6,
+          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "trust-boundary:mermaid:appboundary",
+      "metadata": {
+        "mermaid_alias": "AppBoundary",
+        "source_format": "mermaid"
+      },
+      "name": "Application Boundary",
+      "type": "trust_boundary"
     }
   ],
   "schema_version": "0.1",
@@ -665,9 +687,9 @@
       "category": "authentication",
       "description": "Authentication for Mermaid flow Gateway to Payment Processor is unknown.",
       "evidence": {
-        "detail": "mermaid block 1, line 3",
+        "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
-        "line": 6,
+        "line": 7,
         "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
@@ -678,9 +700,9 @@
       "category": "authorization",
       "description": "Authorization for Mermaid flow Gateway to Payment Processor is unknown.",
       "evidence": {
-        "detail": "mermaid block 1, line 3",
+        "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
-        "line": 6,
+        "line": 7,
         "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
@@ -691,9 +713,9 @@
       "category": "protocol",
       "description": "Protocol for Mermaid flow Gateway to Payment Processor is unknown.",
       "evidence": {
-        "detail": "mermaid block 1, line 3",
+        "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
-        "line": 6,
+        "line": 7,
         "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
@@ -704,9 +726,9 @@
       "category": "authentication",
       "description": "Authentication for Mermaid flow Processor to Payment Store is unknown.",
       "evidence": {
-        "detail": "mermaid block 1, line 4",
+        "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
-        "line": 7,
+        "line": 8,
         "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
@@ -717,9 +739,9 @@
       "category": "authorization",
       "description": "Authorization for Mermaid flow Processor to Payment Store is unknown.",
       "evidence": {
-        "detail": "mermaid block 1, line 4",
+        "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
-        "line": 7,
+        "line": 8,
         "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
@@ -730,9 +752,9 @@
       "category": "protocol",
       "description": "Protocol for Mermaid flow Processor to Payment Store is unknown.",
       "evidence": {
-        "detail": "mermaid block 1, line 4",
+        "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
-        "line": 7,
+        "line": 8,
         "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },

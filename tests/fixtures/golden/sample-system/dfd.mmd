@@ -1,5 +1,10 @@
 flowchart LR
   %% Generated from system_model.json. Do not edit manually.
+  subgraph n_3adfcb60f4["Application Boundary\n(trust_boundary)"]
+    n_8fbd39c839["Payment Processor\n(component)"]
+    n_90805b71d3["Payment Store\n(component)"]
+    n_18b953a710["Payments Gateway\n(component)"]
+  end
   subgraph n_2aac25e38c["aws_subnet.private\n(trust_boundary)"]
     n_ed57bad244["payments-api\n(component)"]
   end
@@ -9,10 +14,7 @@ flowchart LR
   n_f5a5bcaa64(["Web Client\n(actor)"])
   n_8380f54a1c["GET /payments/{paymentId}\n(api)"]
   n_9cd32496f4["POST /payments\n(api)"]
-  n_8fbd39c839["Payment Processor\n(component)"]
-  n_90805b71d3["Payment Store\n(component)"]
   n_4762e743ba["Payments API\n(component)"]
-  n_18b953a710["Payments Gateway\n(component)"]
   n_c07feb1b52["Sample Payments API\n(component)"]
   n_ed1588d808["Sample Payments API\n(component)"]
   n_40b4a18fad["payments-public-lb\n(component)"]

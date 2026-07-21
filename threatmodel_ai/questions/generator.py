@@ -107,6 +107,16 @@ def _questions_for_edge(
     if not is_external_entry:
         return questions
 
+    if target.trust_boundary_id is None:
+        questions.append(
+            _edge_question(
+                edge,
+                model,
+                "trust_boundary",
+                f"Which trust boundary contains {target.name}?",
+                "Trust boundary membership is not present for this external entry point.",
+            )
+        )
     if edge.authentication == "unknown":
         questions.append(
             _edge_question(

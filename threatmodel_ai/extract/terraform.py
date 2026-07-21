@@ -65,6 +65,17 @@ _DISPLAY_NAME_KEYS = (
     "topic_name",
 )
 
+_BOUNDARY_PRIORITY = {
+    "aws-security-group": 0,
+    "azurerm-network-security-group": 0,
+    "aws-subnet": 1,
+    "azurerm-subnet": 1,
+    "google-compute-subnetwork": 1,
+    "aws-vpc": 2,
+    "azurerm-virtual-network": 2,
+    "google-compute-network": 2,
+}
+
 
 def extract_terraform(paths: Iterable[Path]) -> SystemModel:
     """Extract cloud resources and Terraform dependency edges from .tf files."""
@@ -303,11 +314,23 @@ def _assign_trust_boundaries(
             if ref_id in trust_boundary_ids
         ]
         updated[node_id] = (
-            node.model_copy(update={"trust_boundary_id": sorted(referenced_boundaries)[0]})
+            node.model_copy(
+                update={"trust_boundary_id": _select_trust_boundary(referenced_boundaries)}
+            )
             if referenced_boundaries
             else node
         )
     return updated
+
+
+def _select_trust_boundary(boundary_ids: list[str]) -> str:
+    return sorted(boundary_ids, key=lambda item: (_boundary_priority(item), item))[0]
+
+
+def _boundary_priority(boundary_id: str) -> int:
+    parts = boundary_id.split(":")
+    resource_type = parts[1] if len(parts) >= 2 else ""
+    return _BOUNDARY_PRIORITY.get(resource_type, 99)
 
 
 def _extract_edges(nodes: dict[str, Node], resource_blocks: dict[str, str]) -> dict[str, Edge]:

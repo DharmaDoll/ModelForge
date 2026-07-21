@@ -2,7 +2,7 @@
 
 Questions generated from unknown or incomplete model facts.
 
-Total questions: 42
+Total questions: 45
 
 | ID | Category | Question |
 | --- | --- | --- |
@@ -48,6 +48,9 @@ Total questions: 42
 | `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:rate-limiting` | rate_limiting | What rate limits protect payments-public-lb? |
 | `question:unknown-readme-rate-limiting` | rate_limiting | What rate limits or abuse controls are enforced for Sample Payments API? |
 | `question:unknown-terraform-terraform-aws-lb-public-rate-limiting` | rate_limiting | What rate limits or abuse controls are enforced for payments-public-lb? |
+| `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:trust-boundary` | trust_boundary | Which trust boundary contains GET /payments/{paymentId}? |
+| `question:edge-actor-openapi-api-client-api-post-payments-request:trust-boundary` | trust_boundary | Which trust boundary contains POST /payments? |
+| `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:trust-boundary` | trust_boundary | Which trust boundary contains payments-public-lb? |
 
 ## How is Payments Gateway authenticated when called by Web Client?
 
@@ -55,7 +58,7 @@ Total questions: 42
 - Category: authentication
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authentication is unknown for this external entry point.
 
@@ -85,7 +88,7 @@ Rationale: Authentication for Mermaid flow Web Client to Payments Gateway is unk
 - Category: authentication
 - Related elements: `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
 - Derived from: `unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authentication`, `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authentication for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -95,7 +98,7 @@ Rationale: Authentication for Mermaid flow Gateway to Payment Processor is unkno
 - Category: authentication
 - Related elements: `edge:component-mermaid-processor:component-mermaid-store:mermaid`
 - Derived from: `unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authentication`, `edge:component-mermaid-processor:component-mermaid-store:mermaid`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
 
 Rationale: Authentication for Mermaid flow Processor to Payment Store is unknown.
 
@@ -125,7 +128,7 @@ Rationale: Authentication for internet-exposed resource payments-public-lb is un
 - Category: authorization
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -175,7 +178,7 @@ Rationale: Authorization for Mermaid flow Web Client to Payments Gateway is unkn
 - Category: authorization
 - Related elements: `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
 - Derived from: `unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authorization`, `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authorization for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -185,7 +188,7 @@ Rationale: Authorization for Mermaid flow Gateway to Payment Processor is unknow
 - Category: authorization
 - Related elements: `edge:component-mermaid-processor:component-mermaid-store:mermaid`
 - Derived from: `unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authorization`, `edge:component-mermaid-processor:component-mermaid-store:mermaid`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
 
 Rationale: Authorization for Mermaid flow Processor to Payment Store is unknown.
 
@@ -345,7 +348,7 @@ Rationale: Logging or audit behavior is not described in the README.
 - Category: logging_monitoring
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -395,7 +398,7 @@ Rationale: Monitoring behavior is not described in the README.
 - Category: protocol
 - Related elements: `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
 - Derived from: `unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:protocol`, `edge:component-mermaid-gateway:component-mermaid-processor:mermaid`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Protocol for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -405,7 +408,7 @@ Rationale: Protocol for Mermaid flow Gateway to Payment Processor is unknown.
 - Category: protocol
 - Related elements: `edge:component-mermaid-processor:component-mermaid-store:mermaid`
 - Derived from: `unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:protocol`, `edge:component-mermaid-processor:component-mermaid-store:mermaid`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
 
 Rationale: Protocol for Mermaid flow Processor to Payment Store is unknown.
 
@@ -415,7 +418,7 @@ Rationale: Protocol for Mermaid flow Processor to Payment Store is unknown.
 - Category: rate_limiting
 - Related elements: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
 - Derived from: `edge:actor-mermaid-client:component-mermaid-gateway:mermaid`, `actor:mermaid:client`, `component:mermaid:gateway`
-- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:6` (mermaid/markdown, mermaid block 1, line 3)
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -468,3 +471,33 @@ Rationale: Rate limiting behavior is not described in the README.
 - Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public")
 
 Rationale: Rate limiting for internet-exposed resource payments-public-lb is unknown.
+
+## Which trust boundary contains GET /payments/{paymentId}?
+
+- ID: `question:edge-actor-openapi-api-client-api-get-payments-paymentid-request:trust-boundary`
+- Category: trust_boundary
+- Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+
+Rationale: Trust boundary membership is not present for this external entry point.
+
+## Which trust boundary contains POST /payments?
+
+- ID: `question:edge-actor-openapi-api-client-api-post-payments-request:trust-boundary`
+- Category: trust_boundary
+- Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+
+Rationale: Trust boundary membership is not present for this external entry point.
+
+## Which trust boundary contains payments-public-lb?
+
+- ID: `question:edge-actor-terraform-internet-terraform-aws-lb-public-public-access:trust-boundary`
+- Category: trust_boundary
+- Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
+- Evidence: `/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+
+Rationale: Trust boundary membership is not present for this external entry point.

@@ -74,6 +74,8 @@ flowchart TD
   Questions["questions.md"]
   LLM["Optional LLM refinement\n--llm refine-questions"]
   Refined["questions_refined.md\nnot source of truth"]
+  ExtractLLM["Optional LLM extraction\n--llm extract-readme"]
+  Candidates["llm_candidates.json\nreview-only candidates"]
 
   Inputs --> Extract --> Model
   Model --> DFD
@@ -83,6 +85,7 @@ flowchart TD
   Model --> Questions
   Questions -. opt-in only .-> LLM -.-> Refined
   Model -. minimal summary .-> LLM
+  Inputs -. README text, opt-in only .-> ExtractLLM -.-> Candidates
 ```
 
 Without `--llm`, the LLM branch is skipped and no external API is called.
@@ -96,6 +99,7 @@ Without `--llm`, the LLM branch is skipped and no external API is called.
 * `risk.md`
 * `questions.md`
 * `questions_refined.md` when optional LLM question refinement is enabled
+* `llm_candidates.json` when optional LLM README extraction is enabled
 
 What they mean:
 
@@ -107,6 +111,8 @@ What they mean:
 * `questions.md` - missing information to ask reviewers or system owners
 * `questions_refined.md` - optional LLM-refined wording for `questions.md`; not
   the source of truth
+* `llm_candidates.json` - optional LLM-extracted README candidates for review;
+  not merged into `system_model.json`
 
 Model facts in `system_model.json` include non-sensitive evidence pointers such as
 source file, extractor, section/detail, and line when available. Generated reports
@@ -149,6 +155,19 @@ The source of truth remains `system_model.json` and `questions.md`. ModelForge
 sends only a minimal `system_model.json` summary and deterministic question data
 to the LLM, not raw input file contents. Set `MODELFORGE_LLM_MODEL` to override
 the default OpenAI model.
+
+To ask an LLM to extract structured candidates from README free text:
+
+```bash
+OPENAI_API_KEY=... uv run tm-ai analyze ./examples/sample-system \
+  --out ./out \
+  --llm extract-readme
+```
+
+This writes `llm_candidates.json`. These candidates are review-only and are not
+merged into `system_model.json`. Unlike question refinement, this mode sends raw
+README text to the LLM, so use it only for inputs that are approved for external
+processing.
 
 ## Validation And Errors
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,7 +16,12 @@ from threatmodel_ai.extract import (
     extract_terraform,
 )
 from threatmodel_ai.ingest import AnalysisInputs
-from threatmodel_ai.llm import LLMClient, OpenAIResponsesClient, refine_questions
+from threatmodel_ai.llm import (
+    LLMClient,
+    OpenAIResponsesClient,
+    extract_readme_candidates,
+    refine_questions,
+)
 from threatmodel_ai.model.io import write_system_model
 from threatmodel_ai.model.merge import merge_system_models
 from threatmodel_ai.model.schema import SystemModel
@@ -42,6 +48,7 @@ class AnalysisResult:
     risk_path: Path
     questions_path: Path
     questions_refined_path: Path | None = None
+    llm_candidates_path: Path | None = None
 
 
 def analyze_project(
@@ -89,6 +96,7 @@ def analyze_project(
     risk_path = out_dir / "risk.md"
     questions_path = out_dir / "questions.md"
     questions_refined_path: Path | None = None
+    llm_candidates_path: Path | None = None
 
     write_system_model(model, system_model_path)
     dfd_path.write_text(render_mermaid(model), encoding="utf-8")
@@ -98,18 +106,36 @@ def analyze_project(
     questions_path.write_text(render_questions_markdown(questions), encoding="utf-8")
 
     if llm_mode:
-        if llm_mode != "refine-questions":
+        if llm_mode not in {"refine-questions", "extract-readme"}:
             raise AnalysisInputError(
                 f"Unsupported LLM mode: {llm_mode}.",
-                detail="Supported mode: refine-questions.",
-                hint="Use --llm refine-questions or omit --llm.",
+                detail="Supported modes: refine-questions, extract-readme.",
+                hint="Use --llm refine-questions, --llm extract-readme, or omit --llm.",
             )
         client = llm_client or OpenAIResponsesClient.from_env()
-        questions_refined_path = out_dir / "questions_refined.md"
-        questions_refined_path.write_text(
-            refine_questions(model=model, questions=questions, client=client),
-            encoding="utf-8",
-        )
+        if llm_mode == "refine-questions":
+            questions_refined_path = out_dir / "questions_refined.md"
+            questions_refined_path.write_text(
+                refine_questions(model=model, questions=questions, client=client),
+                encoding="utf-8",
+            )
+        if llm_mode == "extract-readme":
+            if not inputs.readme:
+                raise AnalysisInputError(
+                    "README input is required when --llm extract-readme is used.",
+                    hint="Add README.md, pass --readme, or run without --llm extract-readme.",
+                )
+            candidates = extract_readme_candidates(inputs.readme, client)
+            llm_candidates_path = out_dir / "llm_candidates.json"
+            llm_candidates_path.write_text(
+                json.dumps(
+                    candidates.model_dump(mode="json"),
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
 
     return AnalysisResult(
         model=model,
@@ -120,6 +146,7 @@ def analyze_project(
         risk_path=risk_path,
         questions_path=questions_path,
         questions_refined_path=questions_refined_path,
+        llm_candidates_path=llm_candidates_path,
     )
 
 

@@ -56,7 +56,10 @@ def analyze(
         str | None,
         typer.Option(
             "--llm",
-            help="Optional LLM mode. Supported: refine-questions. Default: disabled.",
+            help=(
+                "Optional LLM mode. Supported: refine-questions, extract-readme. "
+                "Default: disabled."
+            ),
         ),
     ] = None,
 ) -> None:
@@ -100,6 +103,8 @@ def analyze(
     typer.echo(f"Wrote {result.questions_path}")
     if result.questions_refined_path:
         typer.echo(f"Wrote {result.questions_refined_path}")
+    if result.llm_candidates_path:
+        typer.echo(f"Wrote {result.llm_candidates_path}")
 
 
 def _echo_error(message: str, *, detail: str | None = None, hint: str | None = None) -> None:

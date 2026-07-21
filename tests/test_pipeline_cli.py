@@ -44,6 +44,7 @@ def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "risk.md").exists()
     assert (tmp_path / "questions.md").exists()
     assert not (tmp_path / "questions_refined.md").exists()
+    assert not (tmp_path / "llm_candidates.json").exists()
 
 
 def test_cli_accepts_explicit_markdown_doc_with_mermaid(tmp_path: Path) -> None:
@@ -88,6 +89,24 @@ def test_cli_llm_refinement_requires_api_key_after_deterministic_outputs(tmp_pat
     assert (tmp_path / "system_model.json").exists()
     assert (tmp_path / "questions.md").exists()
     assert not (tmp_path / "questions_refined.md").exists()
+
+
+def test_cli_llm_readme_extraction_requires_api_key_after_deterministic_outputs(
+    tmp_path: Path,
+) -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        ["analyze", str(FIXTURE), "--out", str(tmp_path), "--llm", "extract-readme"],
+        env={"OPENAI_API_KEY": ""},
+    )
+
+    assert result.exit_code == 1
+    assert "OPENAI_API_KEY is required" in result.output
+    assert (tmp_path / "system_model.json").exists()
+    assert (tmp_path / "questions.md").exists()
+    assert not (tmp_path / "llm_candidates.json").exists()
 
 
 def test_cli_reports_missing_supported_inputs(tmp_path: Path) -> None:

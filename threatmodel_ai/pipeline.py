@@ -15,6 +15,7 @@ from threatmodel_ai.extract import (
     extract_terraform,
 )
 from threatmodel_ai.ingest import AnalysisInputs
+from threatmodel_ai.llm import LLMClient, OpenAIResponsesClient, refine_questions
 from threatmodel_ai.model.io import write_system_model
 from threatmodel_ai.model.merge import merge_system_models
 from threatmodel_ai.model.schema import SystemModel
@@ -40,9 +41,16 @@ class AnalysisResult:
     attack_path: Path
     risk_path: Path
     questions_path: Path
+    questions_refined_path: Path | None = None
 
 
-def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
+def analyze_project(
+    inputs: AnalysisInputs,
+    out_dir: Path,
+    *,
+    llm_mode: str | None = None,
+    llm_client: LLMClient | None = None,
+) -> AnalysisResult:
     """Run deterministic extraction and write all MVP artifacts."""
 
     models: list[SystemModel] = []
@@ -80,6 +88,7 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
     attack_path = out_dir / "attack.md"
     risk_path = out_dir / "risk.md"
     questions_path = out_dir / "questions.md"
+    questions_refined_path: Path | None = None
 
     write_system_model(model, system_model_path)
     dfd_path.write_text(render_mermaid(model), encoding="utf-8")
@@ -87,6 +96,20 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
     attack_path.write_text(render_attack_markdown(attack_findings), encoding="utf-8")
     risk_path.write_text(render_risks_markdown(risks), encoding="utf-8")
     questions_path.write_text(render_questions_markdown(questions), encoding="utf-8")
+
+    if llm_mode:
+        if llm_mode != "refine-questions":
+            raise AnalysisInputError(
+                f"Unsupported LLM mode: {llm_mode}.",
+                detail="Supported mode: refine-questions.",
+                hint="Use --llm refine-questions or omit --llm.",
+            )
+        client = llm_client or OpenAIResponsesClient.from_env()
+        questions_refined_path = out_dir / "questions_refined.md"
+        questions_refined_path.write_text(
+            refine_questions(model=model, questions=questions, client=client),
+            encoding="utf-8",
+        )
 
     return AnalysisResult(
         model=model,
@@ -96,6 +119,7 @@ def analyze_project(inputs: AnalysisInputs, out_dir: Path) -> AnalysisResult:
         attack_path=attack_path,
         risk_path=risk_path,
         questions_path=questions_path,
+        questions_refined_path=questions_refined_path,
     )
 
 

@@ -52,6 +52,13 @@ def analyze(
         Path,
         typer.Option("--out", "-o", help="Output directory for generated artifacts."),
     ] = Path("out"),
+    llm: Annotated[
+        str | None,
+        typer.Option(
+            "--llm",
+            help="Optional LLM mode. Supported: refine-questions. Default: disabled.",
+        ),
+    ] = None,
 ) -> None:
     """Analyze inputs and write deterministic threat modeling artifacts."""
 
@@ -63,7 +70,7 @@ def analyze(
             terraform=tuple(terraform) if terraform else None,
             docs=tuple(doc) if doc else None,
         )
-        result = analyze_project(inputs, out)
+        result = analyze_project(inputs, out, llm_mode=llm)
     except ModelForgeError as exc:
         _echo_error(exc.message, detail=exc.detail, hint=exc.hint)
         raise typer.Exit(code=1) from exc
@@ -91,6 +98,8 @@ def analyze(
     typer.echo(f"Wrote {result.attack_path}")
     typer.echo(f"Wrote {result.risk_path}")
     typer.echo(f"Wrote {result.questions_path}")
+    if result.questions_refined_path:
+        typer.echo(f"Wrote {result.questions_refined_path}")
 
 
 def _echo_error(message: str, *, detail: str | None = None, hint: str | None = None) -> None:

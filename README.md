@@ -7,8 +7,8 @@ README, Markdown docs with Mermaid diagrams, OpenAPI, and Terraform files, build
 structured `system_model.json`, then generates DFD, STRIDE, MITRE ATT&CK,
 risk-priority, and clarification-question reports.
 
-The current MVP is deterministic and does not call external LLM APIs. No API key is
-required.
+By default, ModelForge is deterministic and does not call external LLM APIs. No
+API key is required unless an optional LLM mode is explicitly enabled.
 
 ## Quick Start
 
@@ -57,6 +57,36 @@ uv run tm-ai analyze /path/to/your/project \
 Use `--terraform` more than once when a project has multiple Terraform files.
 Use `--doc` more than once when a project has multiple Markdown architecture docs.
 
+## Execution Flow
+
+ModelForge first turns supported inputs into `system_model.json`. Every generated
+artifact reads from that model instead of raw source files.
+
+```mermaid
+flowchart TD
+  Inputs["README / Markdown + Mermaid / OpenAPI / Terraform"]
+  Extract["Deterministic extractors"]
+  Model["system_model.json\nsource of truth"]
+  DFD["dfd.mmd"]
+  STRIDE["threats.md"]
+  ATTACK["attack.md"]
+  Risk["risk.md"]
+  Questions["questions.md"]
+  LLM["Optional LLM refinement\n--llm refine-questions"]
+  Refined["questions_refined.md\nnot source of truth"]
+
+  Inputs --> Extract --> Model
+  Model --> DFD
+  Model --> STRIDE
+  Model --> ATTACK
+  Model --> Risk
+  Model --> Questions
+  Questions -. opt-in only .-> LLM -.-> Refined
+  Model -. minimal summary .-> LLM
+```
+
+Without `--llm`, the LLM branch is skipped and no external API is called.
+
 ## Output Files
 
 * `system_model.json`
@@ -65,6 +95,7 @@ Use `--doc` more than once when a project has multiple Markdown architecture doc
 * `attack.md`
 * `risk.md`
 * `questions.md`
+* `questions_refined.md` when optional LLM question refinement is enabled
 
 What they mean:
 
@@ -74,6 +105,8 @@ What they mean:
 * `attack.md` - deterministic MITRE ATT&CK technique candidates
 * `risk.md` - deterministic High / Medium / Low review priorities
 * `questions.md` - missing information to ask reviewers or system owners
+* `questions_refined.md` - optional LLM-refined wording for `questions.md`; not
+  the source of truth
 
 Model facts in `system_model.json` include non-sensitive evidence pointers such as
 source file, extractor, section/detail, and line when available. Generated reports
@@ -97,6 +130,25 @@ from names alone.
 
 Unknown information is expected. ModelForge records it as questions instead of
 guessing.
+
+## Optional LLM Refinement
+
+LLM usage is opt-in. The default `tm-ai analyze` command never calls an external
+LLM.
+
+To refine deterministic clarification questions into a separate review artifact:
+
+```bash
+OPENAI_API_KEY=... uv run tm-ai analyze ./examples/sample-system \
+  --out ./out \
+  --llm refine-questions
+```
+
+This writes `questions_refined.md` in addition to the deterministic artifacts.
+The source of truth remains `system_model.json` and `questions.md`. ModelForge
+sends only a minimal `system_model.json` summary and deterministic question data
+to the LLM, not raw input file contents. Set `MODELFORGE_LLM_MODEL` to override
+the default OpenAI model.
 
 ## Validation And Errors
 
@@ -139,6 +191,7 @@ threatmodel_ai/
   attack/       deterministic MITRE ATT&CK technique mapping
   risk/         deterministic risk scoring
   questions/    clarification question generator
+  llm/          optional LLM refinement interfaces
   report/       Markdown report renderers
   cli/          Typer CLI
 ```
@@ -174,7 +227,7 @@ LLM usage, when added, must be optional and limited to:
 
 This tool may process sensitive architecture and source-code information.
 
-The current MVP does not call external LLM APIs.
+External LLM calls are disabled by default and require an explicit `--llm` mode.
 
 ## Threat Analysis
 

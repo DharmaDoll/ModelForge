@@ -169,6 +169,35 @@ merged into `system_model.json`. Unlike question refinement, this mode sends raw
 README text to the LLM, so use it only for inputs that are approved for external
 processing.
 
+Recommended review flow:
+
+```text
+README
+  ↓
+--llm extract-readme
+  ↓
+llm_candidates.json
+  ↓
+human review
+  ↓
+explicit merge
+  ↓
+system_model.json or system_model.merged.json
+```
+
+Do not treat `llm_candidates.json` as trusted input. After review, merge it
+explicitly into a separate model file:
+
+```bash
+uv run tm-ai candidates merge ./out/system_model.json ./out/llm_candidates.json \
+  --out ./out/system_model.merged.json
+```
+
+The merge command validates candidate schema, evidence, references, confidence,
+and the final `SystemModel`. It does not overwrite deterministic model IDs.
+Rejected or ambiguous candidates become review unknowns, which can then surface
+as clarification questions.
+
 ## Validation And Errors
 
 ModelForge validates the generated graph before writing reports. Invalid references,

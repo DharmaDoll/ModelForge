@@ -7,11 +7,11 @@ import re
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, ValidationInfo, model_validator
 
 from threatmodel_ai.errors import ModelForgeError
 from threatmodel_ai.llm.client import LLMClient
-from threatmodel_ai.model.schema import EdgeType, NodeType, SourceType
+from threatmodel_ai.model.schema import EdgeType, NodeType, SourceType, SystemModel
 
 _INSTRUCTIONS = """\
 Extract structured threat-model candidates from a README.
@@ -112,7 +112,7 @@ class LLMCandidateModel(BaseModel):
     not_source_of_truth: bool = True
 
     @model_validator(mode="after")
-    def validate_candidate_references(self) -> LLMCandidateModel:
+    def validate_candidate_references(self, info: ValidationInfo) -> LLMCandidateModel:
         """Reject internally inconsistent candidate graphs."""
 
         node_ids = {node.id for node in self.nodes}
@@ -127,18 +127,22 @@ class LLMCandidateModel(BaseModel):
         if len(unknown_ids) != len(self.unknowns):
             raise ValueError("LLM candidates contain duplicate unknown ids")
 
+        allowed_node_ids = _context_set(info, "allowed_node_ids")
+        allowed_element_ids = _context_set(info, "allowed_element_ids")
+        valid_node_ids = node_ids | allowed_node_ids
+
         for edge in self.edges:
-            if edge.source not in node_ids:
+            if edge.source not in valid_node_ids:
                 raise ValueError(
                     f"LLM candidate edge {edge.id!r} references missing source "
                     f"{edge.source!r}"
                 )
-            if edge.target not in node_ids:
+            if edge.target not in valid_node_ids:
                 raise ValueError(
                     f"LLM candidate edge {edge.id!r} references missing target "
                     f"{edge.target!r}"
                 )
-            missing_assets = [asset for asset in edge.data_assets if asset not in node_ids]
+            missing_assets = [asset for asset in edge.data_assets if asset not in valid_node_ids]
             if missing_assets:
                 raise ValueError(
                     f"LLM candidate edge {edge.id!r} references missing data assets "
@@ -146,8 +150,9 @@ class LLMCandidateModel(BaseModel):
                 )
 
         candidate_ids = node_ids | edge_ids
+        valid_element_ids = candidate_ids | allowed_element_ids
         for unknown in self.unknowns:
-            if unknown.related_element_id and unknown.related_element_id not in candidate_ids:
+            if unknown.related_element_id and unknown.related_element_id not in valid_element_ids:
                 raise ValueError(
                     f"LLM candidate unknown {unknown.id!r} references missing element "
                     f"{unknown.related_element_id!r}"
@@ -195,6 +200,36 @@ def extract_readme_candidates(path: Path, client: LLMClient) -> LLMCandidateMode
         ) from exc
 
 
+def read_llm_candidates(
+    path: Path,
+    *,
+    base_model: SystemModel | None = None,
+) -> LLMCandidateModel:
+    """Load and validate reviewed LLM candidates from disk."""
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise LLMCandidateValidationError(
+            "LLM candidate file failed validation.",
+            detail=f"Invalid JSON at line {exc.lineno}, column {exc.colno}: {exc.msg}.",
+            hint="Fix llm_candidates.json before merging it.",
+        ) from exc
+
+    context = _validation_context(base_model)
+    try:
+        return LLMCandidateModel.model_validate(payload, context=context)
+    except ValidationError as exc:
+        raise LLMCandidateValidationError(
+            "LLM candidate file failed validation.",
+            detail=_validation_detail(exc),
+            hint=(
+                "Review candidate IDs, evidence, confidence values, and references "
+                "before merging."
+            ),
+        ) from exc
+
+
 def _strip_json_fence(value: str) -> str:
     text = value.strip()
     match = re.fullmatch(r"```(?:json)?\s*(?P<body>.*?)\s*```", text, re.DOTALL)
@@ -210,3 +245,21 @@ def _validation_detail(error: ValidationError) -> str:
     if remaining > 0:
         details.append(f"...and {remaining} more validation error(s)")
     return "; ".join(details)
+
+
+def _validation_context(base_model: SystemModel | None) -> dict[str, set[str]]:
+    if base_model is None:
+        return {}
+    node_ids = {node.id for node in base_model.nodes}
+    edge_ids = {edge.id for edge in base_model.edges}
+    return {
+        "allowed_node_ids": node_ids,
+        "allowed_element_ids": node_ids | edge_ids,
+    }
+
+
+def _context_set(info: ValidationInfo, key: str) -> set[str]:
+    if not isinstance(info.context, dict):
+        return set()
+    values = info.context.get(key, set())
+    return {str(value) for value in values}

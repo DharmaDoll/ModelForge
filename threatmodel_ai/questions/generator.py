@@ -88,6 +88,8 @@ def _unknown_question_text(unknown: Unknown, related_name: str | None) -> str:
             return f"What rate limits or abuse controls are enforced{target}?"
         case "encryption":
             return f"What encryption is used in transit and at rest{target}?"
+        case "llm_candidate_review":
+            return f"Should this LLM candidate be accepted into the system model{target}?"
         case _:
             return f"What is the missing {unknown.category.replace('_', ' ')} detail{target}?"
 

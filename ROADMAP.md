@@ -95,6 +95,27 @@ Constraints:
 * External LLM calls must be opt-in
 * Unit tests must mock LLM interactions
 
+Current implementation:
+
+* `questions_refined.md` is an optional wording artifact for reviewer convenience
+* `llm_candidates.json` is an optional README extraction artifact for human review
+* `tm-ai candidates merge` explicitly merges reviewed candidates into a separate model
+* LLM candidates are not automatically merged into `system_model.json`
+
+Candidate merge policy:
+
+Merge support is explicit:
+
+```bash
+tm-ai candidates merge out/system_model.json out/llm_candidates.json \
+  --out out/system_model.merged.json
+```
+
+The merge step must validate candidate schema, evidence, references, confidence,
+and the final model. It must not overwrite deterministic facts without explicit
+review. Unsupported or ambiguous candidates should remain as unknowns or
+clarification questions.
+
 Goal:
 
 ```text
@@ -102,9 +123,15 @@ Unstructured Docs
   ↓
 LLM structured candidates
   ↓
+llm_candidates.json
+  ↓
+Human review
+  ↓
+Explicit merge
+  ↓
 Validation
   ↓
-system_model.json
+system_model.json or system_model.merged.json
 ```
 
 ## Phase 6: DevSecOps Integration

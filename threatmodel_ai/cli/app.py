@@ -10,9 +10,13 @@ from pydantic import ValidationError
 
 from threatmodel_ai.errors import ModelForgeError
 from threatmodel_ai.ingest import discover_inputs
+from threatmodel_ai.llm import merge_llm_candidates, read_llm_candidates
+from threatmodel_ai.model.io import read_system_model, write_system_model
 from threatmodel_ai.pipeline import analyze_project
 
 app = typer.Typer(help="Generate threat modeling artifacts from repository inputs.")
+candidates_app = typer.Typer(help="Review and merge LLM candidate artifacts.")
+app.add_typer(candidates_app, name="candidates")
 
 
 @app.callback()
@@ -105,6 +109,82 @@ def analyze(
         typer.echo(f"Wrote {result.questions_refined_path}")
     if result.llm_candidates_path:
         typer.echo(f"Wrote {result.llm_candidates_path}")
+
+
+@candidates_app.command("merge")
+def merge_candidates(
+    system_model: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="Existing system_model.json to merge into.",
+        ),
+    ],
+    llm_candidates: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="Reviewed llm_candidates.json file.",
+        ),
+    ],
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            "-o",
+            help="Output path for the merged system model. The input model is not overwritten.",
+        ),
+    ],
+    min_confidence: Annotated[
+        float,
+        typer.Option(
+            "--min-confidence",
+            min=0.0,
+            max=1.0,
+            help="Minimum confidence required to merge candidates as model facts.",
+        ),
+    ] = 0.75,
+) -> None:
+    """Merge reviewed LLM candidates into a new validated system model."""
+
+    try:
+        base_model = read_system_model(system_model)
+        candidates = read_llm_candidates(llm_candidates, base_model=base_model)
+        result = merge_llm_candidates(
+            base_model,
+            candidates,
+            min_confidence=min_confidence,
+        )
+        write_system_model(result.model, out)
+    except ModelForgeError as exc:
+        _echo_error(exc.message, detail=exc.detail, hint=exc.hint)
+        raise typer.Exit(code=1) from exc
+    except ValidationError as exc:
+        _echo_error(
+            "system_model.json failed validation.",
+            detail=_validation_detail(exc),
+            hint="Use a valid ModelForge system_model.json before merging candidates.",
+        )
+        raise typer.Exit(code=1) from exc
+    except Exception as exc:
+        _echo_error("Candidate merge failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {out}")
+    typer.echo(
+        "Merged "
+        f"{result.merged_nodes} node(s), "
+        f"{result.merged_edges} edge(s), "
+        f"{result.merged_unknowns} unknown(s)."
+    )
+    if result.review_unknowns:
+        typer.echo(f"Added {result.review_unknowns} review unknown(s) for rejected candidates.")
 
 
 def _echo_error(message: str, *, detail: str | None = None, hint: str | None = None) -> None:

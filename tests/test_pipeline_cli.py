@@ -5,7 +5,7 @@ from typer.testing import CliRunner
 
 from threatmodel_ai.cli.app import app
 from threatmodel_ai.ingest import discover_inputs
-from threatmodel_ai.model.io import read_system_model
+from threatmodel_ai.model.io import read_system_model, write_system_model
 from threatmodel_ai.pipeline import analyze_project
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample-system"
@@ -45,6 +45,54 @@ def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "questions.md").exists()
     assert not (tmp_path / "questions_refined.md").exists()
     assert not (tmp_path / "llm_candidates.json").exists()
+
+
+@pytest.mark.parametrize("model_name", ["system_model.json", "system_model.merged.json"])
+def test_cli_render_writes_artifacts_from_existing_system_model(
+    tmp_path: Path,
+    model_name: str,
+) -> None:
+    source_result = analyze_project(discover_inputs(FIXTURE), tmp_path / "source")
+    input_model_path = source_result.system_model_path
+    if model_name != "system_model.json":
+        input_model_path = tmp_path / model_name
+        write_system_model(read_system_model(source_result.system_model_path), input_model_path)
+    render_out = tmp_path / "rendered"
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["render", str(input_model_path), "--out", str(render_out)])
+
+    assert result.exit_code == 0, result.output
+    assert (render_out / "system_model.json").exists()
+    assert (render_out / "dfd.mmd").exists()
+    assert (render_out / "threats.md").exists()
+    assert (render_out / "attack.md").exists()
+    assert (render_out / "risk.md").exists()
+    assert (render_out / "questions.md").exists()
+    assert "Wrote" in result.output
+    assert read_system_model(render_out / "system_model.json") == read_system_model(
+        input_model_path
+    )
+    assert "Spoofing" in (render_out / "threats.md").read_text(encoding="utf-8")
+
+
+def test_cli_render_reports_invalid_system_model(tmp_path: Path) -> None:
+    invalid_model_path = tmp_path / "system_model.merged.json"
+    invalid_model_path.write_text(
+        '{"nodes": [{"id": "component:broken"}]}',
+        encoding="utf-8",
+    )
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        ["render", str(invalid_model_path), "--out", str(tmp_path / "rendered")],
+    )
+
+    assert result.exit_code == 1
+    assert "Input system model failed validation." in result.output
+    assert "Hint:" in result.output
+    assert not (tmp_path / "rendered" / "system_model.json").exists()
 
 
 def test_cli_accepts_explicit_markdown_doc_with_mermaid(tmp_path: Path) -> None:

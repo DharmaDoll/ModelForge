@@ -12,7 +12,7 @@ from threatmodel_ai.errors import ModelForgeError
 from threatmodel_ai.ingest import discover_inputs
 from threatmodel_ai.llm import merge_llm_candidates, read_llm_candidates
 from threatmodel_ai.model.io import read_system_model, write_system_model
-from threatmodel_ai.pipeline import analyze_project
+from threatmodel_ai.pipeline import analyze_project, render_model_artifacts
 
 app = typer.Typer(help="Generate threat modeling artifacts from repository inputs.")
 candidates_app = typer.Typer(help="Review and merge LLM candidate artifacts.")
@@ -109,6 +109,47 @@ def analyze(
         typer.echo(f"Wrote {result.questions_refined_path}")
     if result.llm_candidates_path:
         typer.echo(f"Wrote {result.llm_candidates_path}")
+
+
+@app.command()
+def render(
+    system_model: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="Validated system model JSON to render.",
+        ),
+    ],
+    out: Annotated[
+        Path,
+        typer.Option("--out", "-o", help="Output directory for generated artifacts."),
+    ] = Path("out"),
+) -> None:
+    """Render deterministic artifacts from an existing system model."""
+
+    try:
+        model = read_system_model(system_model)
+        result = render_model_artifacts(model, out)
+    except ValidationError as exc:
+        _echo_error(
+            "Input system model failed validation.",
+            detail=_validation_detail(exc),
+            hint="Fix the system model JSON before rendering artifacts.",
+        )
+        raise typer.Exit(code=1) from exc
+    except Exception as exc:
+        _echo_error("Render failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {result.system_model_path}")
+    typer.echo(f"Wrote {result.dfd_path}")
+    typer.echo(f"Wrote {result.threats_path}")
+    typer.echo(f"Wrote {result.attack_path}")
+    typer.echo(f"Wrote {result.risk_path}")
+    typer.echo(f"Wrote {result.questions_path}")
 
 
 @candidates_app.command("merge")

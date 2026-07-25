@@ -25,7 +25,7 @@ from threatmodel_ai.llm import (
 from threatmodel_ai.model.io import write_system_model
 from threatmodel_ai.model.merge import merge_system_models
 from threatmodel_ai.model.schema import SystemModel
-from threatmodel_ai.questions import generate_questions
+from threatmodel_ai.questions import Question, generate_questions
 from threatmodel_ai.report import (
     render_attack_markdown,
     render_questions_markdown,
@@ -34,6 +34,20 @@ from threatmodel_ai.report import (
 )
 from threatmodel_ai.risk import score_risks
 from threatmodel_ai.stride import generate_threats
+
+
+@dataclass(frozen=True)
+class RenderResult:
+    """Artifact paths written from a validated system model."""
+
+    model: SystemModel
+    system_model_path: Path
+    dfd_path: Path
+    threats_path: Path
+    attack_path: Path
+    risk_path: Path
+    questions_path: Path
+    questions: tuple[Question, ...]
 
 
 @dataclass(frozen=True)
@@ -83,27 +97,9 @@ def analyze_project(
         )
 
     model = merge_system_models(models)
-    threats = generate_threats(model)
-    attack_findings = generate_attack_findings(model)
-    risks = score_risks(model, threats, attack_findings)
-    questions = generate_questions(model)
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    system_model_path = out_dir / "system_model.json"
-    dfd_path = out_dir / "dfd.mmd"
-    threats_path = out_dir / "threats.md"
-    attack_path = out_dir / "attack.md"
-    risk_path = out_dir / "risk.md"
-    questions_path = out_dir / "questions.md"
+    render_result = render_model_artifacts(model, out_dir)
     questions_refined_path: Path | None = None
     llm_candidates_path: Path | None = None
-
-    write_system_model(model, system_model_path)
-    dfd_path.write_text(render_mermaid(model), encoding="utf-8")
-    threats_path.write_text(render_threats_markdown(threats), encoding="utf-8")
-    attack_path.write_text(render_attack_markdown(attack_findings), encoding="utf-8")
-    risk_path.write_text(render_risks_markdown(risks), encoding="utf-8")
-    questions_path.write_text(render_questions_markdown(questions), encoding="utf-8")
 
     if llm_mode:
         if llm_mode not in {"refine-questions", "extract-readme"}:
@@ -116,7 +112,11 @@ def analyze_project(
         if llm_mode == "refine-questions":
             questions_refined_path = out_dir / "questions_refined.md"
             questions_refined_path.write_text(
-                refine_questions(model=model, questions=questions, client=client),
+                refine_questions(
+                    model=model,
+                    questions=list(render_result.questions),
+                    client=client,
+                ),
                 encoding="utf-8",
             )
         if llm_mode == "extract-readme":
@@ -139,14 +139,49 @@ def analyze_project(
 
     return AnalysisResult(
         model=model,
+        system_model_path=render_result.system_model_path,
+        dfd_path=render_result.dfd_path,
+        threats_path=render_result.threats_path,
+        attack_path=render_result.attack_path,
+        risk_path=render_result.risk_path,
+        questions_path=render_result.questions_path,
+        questions_refined_path=questions_refined_path,
+        llm_candidates_path=llm_candidates_path,
+    )
+
+
+def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
+    """Write deterministic artifacts from a validated system model."""
+
+    threats = generate_threats(model)
+    attack_findings = generate_attack_findings(model)
+    risks = score_risks(model, threats, attack_findings)
+    questions = generate_questions(model)
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    system_model_path = out_dir / "system_model.json"
+    dfd_path = out_dir / "dfd.mmd"
+    threats_path = out_dir / "threats.md"
+    attack_path = out_dir / "attack.md"
+    risk_path = out_dir / "risk.md"
+    questions_path = out_dir / "questions.md"
+
+    write_system_model(model, system_model_path)
+    dfd_path.write_text(render_mermaid(model), encoding="utf-8")
+    threats_path.write_text(render_threats_markdown(threats), encoding="utf-8")
+    attack_path.write_text(render_attack_markdown(attack_findings), encoding="utf-8")
+    risk_path.write_text(render_risks_markdown(risks), encoding="utf-8")
+    questions_path.write_text(render_questions_markdown(questions), encoding="utf-8")
+
+    return RenderResult(
+        model=model,
         system_model_path=system_model_path,
         dfd_path=dfd_path,
         threats_path=threats_path,
         attack_path=attack_path,
         risk_path=risk_path,
         questions_path=questions_path,
-        questions_refined_path=questions_refined_path,
-        llm_candidates_path=llm_candidates_path,
+        questions=tuple(questions),
     )
 
 

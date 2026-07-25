@@ -57,6 +57,20 @@ uv run tm-ai analyze /path/to/your/project \
 Use `--terraform` more than once when a project has multiple Terraform files.
 Use `--doc` more than once when a project has multiple Markdown architecture docs.
 
+## Render Existing Model
+
+To regenerate reports from a reviewed or merged system model without re-reading
+README, OpenAPI, or Terraform inputs:
+
+```bash
+uv run tm-ai render ./out/system_model.merged.json --out ./out/reviewed
+```
+
+The input file can be named `system_model.json`, `system_model.merged.json`, or
+any other path that contains a valid ModelForge system model. The output directory
+receives a normalized `system_model.json` plus `dfd.mmd`, `threats.md`,
+`attack.md`, `risk.md`, and `questions.md`.
+
 ## Execution Flow
 
 ModelForge first turns supported inputs into `system_model.json`. Every generated
@@ -76,6 +90,9 @@ flowchart TD
   Refined["questions_refined.md\nnot source of truth"]
   ExtractLLM["Optional LLM extraction\n--llm extract-readme"]
   Candidates["llm_candidates.json\nreview-only candidates"]
+  Merge["Explicit merge\ntm-ai candidates merge"]
+  Merged["system_model.merged.json\nreviewed model"]
+  Render["Render from model\ntm-ai render"]
 
   Inputs --> Extract --> Model
   Model --> DFD
@@ -86,6 +103,13 @@ flowchart TD
   Questions -. opt-in only .-> LLM -.-> Refined
   Model -. minimal summary .-> LLM
   Inputs -. README text, opt-in only .-> ExtractLLM -.-> Candidates
+  Model -. base model .-> Merge
+  Candidates -. human review .-> Merge -.-> Merged -.-> Render
+  Render -. regenerated .-> DFD
+  Render -. regenerated .-> STRIDE
+  Render -. regenerated .-> ATTACK
+  Render -. regenerated .-> Risk
+  Render -. regenerated .-> Questions
 ```
 
 Without `--llm`, the LLM branch is skipped and no external API is called.
@@ -182,7 +206,11 @@ human review
   ↓
 explicit merge
   ↓
-system_model.json or system_model.merged.json
+system_model.merged.json
+  ↓
+tm-ai render
+  ↓
+dfd.mmd / threats.md / attack.md / risk.md / questions.md
 ```
 
 Do not treat `llm_candidates.json` as trusted input. After review, merge it
@@ -196,7 +224,7 @@ uv run tm-ai candidates merge ./out/system_model.json ./out/llm_candidates.json 
 The merge command validates candidate schema, evidence, references, confidence,
 and the final `SystemModel`. It does not overwrite deterministic model IDs.
 Rejected or ambiguous candidates become review unknowns, which can then surface
-as clarification questions.
+as clarification questions after `tm-ai render`.
 
 ## Validation And Errors
 

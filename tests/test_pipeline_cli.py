@@ -6,6 +6,7 @@ from typer.testing import CliRunner
 from threatmodel_ai.cli.app import app
 from threatmodel_ai.ingest import discover_inputs
 from threatmodel_ai.model.io import read_system_model, write_system_model
+from threatmodel_ai.model.schema import SystemModel
 from threatmodel_ai.pipeline import analyze_project
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample-system"
@@ -22,6 +23,7 @@ def test_pipeline_writes_all_mvp_artifacts(tmp_path: Path) -> None:
     assert result.attack_path.exists()
     assert result.risk_path.exists()
     assert result.questions_path.exists()
+    assert result.review_path.exists()
     assert model.nodes
     assert any(node.name == "Payments Gateway" for node in model.nodes)
     assert "flowchart LR" in result.dfd_path.read_text(encoding="utf-8")
@@ -29,6 +31,7 @@ def test_pipeline_writes_all_mvp_artifacts(tmp_path: Path) -> None:
     assert "MITRE ATT&CK" in result.attack_path.read_text(encoding="utf-8")
     assert "Risk Priorities" in result.risk_path.read_text(encoding="utf-8")
     assert "authentication" in result.questions_path.read_text(encoding="utf-8")
+    assert "ModelForge Review Summary" in result.review_path.read_text(encoding="utf-8")
 
 
 def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
@@ -43,6 +46,7 @@ def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "attack.md").exists()
     assert (tmp_path / "risk.md").exists()
     assert (tmp_path / "questions.md").exists()
+    assert (tmp_path / "review.md").exists()
     assert not (tmp_path / "questions_refined.md").exists()
     assert not (tmp_path / "llm_candidates.json").exists()
 
@@ -69,6 +73,7 @@ def test_cli_render_writes_artifacts_from_existing_system_model(
     assert (render_out / "attack.md").exists()
     assert (render_out / "risk.md").exists()
     assert (render_out / "questions.md").exists()
+    assert (render_out / "review.md").exists()
     assert "Wrote" in result.output
     assert read_system_model(render_out / "system_model.json") == read_system_model(
         input_model_path
@@ -93,6 +98,34 @@ def test_cli_render_reports_invalid_system_model(tmp_path: Path) -> None:
     assert "Input system model failed validation." in result.output
     assert "Hint:" in result.output
     assert not (tmp_path / "rendered" / "system_model.json").exists()
+
+
+def test_cli_check_fails_when_risk_meets_threshold(tmp_path: Path) -> None:
+    source_result = analyze_project(discover_inputs(FIXTURE), tmp_path / "source")
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        ["check", str(source_result.system_model_path), "--fail-on", "high"],
+    )
+
+    assert result.exit_code == 1
+    assert "Risk gate failed at threshold high." in result.output
+    assert "4 risk candidate(s) met or exceeded the threshold." in result.output
+    assert "Highest rating: High; highest score: 8." in result.output
+    assert "GET /payments" not in result.output
+    assert "Review risk.md and system_model.json" in result.output
+
+
+def test_cli_check_passes_when_no_risk_meets_threshold(tmp_path: Path) -> None:
+    model_path = tmp_path / "system_model.json"
+    write_system_model(SystemModel(), model_path)
+    runner = CliRunner()
+
+    result = runner.invoke(app, ["check", str(model_path), "--fail-on", "low"])
+
+    assert result.exit_code == 0, result.output
+    assert "Risk gate passed" in result.output
 
 
 def test_cli_accepts_explicit_markdown_doc_with_mermaid(tmp_path: Path) -> None:

@@ -2,11 +2,88 @@
 
 from __future__ import annotations
 
+from collections import Counter
+
 from threatmodel_ai.attack.models import AttackFinding
-from threatmodel_ai.model.schema import Evidence
+from threatmodel_ai.model.schema import Evidence, SystemModel
 from threatmodel_ai.questions.generator import Question
-from threatmodel_ai.risk.models import RiskFinding
+from threatmodel_ai.risk.models import RiskFinding, RiskRating
 from threatmodel_ai.stride.models import Threat
+
+
+def render_review_markdown(
+    model: SystemModel,
+    threats: list[Threat],
+    attack_findings: list[AttackFinding],
+    risks: list[RiskFinding],
+    questions: list[Question],
+) -> str:
+    """Render a compact deterministic summary for CI and pull-request review."""
+
+    rating_counts = Counter(risk.rating for risk in risks)
+    question_counts = Counter(question.category for question in questions)
+    ordered_risks = sorted(risks, key=lambda risk: (-risk.score, risk.id))
+    lines = [
+        "<!-- modelforge-review -->",
+        "# ModelForge Review Summary",
+        "",
+        "Generated deterministically from `system_model.json`. All findings are review "
+        "candidates, not confirmed vulnerabilities.",
+        "",
+        "## Coverage",
+        "",
+        "| Nodes | Data flows | Unknowns | STRIDE | ATT&CK | Questions |",
+        "| ---: | ---: | ---: | ---: | ---: | ---: |",
+        f"| {len(model.nodes)} | {len(model.edges)} | {len(model.unknowns)} | "
+        f"{len(threats)} | {len(attack_findings)} | {len(questions)} |",
+        "",
+        "## Risk Priorities",
+        "",
+        "| High | Medium | Low | Total |",
+        "| ---: | ---: | ---: | ---: |",
+        f"| {rating_counts[RiskRating.HIGH]} | {rating_counts[RiskRating.MEDIUM]} | "
+        f"{rating_counts[RiskRating.LOW]} | {len(risks)} |",
+        "",
+    ]
+
+    if ordered_risks:
+        lines.extend(
+            [
+                "### Highest Priorities",
+                "",
+                "| Rating | Score | Finding |",
+                "| --- | ---: | --- |",
+            ]
+        )
+        for risk in ordered_risks[:5]:
+            lines.append(
+                f"| {risk.rating.value} | {risk.score} | {_escape_table(risk.title)} |"
+            )
+        lines.append("")
+    else:
+        lines.extend(["No deterministic risk priorities were generated.", ""])
+
+    if question_counts:
+        lines.extend(
+            [
+                "## Open Question Categories",
+                "",
+                "| Category | Count |",
+                "| --- | ---: |",
+            ]
+        )
+        for category, count in sorted(question_counts.items()):
+            lines.append(f"| {_escape_table(category)} | {count} |")
+        lines.append("")
+
+    lines.extend(
+        [
+            "Review `system_model.json` first, then `risk.md`, `threats.md`, `attack.md`, "
+            "and `questions.md` for details.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
 
 
 def render_attack_markdown(findings: list[AttackFinding]) -> str:

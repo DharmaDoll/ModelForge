@@ -29,6 +29,7 @@ from threatmodel_ai.questions import Question, generate_questions
 from threatmodel_ai.report import (
     render_attack_markdown,
     render_questions_markdown,
+    render_review_markdown,
     render_risks_markdown,
     render_threats_markdown,
 )
@@ -47,6 +48,7 @@ class RenderResult:
     attack_path: Path
     risk_path: Path
     questions_path: Path
+    review_path: Path
     questions: tuple[Question, ...]
 
 
@@ -61,6 +63,7 @@ class AnalysisResult:
     attack_path: Path
     risk_path: Path
     questions_path: Path
+    review_path: Path
     questions_refined_path: Path | None = None
     llm_candidates_path: Path | None = None
 
@@ -145,6 +148,7 @@ def analyze_project(
         attack_path=render_result.attack_path,
         risk_path=render_result.risk_path,
         questions_path=render_result.questions_path,
+        review_path=render_result.review_path,
         questions_refined_path=questions_refined_path,
         llm_candidates_path=llm_candidates_path,
     )
@@ -165,6 +169,7 @@ def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
     attack_path = out_dir / "attack.md"
     risk_path = out_dir / "risk.md"
     questions_path = out_dir / "questions.md"
+    review_path = out_dir / "review.md"
 
     write_system_model(model, system_model_path)
     dfd_path.write_text(render_mermaid(model), encoding="utf-8")
@@ -172,6 +177,10 @@ def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
     attack_path.write_text(render_attack_markdown(attack_findings), encoding="utf-8")
     risk_path.write_text(render_risks_markdown(risks), encoding="utf-8")
     questions_path.write_text(render_questions_markdown(questions), encoding="utf-8")
+    review_path.write_text(
+        render_review_markdown(model, threats, attack_findings, risks, questions),
+        encoding="utf-8",
+    )
 
     return RenderResult(
         model=model,
@@ -181,6 +190,7 @@ def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
         attack_path=attack_path,
         risk_path=risk_path,
         questions_path=questions_path,
+        review_path=review_path,
         questions=tuple(questions),
     )
 

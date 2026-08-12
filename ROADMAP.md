@@ -136,10 +136,17 @@ system_model.json or system_model.merged.json
 
 ## Phase 6: DevSecOps Integration
 
+Current implementation:
+
+* GitHub Actions runs Ruff, Pytest, and the deterministic sample analysis
+* A reusable composite action analyzes supported inputs in consumer repositories
+* Sample threat-model outputs are retained as a workflow artifact for review
+* CI uses locked dependencies and does not require an LLM or API key
+* `review.md` provides a compact job summary and optional marker-scoped PR comment
+* An opt-in `tm-ai check` risk threshold can fail CI on selected candidate ratings
+
 Future work:
 
-* GitHub Actions
-* PR comments
 * Jira tickets
 * Threat Dragon export
 * AWS Config ingestion

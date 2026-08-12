@@ -17,6 +17,7 @@ ARTIFACTS = (
     "attack.md",
     "risk.md",
     "questions.md",
+    "review.md",
 )
 NORMALIZED_FIXTURE_PATH = "tests/fixtures/sample-system"
 

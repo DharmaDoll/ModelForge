@@ -16,8 +16,10 @@ from threatmodel_ai.questions import Question
 from threatmodel_ai.report import (
     render_attack_markdown,
     render_questions_markdown,
+    render_review_markdown,
     render_threats_markdown,
 )
+from threatmodel_ai.risk import RiskFinding, RiskRating
 from threatmodel_ai.stride import StrideCategory, Threat
 
 
@@ -189,10 +191,44 @@ def test_markdown_reports_are_reviewable() -> None:
         derived_from=["unknown:1", "edge:1"],
         evidence=[evidence],
     )
+    risk = RiskFinding(
+        id="risk:1",
+        title="Review public API authorization",
+        rating=RiskRating.HIGH,
+        score=8,
+        related_threats=[threat.id],
+        related_attack_findings=[attack.id],
+        affected_elements=["edge:1"],
+        derived_from=["edge:1"],
+        evidence=[evidence],
+    )
+    model = SystemModel(
+        nodes=[
+            Node(id="actor:user", name="User", type=NodeType.ACTOR),
+            Node(id="api:orders", name="Orders API", type=NodeType.API),
+        ],
+        edges=[
+            Edge(
+                id="edge:1",
+                source="actor:user",
+                target="api:orders",
+                type=EdgeType.COMMUNICATES_WITH,
+            )
+        ],
+        unknowns=[
+            Unknown(
+                id="unknown:1",
+                category="authentication",
+                description="Authentication is unknown.",
+                related_element_id="edge:1",
+            )
+        ],
+    )
 
     attack_md = render_attack_markdown([attack])
     threats_md = render_threats_markdown([threat])
     questions_md = render_questions_markdown([question])
+    review_md = render_review_markdown(model, [threat], [attack], [risk], [question])
 
     assert "MITRE ATT&CK Technique Candidates" in attack_md
     assert "T1190 Exploit Public-Facing Application" in attack_md
@@ -204,3 +240,16 @@ def test_markdown_reports_are_reviewable() -> None:
     assert "| `question:1` | authentication | How is the API authenticated? |" in questions_md
     assert "- Derived from: `unknown:1`, `edge:1`" in questions_md
     assert "Rationale: Authentication is unknown." in questions_md
+    assert review_md.startswith("<!-- modelforge-review -->")
+    assert "| 2 | 1 | 1 | 1 | 1 | 1 |" in review_md
+    assert "| 1 | 0 | 0 | 1 |" in review_md
+    assert "| High | 8 | Review public API authorization |" in review_md
+    assert "| authentication | 1 |" in review_md
+
+
+def test_review_markdown_handles_an_empty_model() -> None:
+    rendered = render_review_markdown(SystemModel(), [], [], [], [])
+
+    assert "| 0 | 0 | 0 | 0 | 0 | 0 |" in rendered
+    assert "| 0 | 0 | 0 | 0 |" in rendered
+    assert "No deterministic risk priorities were generated." in rendered

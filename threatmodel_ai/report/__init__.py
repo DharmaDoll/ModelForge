@@ -3,6 +3,7 @@
 from threatmodel_ai.report.markdown import (
     render_attack_markdown,
     render_questions_markdown,
+    render_review_markdown,
     render_risks_markdown,
     render_threats_markdown,
 )
@@ -10,6 +11,7 @@ from threatmodel_ai.report.markdown import (
 __all__ = [
     "render_attack_markdown",
     "render_questions_markdown",
+    "render_review_markdown",
     "render_risks_markdown",
     "render_threats_markdown",
 ]

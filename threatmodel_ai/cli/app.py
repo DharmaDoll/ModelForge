@@ -8,11 +8,14 @@ from typing import Annotated
 import typer
 from pydantic import ValidationError
 
+from threatmodel_ai.attack import generate_attack_findings
 from threatmodel_ai.errors import ModelForgeError
 from threatmodel_ai.ingest import discover_inputs
 from threatmodel_ai.llm import merge_llm_candidates, read_llm_candidates
 from threatmodel_ai.model.io import read_system_model, write_system_model
 from threatmodel_ai.pipeline import analyze_project, render_model_artifacts
+from threatmodel_ai.risk import RiskThreshold, risks_at_or_above, score_risks
+from threatmodel_ai.stride import generate_threats
 
 app = typer.Typer(help="Generate threat modeling artifacts from repository inputs.")
 candidates_app = typer.Typer(help="Review and merge LLM candidate artifacts.")
@@ -105,6 +108,7 @@ def analyze(
     typer.echo(f"Wrote {result.attack_path}")
     typer.echo(f"Wrote {result.risk_path}")
     typer.echo(f"Wrote {result.questions_path}")
+    typer.echo(f"Wrote {result.review_path}")
     if result.questions_refined_path:
         typer.echo(f"Wrote {result.questions_refined_path}")
     if result.llm_candidates_path:
@@ -150,6 +154,63 @@ def render(
     typer.echo(f"Wrote {result.attack_path}")
     typer.echo(f"Wrote {result.risk_path}")
     typer.echo(f"Wrote {result.questions_path}")
+    typer.echo(f"Wrote {result.review_path}")
+
+
+@app.command()
+def check(
+    system_model: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="Validated system model JSON to evaluate.",
+        ),
+    ],
+    fail_on: Annotated[
+        RiskThreshold,
+        typer.Option(
+            "--fail-on",
+            help="Minimum risk rating that fails the check: high, medium, or low.",
+        ),
+    ] = RiskThreshold.HIGH,
+) -> None:
+    """Fail when deterministic risk candidates meet a configured threshold."""
+
+    try:
+        model = read_system_model(system_model)
+        threats = generate_threats(model)
+        attack_findings = generate_attack_findings(model)
+        risks = score_risks(model, threats, attack_findings)
+        violations = risks_at_or_above(risks, fail_on)
+    except ValidationError as exc:
+        _echo_error(
+            "Input system model failed validation.",
+            detail=_validation_detail(exc),
+            hint="Fix the system model JSON before evaluating the risk gate.",
+        )
+        raise typer.Exit(code=1) from exc
+    except Exception as exc:
+        _echo_error("Risk check failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    if violations:
+        _echo_error(
+            f"Risk gate failed at threshold {fail_on.value}.",
+            detail=(
+                f"{len(violations)} risk candidate(s) met or exceeded the threshold. "
+                f"Highest rating: {violations[0].rating.value}; "
+                f"highest score: {violations[0].score}."
+            ),
+            hint="Review risk.md and system_model.json before accepting these candidates.",
+        )
+        raise typer.Exit(code=1)
+
+    typer.echo(
+        f"Risk gate passed: no risk candidates met or exceeded {fail_on.value}."
+    )
 
 
 @candidates_app.command("merge")

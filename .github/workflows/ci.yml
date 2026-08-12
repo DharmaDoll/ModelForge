@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality and deterministic sample
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.11.21"
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install locked dependencies
+        run: uv sync --frozen --all-groups
+
+      - name: Lint
+        run: uv run --frozen ruff check .
+
+      - name: Test
+        run: uv run --frozen pytest
+
+      - name: Test the ModelForge action
+        id: model-forge
+        uses: ./
+        with:
+          target: ./examples/sample-system
+          output-directory: ./ci-artifacts
+
+      - name: Upload sample artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: sample-threat-model
+          path: ${{ steps.model-forge.outputs.artifact-path }}
+          if-no-files-found: error
+          retention-days: 7

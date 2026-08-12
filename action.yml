@@ -1,0 +1,121 @@
+name: ModelForge Threat Model
+description: Generate deterministic threat-model artifacts from repository inputs.
+
+inputs:
+  target:
+    description: Repository directory containing README, OpenAPI, Mermaid, or Terraform inputs.
+    required: false
+    default: "."
+  output-directory:
+    description: Directory where ModelForge writes generated artifacts.
+    required: false
+    default: "model-forge-out"
+  job-summary:
+    description: Add review.md to the GitHub Actions job summary.
+    required: false
+    default: "true"
+  pr-comment:
+    description: Create or update the ModelForge pull-request comment.
+    required: false
+    default: "false"
+  github-token:
+    description: GitHub token with pull-requests write permission when pr-comment is true.
+    required: false
+    default: ""
+  fail-on-risk:
+    description: Minimum risk rating that fails the action (none, high, medium, or low).
+    required: false
+    default: "none"
+
+outputs:
+  artifact-path:
+    description: Directory containing the generated threat-model artifacts.
+    value: ${{ steps.analyze.outputs.artifact-path }}
+  system-model-path:
+    description: Path to the generated system_model.json source of truth.
+    value: ${{ steps.analyze.outputs.system-model-path }}
+  review-summary-path:
+    description: Path to the compact deterministic review summary.
+    value: ${{ steps.analyze.outputs.review-summary-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install uv and Python
+      uses: astral-sh/setup-uv@v9.0.0
+      with:
+        version: "0.11.21"
+        python-version: "3.12"
+        enable-cache: true
+        working-directory: ${{ github.action_path }}
+
+    - name: Generate deterministic threat model
+      id: analyze
+      shell: bash
+      env:
+        MODELFORGE_TARGET: ${{ inputs.target }}
+        MODELFORGE_OUTPUT: ${{ inputs.output-directory }}
+      run: |
+        uv run --frozen --project "$GITHUB_ACTION_PATH" \
+          tm-ai analyze "$MODELFORGE_TARGET" --out "$MODELFORGE_OUTPUT"
+        printf 'artifact-path=%s\n' "$MODELFORGE_OUTPUT" >> "$GITHUB_OUTPUT"
+        printf 'system-model-path=%s/system_model.json\n' "$MODELFORGE_OUTPUT" >> "$GITHUB_OUTPUT"
+        printf 'review-summary-path=%s/review.md\n' "$MODELFORGE_OUTPUT" >> "$GITHUB_OUTPUT"
+
+    - name: Add ModelForge job summary
+      if: ${{ inputs.job-summary == 'true' }}
+      shell: bash
+      env:
+        MODELFORGE_REVIEW: ${{ steps.analyze.outputs.review-summary-path }}
+      run: cat "$MODELFORGE_REVIEW" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Create or update ModelForge pull-request comment
+      if: ${{ inputs.pr-comment == 'true' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        MODELFORGE_PR_NUMBER: ${{ github.event.pull_request.number }}
+        MODELFORGE_REPOSITORY: ${{ github.repository }}
+        MODELFORGE_REVIEW: ${{ steps.analyze.outputs.review-summary-path }}
+      run: |
+        if [[ -z "$GH_TOKEN" ]]; then
+          echo "github-token is required when pr-comment is true." >&2
+          exit 1
+        fi
+        if [[ -z "$MODELFORGE_PR_NUMBER" ]]; then
+          echo "pr-comment can only be used for a pull_request event." >&2
+          exit 1
+        fi
+
+        comment_id="$(
+          gh api --paginate \
+            "repos/$MODELFORGE_REPOSITORY/issues/$MODELFORGE_PR_NUMBER/comments" \
+            --jq '.[] | select(.body | startswith("<!-- modelforge-review -->")) | .id' \
+            | tail -n 1
+        )"
+        if [[ -n "$comment_id" ]]; then
+          gh api --method PATCH \
+            "repos/$MODELFORGE_REPOSITORY/issues/comments/$comment_id" \
+            -F "body=@$MODELFORGE_REVIEW" >/dev/null
+        else
+          gh api --method POST \
+            "repos/$MODELFORGE_REPOSITORY/issues/$MODELFORGE_PR_NUMBER/comments" \
+            -F "body=@$MODELFORGE_REVIEW" >/dev/null
+        fi
+
+    - name: Enforce ModelForge risk gate
+      if: ${{ inputs.fail-on-risk != 'none' }}
+      shell: bash
+      env:
+        MODELFORGE_MODEL: ${{ steps.analyze.outputs.system-model-path }}
+        MODELFORGE_THRESHOLD: ${{ inputs.fail-on-risk }}
+      run: |
+        case "$MODELFORGE_THRESHOLD" in
+          high|medium|low) ;;
+          *)
+            echo "fail-on-risk must be one of: none, high, medium, low." >&2
+            exit 1
+            ;;
+        esac
+        uv run --frozen --project "$GITHUB_ACTION_PATH" \
+          tm-ai check "$MODELFORGE_MODEL" --fail-on "$MODELFORGE_THRESHOLD"

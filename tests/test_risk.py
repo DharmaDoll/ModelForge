@@ -8,7 +8,13 @@ from threatmodel_ai.model.schema import (
     SourceType,
     SystemModel,
 )
-from threatmodel_ai.risk import RiskRating, score_risks
+from threatmodel_ai.risk import (
+    RiskFinding,
+    RiskRating,
+    RiskThreshold,
+    risks_at_or_above,
+    score_risks,
+)
 from threatmodel_ai.stride import StrideCategory, Threat
 
 
@@ -101,3 +107,28 @@ def test_risk_scoring_scores_storage_paths_without_inventing_classification() ->
     assert len(risks) == 1
     assert risks[0].rating == RiskRating.MEDIUM
     assert any("Data classification is unknown" in item for item in risks[0].rationale)
+
+
+def test_risk_gate_filters_at_or_above_threshold() -> None:
+    risks = [
+        _risk("risk:low", RiskRating.LOW, 2),
+        _risk("risk:high", RiskRating.HIGH, 8),
+        _risk("risk:medium", RiskRating.MEDIUM, 5),
+    ]
+
+    assert [risk.id for risk in risks_at_or_above(risks, RiskThreshold.HIGH)] == [
+        "risk:high"
+    ]
+    assert [risk.id for risk in risks_at_or_above(risks, RiskThreshold.MEDIUM)] == [
+        "risk:high",
+        "risk:medium",
+    ]
+    assert [risk.id for risk in risks_at_or_above(risks, RiskThreshold.LOW)] == [
+        "risk:high",
+        "risk:medium",
+        "risk:low",
+    ]
+
+
+def _risk(id_: str, rating: RiskRating, score: int) -> RiskFinding:
+    return RiskFinding(id=id_, title=id_, rating=rating, score=score)

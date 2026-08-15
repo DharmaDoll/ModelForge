@@ -13,6 +13,11 @@ from yaml import YAMLError
 
 from threatmodel_ai.errors import InputFormatError
 from threatmodel_ai.model.ids import make_id
+from threatmodel_ai.model.observations import (
+    ObservationBatch,
+    model_to_observation_batch,
+    normalize_observation_batch,
+)
 from threatmodel_ai.model.schema import (
     Edge,
     EdgeType,
@@ -29,6 +34,27 @@ _HTTP_METHODS = {"get", "put", "post", "delete", "patch", "options", "head", "tr
 
 def extract_openapi(path: Path) -> SystemModel:
     """Extract API endpoints, schemas, and authentication facts from an OpenAPI file."""
+
+    return normalize_observation_batch(observe_openapi(path))
+
+
+def observe_openapi(path: Path) -> ObservationBatch:
+    """Extract evidence-bearing candidate observations from an OpenAPI file."""
+
+    evidence = Evidence(
+        source_type=SourceType.OPENAPI,
+        source_path=str(path),
+        extractor="openapi",
+        detail="OpenAPI",
+    )
+    return model_to_observation_batch(
+        _extract_openapi_model(path),
+        fallback_evidence=[evidence],
+    )
+
+
+def _extract_openapi_model(path: Path) -> SystemModel:
+    """Build the OpenAPI adapter's proposed model before normalization."""
 
     document = _load_document(path)
     if not isinstance(document, Mapping):

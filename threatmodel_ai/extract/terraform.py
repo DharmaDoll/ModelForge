@@ -8,6 +8,11 @@ from pathlib import Path
 
 from threatmodel_ai.errors import InputFormatError
 from threatmodel_ai.model.ids import make_id
+from threatmodel_ai.model.observations import (
+    ObservationBatch,
+    model_to_observation_batch,
+    normalize_observation_batch,
+)
 from threatmodel_ai.model.schema import (
     Edge,
     EdgeType,
@@ -79,6 +84,31 @@ _BOUNDARY_PRIORITY = {
 
 def extract_terraform(paths: Iterable[Path]) -> SystemModel:
     """Extract cloud resources and Terraform dependency edges from .tf files."""
+
+    return normalize_observation_batch(observe_terraform(paths))
+
+
+def observe_terraform(paths: Iterable[Path]) -> ObservationBatch:
+    """Extract evidence-bearing candidate observations from Terraform files."""
+
+    path_list = tuple(paths)
+    fallback_evidence = [
+        Evidence(
+            source_type=SourceType.TERRAFORM,
+            source_path=str(path),
+            extractor="terraform",
+            detail="Terraform file",
+        )
+        for path in path_list
+    ]
+    return model_to_observation_batch(
+        _extract_terraform_model(path_list),
+        fallback_evidence=fallback_evidence,
+    )
+
+
+def _extract_terraform_model(paths: Iterable[Path]) -> SystemModel:
+    """Build the Terraform adapter's proposed model before normalization."""
 
     resources = list(_collect_resources(paths))
     nodes: dict[str, Node] = {}

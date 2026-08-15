@@ -10,10 +10,10 @@ from threatmodel_ai.attack import generate_attack_findings
 from threatmodel_ai.dfd import render_mermaid
 from threatmodel_ai.errors import AnalysisInputError
 from threatmodel_ai.extract import (
-    extract_mermaid_markdown,
-    extract_openapi,
-    extract_readme,
-    extract_terraform,
+    observe_mermaid_markdown,
+    observe_openapi,
+    observe_readme,
+    observe_terraform,
 )
 from threatmodel_ai.ingest import AnalysisInputs
 from threatmodel_ai.llm import (
@@ -23,7 +23,7 @@ from threatmodel_ai.llm import (
     refine_questions,
 )
 from threatmodel_ai.model.io import write_system_model
-from threatmodel_ai.model.merge import merge_system_models
+from threatmodel_ai.model.observations import ObservationBatch, normalize_observation_batches
 from threatmodel_ai.model.schema import SystemModel
 from threatmodel_ai.questions import Question, generate_questions
 from threatmodel_ai.report import (
@@ -77,18 +77,18 @@ def analyze_project(
 ) -> AnalysisResult:
     """Run deterministic extraction and write all MVP artifacts."""
 
-    models: list[SystemModel] = []
+    observation_batches: list[ObservationBatch] = []
     if inputs.readme:
-        models.append(extract_readme(inputs.readme))
+        observation_batches.append(observe_readme(inputs.readme))
     for markdown_path in _markdown_paths(inputs):
-        mermaid_model = extract_mermaid_markdown(markdown_path)
-        if mermaid_model.nodes or mermaid_model.edges:
-            models.append(mermaid_model)
+        mermaid_observations = observe_mermaid_markdown(markdown_path)
+        if _has_topology_observations(mermaid_observations):
+            observation_batches.append(mermaid_observations)
     if inputs.openapi:
-        models.append(extract_openapi(inputs.openapi))
+        observation_batches.append(observe_openapi(inputs.openapi))
     if inputs.terraform:
-        models.append(extract_terraform(inputs.terraform))
-    if not models:
+        observation_batches.append(observe_terraform(inputs.terraform))
+    if not observation_batches:
         raise AnalysisInputError(
             f"No supported input files were found under {inputs.target}.",
             detail="ModelForge needs at least one README, OpenAPI/Swagger, or Terraform input.",
@@ -99,7 +99,7 @@ def analyze_project(
             ),
         )
 
-    model = merge_system_models(models)
+    model = normalize_observation_batches(observation_batches)
     render_result = render_model_artifacts(model, out_dir)
     questions_refined_path: Path | None = None
     llm_candidates_path: Path | None = None
@@ -202,3 +202,9 @@ def _markdown_paths(inputs: AnalysisInputs) -> tuple[Path, ...]:
     for path in inputs.docs:
         paths[path.resolve()] = path
     return tuple(paths[key] for key in sorted(paths))
+
+
+def _has_topology_observations(batch: ObservationBatch) -> bool:
+    """Return whether a Markdown batch proposed at least one node or edge."""
+
+    return any(observation.kind in {"node", "edge"} for observation in batch.observations)

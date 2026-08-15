@@ -25,3 +25,7 @@ class InputFormatError(ModelForgeError):
 
 class AnalysisInputError(ModelForgeError):
     """Raised when analysis cannot start because supported inputs are missing."""
+
+
+class ObservationPolicyError(ModelForgeError):
+    """Raised when candidate observations are not eligible to become model facts."""

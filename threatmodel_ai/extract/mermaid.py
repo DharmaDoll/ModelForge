@@ -7,6 +7,11 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from threatmodel_ai.model.ids import make_id
+from threatmodel_ai.model.observations import (
+    ObservationBatch,
+    model_to_observation_batch,
+    normalize_observation_batch,
+)
 from threatmodel_ai.model.schema import (
     Edge,
     EdgeType,
@@ -45,6 +50,27 @@ _TYPE_KEYWORDS: tuple[tuple[NodeType, tuple[str, ...]], ...] = (
 
 def extract_mermaid_markdown(path: Path) -> SystemModel:
     """Extract conservative graph facts from Mermaid flowchart blocks in Markdown."""
+
+    return normalize_observation_batch(observe_mermaid_markdown(path))
+
+
+def observe_mermaid_markdown(path: Path) -> ObservationBatch:
+    """Extract evidence-bearing candidate observations from Mermaid Markdown."""
+
+    evidence = Evidence(
+        source_type=SourceType.MARKDOWN,
+        source_path=str(path),
+        extractor="mermaid",
+        detail="Markdown document",
+    )
+    return model_to_observation_batch(
+        _extract_mermaid_model(path),
+        fallback_evidence=[evidence],
+    )
+
+
+def _extract_mermaid_model(path: Path) -> SystemModel:
+    """Build the Mermaid adapter's proposed model before normalization."""
 
     text = path.read_text(encoding="utf-8")
     nodes: dict[str, Node] = {}

@@ -1,3 +1,158 @@
+# ModelForge Roadmap
+
+This roadmap treats ModelForge as an evidence-backed system modeling and threat
+analysis engine. Threat modeling is one deterministic lens over the canonical
+system model; the model and its provenance remain the product foundation.
+
+## Planning Principles
+
+The following rules apply to every phase:
+
+* Evolve the canonical model before adding more input adapters.
+* Keep observations, accepted facts, explicit inferences, and security
+  assessments distinguishable.
+* Require provenance for accepted facts and references from derived outputs back
+  to the facts or inferences that support them.
+* Treat STRIDE and MITRE ATT&CK as independent lenses over the same model. Do not
+  derive one by mechanically translating the other.
+* Preserve unknowns instead of filling gaps with assumptions.
+* Treat all LLM output as a candidate until it passes validation and explicit
+  human review.
+* Call risk output **review priority**, not vulnerability severity or CVSS.
+
+## Next Delivery Milestones
+
+These milestones take priority over expanding the long-term input catalog.
+
+### P0: Canonical Model Semantics
+
+Define and version the meaning of `system_model.json` before broadening its
+sources.
+
+Detailed design: [Canonical Model Evolution and Review State](docs/design/canonical-model-evolution.md)
+
+Current implementation:
+
+* README, Mermaid, OpenAPI, and Terraform adapters emit a shared, versioned
+  `ObservationBatch` containing typed `CandidateObservation` records.
+* Observations carry evidence, provenance class, confidence, and exactly one
+  proposed system, node, edge, or unknown change.
+* The deterministic pipeline normalizes batches before merging the canonical
+  model. Generated observations cannot be normalized directly, and reviewed
+  observations require an explicit acceptance policy.
+* Existing `extract_*` APIs still return `SystemModel` for compatibility and now
+  use the same observation normalizer internally.
+
+Deliverables:
+
+* Publish a versioned canonical vocabulary covering nodes, edges, trust
+  boundaries, actors, identities, interfaces, controls, assets, data stores,
+  data classification, deployments, evidence, and unknowns.
+* Introduce a common `CandidateObservation` contract for extractor output. An
+  observation records the source, extractor, location, confidence/provenance
+  class, and proposed model change without becoming a fact automatically.
+* Normalize reviewed observations into accepted model facts. Keep explicit
+  inferences separate and require `based_on` references plus confidence.
+* Keep security assessments in lens-specific outputs and require `derived_from`
+  references to model facts or explicit inferences.
+* Require evidence on every accepted node, edge, boundary membership, and
+  security-relevant attribute. Missing evidence must fail validation or remain an
+  unknown; it must not silently become a fact.
+* Add schema-version compatibility tests, migration policy, JSON Schema export,
+  and round-trip validation fixtures before the next schema version is released.
+
+Goal:
+
+```text
+Raw artifact
+  -> CandidateObservation[]
+  -> evidence and policy validation
+  -> accepted facts + explicit inferences + unknowns
+  -> system_model.json
+```
+
+### P1: Gold Standard Evaluation
+
+Move regression measurement ahead of adding LLM-generated threat context or many
+new extractors.
+
+Deliverables:
+
+* Add expert-reviewed fixture families for model extraction, STRIDE, ATT&CK,
+  questions, and review priorities.
+* Measure model extraction accuracy separately from threat-analysis quality.
+* Report threat recall, false-candidate rate, question usefulness, and model
+  extraction precision/recall. Where labels permit, also report TPR, FPR, and
+  FNR.
+* Compare deterministic-only and deterministic-plus-LLM runs without requiring
+  an LLM in the default unit-test suite.
+* Make rule, schema, and prompt regressions visible in CI while keeping approval
+  thresholds explicitly configured.
+
+### P1: Model Diff and Threat Delta
+
+Make architectural change, rather than full report regeneration, the center of
+Continuous Threat Modeling.
+
+Deliverables:
+
+* Compare a reviewed baseline model with a current model using stable element
+  identities.
+* Emit deterministic additions, removals, and security-relevant attribute
+  changes for nodes, edges, assets, controls, and trust-boundary crossings.
+* Re-run analysis for affected graph regions and emit only new, changed, and
+  resolved threat candidates as a `ThreatDelta`.
+* Add a threat-review lifecycle with at least `candidate`, `reviewed`,
+  `accepted`, `mitigated`, `false_positive`, and `needs_context` states.
+* Preserve reviewer decisions across runs through stable IDs and explicit
+  baseline state.
+* Gate CI on explicitly configured conditions such as new, unreviewed High
+  candidates; do not fail merely because any candidate exists. Keep all gates
+  off by default.
+
+Goal:
+
+```text
+reviewed baseline + current model
+  -> ModelDiff
+  -> affected graph analysis
+  -> ThreatDelta
+  -> human review / optional CI gate
+```
+
+### P1: Unified Input Pipeline
+
+Migrate existing extractors to one trust model before adding multimodal inputs.
+
+Deliverables:
+
+* Use the same Candidate Observation -> Normalization -> Evidence Validation
+  pipeline for deterministic parsers, LLMs, vision systems, source analysis, and
+  runtime observations.
+* Define deterministic conflict, deduplication, precedence, and identity rules.
+* Keep source-specific parsing outside the canonical model package.
+* Add new adapters only with extraction fixtures, provenance tests, conflict
+  tests, and unknown-handling tests.
+
+### P1: Graph Analysis Abstraction
+
+Add a small graph-analysis interface for reachability, trust-boundary crossings,
+entry-point paths, and sensitive-data paths. NetworkX may implement this
+interface, but it is not part of the public model or extractor contract.
+
+### P1: External LLM Data Policy
+
+External transmission remains opt-in. Before any external LLM call, enforce:
+
+* an explicit user choice;
+* a data-classification/policy decision;
+* minimum necessary context; and
+* optional reversible redaction where policy permits transmission.
+
+Redaction is a defense-in-depth control, not proof that architectural data is
+safe to transmit. Local and on-premises providers may be added behind the same
+provider interface, but cannot bypass candidate validation.
+
 ## Phase 1: Core Model
 
 * Define Pydantic schemas
@@ -58,6 +213,9 @@ system_model.json
 attack.md
 ```
 
+STRIDE and ATT&CK remain separate outputs produced from the same canonical model.
+ATT&CK candidates must not be generated by translating STRIDE categories.
+
 ## Phase 4: Missing Questions
 
 * Detect missing authentication info
@@ -89,11 +247,16 @@ Recommended initial uses:
 Constraints:
 
 * LLM output must never be the source of truth
+* LLM-generated architecture or threat context must remain a candidate until
+  validated and explicitly reviewed
 * LLM output must be validated before it can update `system_model.json`
 * LLM extraction must produce structured candidates, not free-form reports
 * Unsupported or ambiguous facts must remain `unknown` or become clarification questions
 * External LLM calls must be opt-in
 * Unit tests must mock LLM interactions
+* Threat-context candidates must state supporting facts, missing facts, and
+  confidence; unsupported hypotheses should become clarification questions
+* Every external transmission must follow the External LLM Data Policy above
 
 Current implementation:
 
@@ -145,8 +308,14 @@ Current implementation:
 * `review.md` provides a compact job summary and optional marker-scoped PR comment
 * An opt-in `tm-ai check` risk threshold can fail CI on selected candidate ratings
 
+The current threshold gate remains off by default. Its next evolution should use
+the reviewed baseline and fail only on configured threat-delta conditions, such
+as newly introduced, unreviewed High candidates.
+
 Future work:
 
+* Model Diff and Threat Delta in pull requests
+* Threat-review lifecycle and persistence of reviewer decisions
 * Jira tickets
 * Threat Dragon export
 * AWS Config ingestion
@@ -159,6 +328,10 @@ Future work:
 The long-term goal of this project is to support threat modeling from **any artifact that describes a system**, not just structured files.
 
 The ingestion pipeline should become increasingly multimodal, allowing security engineers and developers to provide whatever documentation is already available.
+
+This phase starts only after the canonical semantics and unified input pipeline
+milestones above. Every adapter emits `CandidateObservation` records; no adapter,
+LLM, or vision component writes accepted model facts directly.
 
 ## Structured Inputs
 

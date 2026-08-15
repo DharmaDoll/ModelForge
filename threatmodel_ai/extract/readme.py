@@ -6,6 +6,11 @@ import re
 from pathlib import Path
 
 from threatmodel_ai.model.ids import make_id
+from threatmodel_ai.model.observations import (
+    ObservationBatch,
+    model_to_observation_batch,
+    normalize_observation_batch,
+)
 from threatmodel_ai.model.schema import Evidence, Node, NodeType, SourceType, SystemModel, Unknown
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
@@ -30,6 +35,27 @@ _SECTION_TYPES: dict[str, NodeType] = {
 
 def extract_readme(path: Path) -> SystemModel:
     """Extract explicitly documented architecture facts from a README file."""
+
+    return normalize_observation_batch(observe_readme(path))
+
+
+def observe_readme(path: Path) -> ObservationBatch:
+    """Extract evidence-bearing candidate observations from a README file."""
+
+    evidence = Evidence(
+        source_type=SourceType.README,
+        source_path=str(path),
+        extractor="readme",
+        detail="README",
+    )
+    return model_to_observation_batch(
+        _extract_readme_model(path),
+        fallback_evidence=[evidence],
+    )
+
+
+def _extract_readme_model(path: Path) -> SystemModel:
+    """Build the README adapter's proposed model before normalization."""
 
     text = path.read_text(encoding="utf-8")
     evidence = Evidence(

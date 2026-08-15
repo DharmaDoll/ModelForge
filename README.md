@@ -76,10 +76,20 @@ receives a normalized `system_model.json` plus `dfd.mmd`, `threats.md`,
 ModelForge first turns supported inputs into `system_model.json`. Every generated
 artifact reads from that model instead of raw source files.
 
+Deterministic input adapters first emit typed `CandidateObservation` records.
+Each observation carries source evidence, an explicit provenance class, a
+confidence value, and one proposed model change. The normalizer currently accepts
+only fully confident deterministic observations by default; generated candidates
+cannot be promoted directly, and human-reviewed candidates require an explicit
+normalization policy. Existing `extract_*` Python APIs remain compatible and
+return the normalized `SystemModel`.
+
 ```mermaid
 flowchart TD
   Inputs["README / Markdown + Mermaid / OpenAPI / Terraform"]
   Extract["Deterministic extractors"]
+  Observations["CandidateObservation[]\nevidence + provenance + confidence"]
+  Normalize["Policy validation + normalization"]
   Model["system_model.json\nsource of truth"]
   DFD["dfd.mmd"]
   STRIDE["threats.md"]
@@ -95,7 +105,7 @@ flowchart TD
   Merged["system_model.merged.json\nreviewed model"]
   Render["Render from model\ntm-ai render"]
 
-  Inputs --> Extract --> Model
+  Inputs --> Extract --> Observations --> Normalize --> Model
   Model --> DFD
   Model --> STRIDE
   Model --> ATTACK
@@ -116,6 +126,12 @@ flowchart TD
 ```
 
 Without `--llm`, the LLM branch is skipped and no external API is called.
+
+## Design Documents
+
+* [Canonical Model Evolution and Review State](docs/design/canonical-model-evolution.md)
+  defines the planned 0.1-to-0.2 migration, Fact/Inference boundary, Evidence
+  rules, stable diff identities, and SQLite-backed review lifecycle.
 
 ## Output Files
 

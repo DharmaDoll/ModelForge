@@ -1,0 +1,108 @@
+{
+  "schema_version": "0.1",
+  "cases": [
+    {
+      "id": "terraform-private-reference",
+      "project": "private-lb",
+      "review_status": "seed",
+      "probes": [
+        {"lens": "model", "selector": "node:terraform:aws-db-instance:db:database", "expected": true, "rationale": "The Terraform declaration explicitly names a database resource."},
+        {"lens": "model", "selector": "edge:terraform:aws-lb:private->terraform:aws-db-instance:db:references", "expected": true, "rationale": "The load balancer configuration references the database resource."},
+        {"lens": "model", "selector": "edge:terraform:aws-lb:private->terraform:aws-db-instance:db:stores", "expected": false, "rationale": "A dependency cannot be labeled as a runtime storage edge."},
+        {"lens": "model", "selector": "configuration_reference", "expected": true, "rationale": "depends_on is an explicit configuration reference."},
+        {"lens": "model", "selector": "runtime_storage", "expected": false, "rationale": "depends_on does not prove runtime database writes."},
+        {"lens": "model", "selector": "public_entrypoint", "expected": false, "rationale": "The load balancer explicitly sets internal=true."},
+        {"lens": "attack", "selector": "T1190", "expected": false, "rationale": "No public-facing application is established."},
+        {"lens": "attack", "selector": "T1565", "expected": false, "rationale": "A Terraform dependency is not a stored-data mutation path."},
+        {"lens": "stride", "selector": "entrypoint-spoofing", "expected": false, "rationale": "No actor-to-service runtime entry point is modeled."},
+        {"lens": "risk", "selector": "any", "expected": false, "rationale": "Unknown controls and configuration references alone should not create review priority."},
+        {"lens": "question", "selector": "internet_exposure", "expected": false, "rationale": "The literal internal=true setting resolves exposure for this load balancer."},
+        {"lens": "question", "selector": "encryption", "expected": true, "rationale": "The modeled database has no proven encryption configuration."}
+      ]
+    },
+    {
+      "id": "terraform-public-lb",
+      "project": "public-lb",
+      "review_status": "seed",
+      "probes": [
+        {"lens": "model", "selector": "node:terraform:aws-lb:public:component", "expected": true, "rationale": "The public load-balancer resource exists as a modeled component."},
+        {"lens": "model", "selector": "node:actor:terraform:internet:actor", "expected": true, "rationale": "An Internet actor is derived from explicit internet-facing configuration."},
+        {"lens": "model", "selector": "public_entrypoint", "expected": true, "rationale": "The load balancer explicitly sets internal=false."},
+        {"lens": "model", "selector": "known_authentication", "expected": false, "rationale": "Terraform does not prove an authentication method for this entry point."},
+        {"lens": "attack", "selector": "T1190", "expected": true, "rationale": "An explicitly internet-facing application entry point is modeled."},
+        {"lens": "attack", "selector": "T1557", "expected": false, "rationale": "Unknown transport does not prove cleartext transport."},
+        {"lens": "stride", "selector": "entrypoint-spoofing", "expected": true, "rationale": "The explicit public actor-to-service flow merits a spoofing candidate."},
+        {"lens": "question", "selector": "internet_exposure", "expected": false, "rationale": "The literal internal=false setting resolves exposure for this load balancer."},
+        {"lens": "question", "selector": "authentication", "expected": true, "rationale": "Authentication for the public load balancer is unknown."},
+        {"lens": "risk", "selector": "low", "expected": true, "rationale": "Explicit public exposure contributes review priority without treating unknown controls as absent."}
+      ]
+    },
+    {
+      "id": "openapi-declared-api-key",
+      "project": "api-key",
+      "review_status": "seed",
+      "probes": [
+        {"lens": "model", "selector": "node:api:get:orders:api", "expected": true, "rationale": "The OpenAPI contract declares GET /orders."},
+        {"lens": "model", "selector": "node:api:post:orders:api", "expected": false, "rationale": "The OpenAPI contract does not declare POST /orders."},
+        {"lens": "model", "selector": "known_authentication", "expected": true, "rationale": "The OpenAPI contract declares an API-key security requirement."},
+        {"lens": "model", "selector": "public_entrypoint", "expected": false, "rationale": "An API client and HTTPS server URL do not prove internet exposure."},
+        {"lens": "attack", "selector": "T1110", "expected": false, "rationale": "An API key is not evidence of a password-guessing surface."},
+        {"lens": "attack", "selector": "T1190", "expected": false, "rationale": "The contract does not establish a public-facing application."},
+        {"lens": "stride", "selector": "entrypoint-spoofing", "expected": true, "rationale": "A client-to-API flow exists, while the declared scheme does not prove enforcement."},
+        {"lens": "question", "selector": "authorization", "expected": true, "rationale": "Operation authorization rules are not specified by the API-key requirement."},
+        {"lens": "risk", "selector": "any", "expected": false, "rationale": "No scored public exposure, sensitive asset, or explicitly absent control is established."}
+      ]
+    },
+    {
+      "id": "terraform-ambiguous-lb-exposure",
+      "project": "ambiguous-lb",
+      "review_status": "seed",
+      "probes": [
+        {"lens": "model", "selector": "node:terraform:aws-lb:public-named:component", "expected": true, "rationale": "The resource declaration establishes an LB component, regardless of its display name."},
+        {"lens": "model", "selector": "public_entrypoint", "expected": false, "rationale": "A public-looking name and internal=var.is_internal do not establish internet exposure."},
+        {"lens": "model", "selector": "configuration_reference", "expected": false, "rationale": "A reference to an unresolved variable does not identify another modeled resource."},
+        {"lens": "question", "selector": "internet_exposure", "expected": true, "rationale": "The unresolved internal setting should become a question instead of a public-exposure claim."},
+        {"lens": "question", "selector": "authentication", "expected": false, "rationale": "No external entry point is established from which to infer an authentication gap."},
+        {"lens": "attack", "selector": "T1190", "expected": false, "rationale": "The source does not prove a public-facing application."},
+        {"lens": "stride", "selector": "entrypoint-spoofing", "expected": false, "rationale": "No actor-to-service runtime entry point is established."},
+        {"lens": "risk", "selector": "any", "expected": false, "rationale": "Unknown exposure is not scored as proven public exposure."}
+      ]
+    },
+    {
+      "id": "openapi-operation-security-override",
+      "project": "auth-override",
+      "review_status": "seed",
+      "probes": [
+        {"lens": "model", "selector": "node:api:get:orders:api", "expected": true, "rationale": "GET /orders is explicitly declared."},
+        {"lens": "model", "selector": "node:api:get:status:api", "expected": true, "rationale": "GET /status is explicitly declared."},
+        {"lens": "model", "selector": "auth:edge:actor-openapi-api-client:api-get-orders:request:known", "expected": true, "rationale": "GET /orders inherits the global API-key requirement."},
+        {"lens": "model", "selector": "auth:edge:actor-openapi-api-client:api-get-status:request:none", "expected": true, "rationale": "The operation-level empty security array explicitly overrides global security."},
+        {"lens": "model", "selector": "auth:edge:actor-openapi-api-client:api-get-status:request:known", "expected": false, "rationale": "The global API-key requirement must not be applied to the overridden operation."},
+        {"lens": "model", "selector": "public_entrypoint", "expected": false, "rationale": "A server URL alone is not proof of public network reachability."},
+        {"lens": "question", "selector": "authentication", "expected": true, "rationale": "Explicitly unauthenticated GET /status warrants an intent-confirmation question."},
+        {"lens": "question", "selector": "authorization", "expected": true, "rationale": "The API-key requirement does not specify authorization rules for GET /orders."},
+        {"lens": "attack", "selector": "T1190", "expected": false, "rationale": "Public exposure is not established by the OpenAPI contract."},
+        {"lens": "stride", "selector": "entrypoint-spoofing", "expected": true, "rationale": "The client-to-API operations are modeled runtime entry points."},
+        {"lens": "risk", "selector": "low", "expected": true, "rationale": "The explicit absence of authentication on GET /status contributes a low review priority."},
+        {"lens": "risk", "selector": "medium", "expected": false, "rationale": "No additional scored facts raise the entry point to medium priority."}
+      ]
+    },
+    {
+      "id": "openapi-unknown-authentication",
+      "project": "unknown-auth",
+      "review_status": "seed",
+      "probes": [
+        {"lens": "model", "selector": "node:api:get:catalog:api", "expected": true, "rationale": "GET /catalog is explicitly declared."},
+        {"lens": "model", "selector": "auth:edge:actor-openapi-api-client:api-get-catalog:request:unknown", "expected": true, "rationale": "No security requirement is declared for the operation or API."},
+        {"lens": "model", "selector": "auth:edge:actor-openapi-api-client:api-get-catalog:request:none", "expected": false, "rationale": "Omitted security is unknown, not an explicit security: [] override."},
+        {"lens": "model", "selector": "auth:edge:actor-openapi-api-client:api-get-catalog:request:known", "expected": false, "rationale": "The document supplies no authentication scheme."},
+        {"lens": "model", "selector": "public_entrypoint", "expected": false, "rationale": "An OpenAPI client flow does not prove internet exposure."},
+        {"lens": "question", "selector": "authentication", "expected": true, "rationale": "The unspecified authentication should remain a clarification question."},
+        {"lens": "question", "selector": "internet_exposure", "expected": false, "rationale": "No Terraform LB with unresolved exposure is present in this case."},
+        {"lens": "stride", "selector": "entrypoint-spoofing", "expected": true, "rationale": "The client-to-API request is a runtime entry point despite unknown controls."},
+        {"lens": "attack", "selector": "T1190", "expected": false, "rationale": "Internet exposure is not established."},
+        {"lens": "risk", "selector": "any", "expected": false, "rationale": "Unknown authentication alone does not create a scored review priority."}
+      ]
+    }
+  ]
+}

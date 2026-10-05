@@ -1,0 +1,28 @@
+openapi: 3.1.0
+info:
+  title: Orders API
+  version: 1.0.0
+servers:
+  - url: https://orders.example.invalid
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+security:
+  - ApiKey: []
+paths:
+  /orders:
+    get:
+      summary: List orders
+      responses:
+        "200":
+          description: OK
+  /status:
+    get:
+      summary: Read service status without authentication
+      security: []
+      responses:
+        "200":
+          description: OK

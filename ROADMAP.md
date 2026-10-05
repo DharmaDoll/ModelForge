@@ -24,6 +24,49 @@ The following rules apply to every phase:
 
 These milestones take priority over expanding the long-term input catalog.
 
+### Delivery order and quality gates
+
+The implementation is staged so that a larger schema or CI gate cannot amplify
+unverified extraction claims:
+
+1. **P0 — inference precision:** treat Terraform references as configuration
+   relationships, not runtime flows; require explicit public exposure; do not
+   score unknown controls as absent. Keep uncertainties in `questions.md`.
+   This conservative baseline is implemented for the current rules. Expand it
+   with labeled negative cases before adding more inference rules.
+2. **P0 — conflicts and identity:** surface contradictory source claims as
+   `model_conflict` unknowns with both evidence pointers. Never silently pick a
+   security-relevant value. Scope Mermaid IDs by document and diagram, and
+   preview legacy matches without transferring reviewer decisions. Define
+   cross-source aliases and explicit migration fixtures before those decisions
+   can be carried to a new identity.
+   Document- and diagram-scoped Mermaid IDs plus a read-only legacy-ID preview
+   are implemented. Cross-source identity aliases and acceptance/migration of
+   reviewed identities remain pending; ambiguous legacy IDs are never mapped
+   automatically.
+3. **P0 — canonical 0.2:** separate observations, facts, inferences, and
+   assessments in storage. Add attribute-level evidence and a version-aware
+   reader/migrator before releasing 0.2. The current 0.1 reader rejects future
+   versions; the existing observation wrapper is a transport contract, not yet
+   proof that each proposed semantic claim is an accepted fact.
+   A draft 0.2 schema, pure 0.1→0.2 migrator, and non-serializing resolved view
+   are implemented with unit and sample-system parity tests. They are not yet
+   wired into the default CLI or fact-acceptance policy.
+4. **P1 — evaluated baseline:** build expert-labeled positive and negative
+   fixtures across extraction, STRIDE, ATT&CK, questions, and review priority.
+   Measure false candidates and model precision before setting CI thresholds.
+5. **P1 — Model Diff:** stabilize semantic IDs and fingerprints, then compare a
+   reviewed baseline with the current model. Initially produce a full,
+   deterministic diff; optimize affected-graph re-analysis only after parity
+   tests show it does not omit changed candidates.
+6. **P1 — reviewer lifecycle and CI:** persist decisions separately from the
+   architecture model. Add SQLite only once identity/diff semantics are stable.
+   Keep CI gates opt-in, based on newly unreviewed candidates rather than the
+   presence of any candidate.
+
+Each stage needs unit tests, reviewed regression fixtures, an unchanged default
+no-LLM path, and documentation of known unknowns before moving to the next.
+
 ### P0: Canonical Model Semantics
 
 Define and version the meaning of `system_model.json` before broadening its
@@ -42,6 +85,12 @@ Current implementation:
   observations require an explicit acceptance policy.
 * Existing `extract_*` APIs still return `SystemModel` for compatibility and now
   use the same observation normalizer internally.
+* The 0.1 schema is pinned and rejects unsupported future versions. This is a
+  compatibility guard, not the planned 0.2 migration machinery.
+* Conflicting node/edge security attributes become unknown plus an explicit
+  review question; no later input may silently restore the disputed value.
+* Mermaid aliases are scoped to a project-relative document and diagram;
+  duplicate legacy IDs can be inspected with `tm-ai model identity-preview`.
 
 Deliverables:
 
@@ -75,6 +124,12 @@ Raw artifact
 
 Move regression measurement ahead of adding LLM-generated threat context or many
 new extractors.
+
+Current seed implementation: `tm-ai evaluate` runs six deterministic fixture
+projects against 61 authored positive/negative probes. It reports confusion
+matrices and defined-denominator ratios separately for model extraction,
+STRIDE, ATT&CK, questions, and review priority. All labels are marked `seed`;
+none have been independently expert-reviewed. See [evaluation methodology](docs/evaluation.md).
 
 Deliverables:
 

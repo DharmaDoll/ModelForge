@@ -1,0 +1,21 @@
+openapi: 3.1.0
+info:
+  title: Internal Orders API
+  version: 1.0.0
+servers:
+  - url: https://internal.example.invalid
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+security:
+  - ApiKey: []
+paths:
+  /orders:
+    get:
+      summary: List orders
+      responses:
+        "200":
+          description: OK

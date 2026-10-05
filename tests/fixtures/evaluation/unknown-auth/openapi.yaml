@@ -1,0 +1,11 @@
+openapi: 3.1.0
+info:
+  title: Catalog API
+  version: 1.0.0
+paths:
+  /catalog:
+    get:
+      summary: List catalog entries
+      responses:
+        "200":
+          description: OK

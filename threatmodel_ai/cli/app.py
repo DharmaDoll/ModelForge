@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Annotated
 
@@ -10,8 +11,10 @@ from pydantic import ValidationError
 
 from threatmodel_ai.attack import generate_attack_findings
 from threatmodel_ai.errors import ModelForgeError
+from threatmodel_ai.evaluation import evaluate_manifest
 from threatmodel_ai.ingest import discover_inputs
 from threatmodel_ai.llm import merge_llm_candidates, read_llm_candidates
+from threatmodel_ai.model.identity import preview_legacy_mermaid_identities
 from threatmodel_ai.model.io import read_system_model, write_system_model
 from threatmodel_ai.pipeline import analyze_project, render_model_artifacts
 from threatmodel_ai.risk import RiskThreshold, risks_at_or_above, score_risks
@@ -19,7 +22,9 @@ from threatmodel_ai.stride import generate_threats
 
 app = typer.Typer(help="Generate threat modeling artifacts from repository inputs.")
 candidates_app = typer.Typer(help="Review and merge LLM candidate artifacts.")
+model_app = typer.Typer(help="Validate and inspect system model artifacts.")
 app.add_typer(candidates_app, name="candidates")
+app.add_typer(model_app, name="model")
 
 
 @app.callback()
@@ -64,8 +69,7 @@ def analyze(
         typer.Option(
             "--llm",
             help=(
-                "Optional LLM mode. Supported: refine-questions, extract-readme. "
-                "Default: disabled."
+                "Optional LLM mode. Supported: refine-questions, extract-readme. Default: disabled."
             ),
         ),
     ] = None,
@@ -113,6 +117,16 @@ def analyze(
         typer.echo(f"Wrote {result.questions_refined_path}")
     if result.llm_candidates_path:
         typer.echo(f"Wrote {result.llm_candidates_path}")
+    _echo_next_steps(result.review_path, result.questions_path)
+    if result.questions_refined_path:
+        typer.echo(
+            "LLM: question wording proposals require human review; "
+            "questions.md is authoritative."
+        )
+    elif result.llm_candidates_path:
+        typer.echo("LLM: README candidates require human review and explicit merge.")
+    else:
+        typer.echo("LLM: off; no external API was called.")
 
 
 @app.command()
@@ -155,6 +169,7 @@ def render(
     typer.echo(f"Wrote {result.risk_path}")
     typer.echo(f"Wrote {result.questions_path}")
     typer.echo(f"Wrote {result.review_path}")
+    _echo_next_steps(result.review_path, result.questions_path)
 
 
 @app.command()
@@ -208,9 +223,56 @@ def check(
         )
         raise typer.Exit(code=1)
 
+    typer.echo(f"Risk gate passed: no risk candidates met or exceeded {fail_on.value}.")
+
+
+@app.command()
+def evaluate(
+    manifest: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="Versioned evaluation manifest with authored labels.",
+        ),
+    ],
+    json_output: Annotated[
+        bool,
+        typer.Option("--json", help="Print the complete machine-readable report."),
+    ] = False,
+) -> None:
+    """Measure deterministic outputs against labeled probes without calling an LLM."""
+
+    try:
+        report = evaluate_manifest(manifest)
+    except ValidationError as exc:
+        _echo_error(
+            "Evaluation manifest failed validation.",
+            detail=_validation_detail(exc),
+        )
+        raise typer.Exit(code=1) from exc
+    except Exception as exc:
+        _echo_error("Evaluation failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    if json_output:
+        typer.echo(json.dumps(report.model_dump(mode="json"), indent=2, sort_keys=True))
+        return
     typer.echo(
-        f"Risk gate passed: no risk candidates met or exceeded {fail_on.value}."
+        f"Evaluated {report.case_count} case(s), {report.labeled_probe_count} labeled probe(s)."
     )
+    typer.echo(
+        f"Expert-reviewed probes: {report.expert_reviewed_probe_count}; "
+        "seed labels are not a gold standard."
+    )
+    typer.echo(
+        f"Labeled-probe mismatches: {report.micro.fp + report.micro.fn} "
+        "(informational; no CLI failure threshold)."
+    )
+    for lens, metrics in report.by_lens.items():
+        typer.echo(f"{lens.value}: TP={metrics.tp} FP={metrics.fp} TN={metrics.tn} FN={metrics.fn}")
 
 
 @candidates_app.command("merge")
@@ -289,6 +351,49 @@ def merge_candidates(
         typer.echo(f"Added {result.review_unknowns} review unknown(s) for rejected candidates.")
 
 
+@model_app.command("identity-preview")
+def identity_preview(
+    legacy_model: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    current_model: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    out: Annotated[Path, typer.Option("--out", "-o", help="Preview JSON output path.")],
+) -> None:
+    """Preview old Mermaid ID mappings without changing either model."""
+
+    try:
+        if out.resolve() in {legacy_model.resolve(), current_model.resolve()}:
+            raise ValueError("Preview output must not overwrite an input model.")
+        preview = preview_legacy_mermaid_identities(
+            read_system_model(legacy_model), read_system_model(current_model)
+        )
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(
+            json.dumps(preview.model_dump(mode="json"), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    except ValidationError as exc:
+        _echo_error(
+            "Input system model failed validation.",
+            detail=_validation_detail(exc),
+            hint="Use valid ModelForge system models for the identity preview.",
+        )
+        raise typer.Exit(code=1) from exc
+    except Exception as exc:
+        _echo_error("Identity preview failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {out}")
+    typer.echo(
+        f"{len(preview.suggestions)} unique suggestion(s); "
+        f"{len(preview.ambiguous)} ambiguous legacy ID(s)."
+    )
+
+
 def _echo_error(message: str, *, detail: str | None = None, hint: str | None = None) -> None:
     """Print a compact, user-facing CLI error without source content."""
 
@@ -297,6 +402,12 @@ def _echo_error(message: str, *, detail: str | None = None, hint: str | None = N
         typer.echo(f"Detail: {detail}", err=True)
     if hint:
         typer.echo(f"Hint: {hint}", err=True)
+
+
+def _echo_next_steps(review_path: Path, questions_path: Path) -> None:
+    """Point first-time users to the two most actionable artifacts."""
+
+    typer.echo(f"Next: open {review_path} for the summary, then {questions_path} for unknowns.")
 
 
 def _validation_detail(error: ValidationError) -> str:

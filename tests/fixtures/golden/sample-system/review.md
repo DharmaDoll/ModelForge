@@ -35,6 +35,14 @@ Generated deterministically from `system_model.json`. All findings are review ca
 | Internet → payments-public-lb | What authorization checks protect payments-public-lb? | 1 | [Open](questions.md#question-group-87934b869a) |
 | API Client → GET /payments/{paymentId} | What rate limits protect GET /payments/{paymentId}? | 1 | [Open](questions.md#question-group-a963c98f8e) |
 
+## Unresolved Identity Candidates
+
+1 same-name group(s) span distinct source files. Names alone do not prove identity: no nodes, flows, or reviewer decisions were merged. Source hints below omit local directories; full Evidence remains in `system_model.json`.
+
+- Sample Payments API — possible pair (2 separate nodes)
+  - `component:openapi:sample-payments-api` (component; `openapi:openapi.yaml`)
+  - `component:readme:sample-payments-api` (component; `readme:README.md`)
+
 ## Open Question Categories
 
 | Category | Count |

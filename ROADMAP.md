@@ -162,6 +162,9 @@ Delivery order and acceptance criteria:
    and edges distinct in the canonical model and DFD until an explicit reviewed
    alias is accepted. Test both an unambiguous same-name suggestion and an
    ambiguous case where no alias can be accepted automatically.
+   Implemented for normalized same-name nodes from distinct source files in
+   `review.md`, including compact source hints, separate IDs, and ambiguous
+   multi-node groups. Broader cross-source alias acceptance remains pending.
 3. **Metric explanation:** add a short legend to `review.md` and the Quick Start
    separating STRIDE/ATT&CK candidate confidence from risk *review priority*.
    A high-confidence candidate may still have Low review priority; neither is

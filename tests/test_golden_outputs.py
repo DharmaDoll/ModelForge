@@ -55,6 +55,19 @@ def test_sample_starting_question_links_resolve_without_losing_questions(
     assert len(detail_ids) == len(set(detail_ids)) == 45
 
 
+def test_sample_identity_suggestion_does_not_merge_dfd_nodes(
+    generated_artifacts: Path,
+) -> None:
+    review = (generated_artifacts / "review.md").read_text(encoding="utf-8")
+    dfd = (generated_artifacts / "dfd.mmd").read_text(encoding="utf-8")
+
+    assert "Unresolved Identity Candidates" in review
+    assert "Sample Payments API — possible pair (2 separate nodes)" in review
+    assert "component:openapi:sample-payments-api" in review
+    assert "component:readme:sample-payments-api" in review
+    assert dfd.count("Sample Payments API\\n(component)") == 2
+
+
 def _normalized_text(path: Path) -> str:
     """Normalize environment-specific paths before comparing golden outputs."""
 

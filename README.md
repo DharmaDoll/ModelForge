@@ -196,7 +196,7 @@ What they mean:
 * `llm_candidates.json` - optional LLM-extracted README candidates for review;
   not merged into `system_model.json`
 
-Model facts in `system_model.json` include non-sensitive evidence pointers such as
+Model facts in `system_model.json` include evidence pointers such as
 source file, extractor, section/detail, and line when available. Generated reports
 show `Derived from` model IDs and a short evidence summary for review traceability.
 
@@ -223,6 +223,13 @@ tm-ai model identity-preview old/system_model.json new/system_model.json \
 The preview never edits either model or carries reviewer decisions. It lists
 multiple matches as ambiguous, requiring explicit review before any future
 identity-alias migration.
+
+`review.md` separately flags nodes with the same normalized display name that
+come from distinct source files. Each candidate keeps its own ID and a compact
+source hint. A same-name pair is only a review suggestion, not an accepted alias;
+three or more nodes are marked ambiguous. No nodes or flows are merged by this
+check. Full Evidence pointers remain in `system_model.json` and may contain
+local paths, so protect the model artifact when sharing it.
 
 Mermaid `subgraph` blocks and Terraform network resources are treated as explicit
 trust boundaries when the input states them. Missing entry-point boundary

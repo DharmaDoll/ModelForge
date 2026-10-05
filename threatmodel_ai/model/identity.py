@@ -3,11 +3,92 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from threatmodel_ai.model.schema import Edge, Node, SystemModel
+from threatmodel_ai.model.schema import Edge, Node, SourceType, SystemModel
+
+
+@dataclass(frozen=True)
+class PossibleIdentityMember:
+    """One still-distinct node with compact, non-absolute source hints."""
+
+    id: str
+    type: str
+    source_hints: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class PossibleIdentityGroup:
+    """A review-only same-name candidate group; never an accepted alias."""
+
+    name: str
+    members: tuple[PossibleIdentityMember, ...]
+
+    @property
+    def ambiguous(self) -> bool:
+        """More than two candidates cannot identify one unique pair."""
+
+        return len(self.members) > 2
+
+
+def find_possible_identities(model: SystemModel) -> list[PossibleIdentityGroup]:
+    """Surface cross-document same-name nodes without changing graph identity."""
+
+    by_name: dict[str, list[Node]] = defaultdict(list)
+    for node in model.nodes:
+        normalized_name = " ".join(node.name.split()).casefold()
+        if normalized_name and normalized_name != "unknown" and _source_keys(node):
+            by_name[normalized_name].append(node)
+
+    groups: list[PossibleIdentityGroup] = []
+    for nodes in by_name.values():
+        source_keys = set().union(*(_source_keys(node) for node in nodes))
+        if len(nodes) < 2 or len(source_keys) < 2:
+            continue
+        ordered = sorted(nodes, key=lambda node: node.id)
+        groups.append(
+            PossibleIdentityGroup(
+                name=min(node.name for node in nodes),
+                members=tuple(
+                    PossibleIdentityMember(
+                        id=node.id,
+                        type=node.type.value,
+                        source_hints=_source_hints(node),
+                    )
+                    for node in ordered
+                ),
+            )
+        )
+    return sorted(groups, key=lambda group: (group.name.casefold(), group.members[0].id))
+
+
+def _source_keys(node: Node) -> set[str]:
+    """Ignore synthetic pointers when deciding whether sources are distinct."""
+
+    return {
+        item.source_path
+        for item in node.evidence
+        if item.source_type != SourceType.DERIVED and item.source_path != "derived"
+    }
+
+
+def _source_hints(node: Node) -> tuple[str, ...]:
+    """Show source type, basename, and line without exposing an operator home path."""
+
+    return tuple(
+        sorted(
+            {
+                f"{item.source_type.value}:{Path(item.source_path).name}"
+                + (f":{item.line}" if item.line else "")
+                for item in node.evidence
+                if item.source_type != SourceType.DERIVED and item.source_path != "derived"
+            }
+        )
+    )
 
 
 class IdentitySuggestion(BaseModel):

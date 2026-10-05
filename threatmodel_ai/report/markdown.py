@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 
 from threatmodel_ai.attack.models import AttackFinding
+from threatmodel_ai.model.identity import find_possible_identities
 from threatmodel_ai.model.schema import EdgeType, Evidence, SystemModel
 from threatmodel_ai.questions.generator import Question
 from threatmodel_ai.questions.triage import group_questions, starting_question_groups
@@ -25,6 +26,7 @@ def render_review_markdown(
     question_counts = Counter(question.category for question in questions)
     question_groups = group_questions(questions, model)
     starting_groups = starting_question_groups(question_groups, risks)
+    possible_identities = find_possible_identities(model)
     ordered_risks = sorted(risks, key=lambda risk: (-risk.score, risk.id))
     flow_count = sum(
         edge.type
@@ -94,6 +96,34 @@ def render_review_markdown(
                 f"{len(group.questions)} | "
                 f"[Open](questions.md#{group.anchor}) |"
             )
+        lines.append("")
+
+    if possible_identities:
+        lines.extend(
+            [
+                "## Unresolved Identity Candidates",
+                "",
+                f"{len(possible_identities)} same-name group(s) span distinct source files. "
+                "Names alone do not prove identity: no nodes, flows, or reviewer "
+                "decisions were merged. Source hints below omit local directories; "
+                "full Evidence remains in `system_model.json`.",
+                "",
+            ]
+        )
+        for group in possible_identities:
+            status = "ambiguous" if group.ambiguous else "possible pair"
+            type_note = (
+                "; node types differ"
+                if len({member.type for member in group.members}) > 1
+                else ""
+            )
+            lines.append(
+                f"- {_escape_table(group.name)} — {status} "
+                f"({len(group.members)} separate nodes{type_note})"
+            )
+            for member in group.members:
+                sources = ", ".join(f"`{hint}`" for hint in member.source_hints)
+                lines.append(f"  - `{member.id}` ({member.type}; {sources})")
         lines.append("")
 
     if question_counts:

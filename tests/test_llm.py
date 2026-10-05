@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -8,7 +9,9 @@ from threatmodel_ai.llm import (
     extract_readme_candidates,
     refine_questions,
 )
+from threatmodel_ai.llm.questions import LLMQuestionRefinementError
 from threatmodel_ai.model.io import read_system_model
+from threatmodel_ai.model.schema import SystemModel
 from threatmodel_ai.pipeline import analyze_project
 from threatmodel_ai.questions import generate_questions
 
@@ -16,18 +19,36 @@ FIXTURE = Path(__file__).parent / "fixtures" / "sample-system"
 
 
 class FakeLLMClient:
-    def __init__(self, response: str = "## Refined\n\n- Keep question IDs intact.") -> None:
+    def __init__(self, response: str | None = None) -> None:
         self.response = response
         self.instructions = ""
         self.input_text = ""
+        self.json_schema: dict[str, object] | None = None
 
-    def generate_text(self, *, instructions: str, input_text: str) -> str:
+    def generate_text(
+        self,
+        *,
+        instructions: str,
+        input_text: str,
+        json_schema: dict[str, object] | None = None,
+    ) -> str:
         self.instructions = instructions
         self.input_text = input_text
+        self.json_schema = json_schema
+        if self.response is None:
+            questions = json.loads(input_text)["questions"]
+            return json.dumps(
+                {
+                    "questions": [
+                        {"id": item["id"], "wording": f"Please clarify: {item['question']}"}
+                        for item in questions
+                    ]
+                }
+            )
         return self.response
 
 
-def test_refine_questions_uses_model_summary_and_preserves_non_authoritative_header(
+def test_refine_questions_sends_minimal_payload_and_preserves_originals(
     tmp_path: Path,
 ) -> None:
     result = analyze_project(discover_inputs(FIXTURE), tmp_path)
@@ -38,15 +59,20 @@ def test_refine_questions_uses_model_summary_and_preserves_non_authoritative_hea
 
     assert refined.startswith("# Refined Questions")
     assert "not the source of truth" in refined
-    assert "Do not invent architecture" in client.instructions
+    assert "invent" in client.instructions
     assert questions[0].id in client.input_text
-    assert "nodes" in client.input_text
-    assert "edges" in client.input_text
+    assert questions[0].question in refined
+    assert "Proposed wording" in refined
+    assert client.json_schema is not None
+    assert client.json_schema["additionalProperties"] is False
+    assert "nodes" not in client.input_text
+    assert "edges" not in client.input_text
+    assert "source_path" not in client.input_text
     assert "Sample service that accepts payment requests" not in client.input_text
 
 
 def test_pipeline_writes_optional_refined_questions_artifact(tmp_path: Path) -> None:
-    client = FakeLLMClient("## Review Questions\n\n- `question:1`: Confirm authentication.")
+    client = FakeLLMClient()
 
     result = analyze_project(
         discover_inputs(FIXTURE),
@@ -63,7 +89,68 @@ def test_pipeline_writes_optional_refined_questions_artifact(tmp_path: Path) -> 
     )
     refined = result.questions_refined_path.read_text(encoding="utf-8")
     assert "not the source of truth" in refined
-    assert "Confirm authentication" in refined
+    assert "Please clarify:" in refined
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        "not json",
+        '{"questions": []}',
+        '{"questions": [{"id": "question:invented", "wording": "Invented?"}]}',
+        '{"questions": [{"id": "question:invented", "wording": "First?"}, '
+        '{"id": "question:invented", "wording": "Again?"}]}',
+        '{"questions": [{"id": "question:invented", "wording": "Line one\\nLine two"}]}',
+    ],
+)
+def test_refine_questions_rejects_unmatched_or_malformed_output(
+    tmp_path: Path, response: str
+) -> None:
+    result = analyze_project(discover_inputs(FIXTURE), tmp_path / "source")
+
+    with pytest.raises(LLMQuestionRefinementError):
+        refine_questions(
+            model=result.model,
+            questions=generate_questions(result.model),
+            client=FakeLLMClient(response),
+        )
+
+
+def test_refine_questions_rejects_duplicate_id_in_full_sized_response(tmp_path: Path) -> None:
+    result = analyze_project(discover_inputs(FIXTURE), tmp_path / "source")
+    questions = generate_questions(result.model)
+    proposals = [{"id": item.id, "wording": item.question} for item in questions]
+    proposals[1]["id"] = proposals[0]["id"]
+
+    with pytest.raises(LLMQuestionRefinementError, match="changed the question IDs"):
+        refine_questions(
+            model=result.model,
+            questions=questions,
+            client=FakeLLMClient(json.dumps({"questions": proposals})),
+        )
+
+
+def test_refine_questions_skips_llm_when_no_questions() -> None:
+    client = FakeLLMClient("not json")
+
+    refined = refine_questions(model=SystemModel(), questions=[], client=client)
+
+    assert "No clarification questions" in refined
+    assert client.input_text == ""
+
+
+def test_pipeline_keeps_deterministic_artifacts_when_refinement_is_invalid(tmp_path: Path) -> None:
+    with pytest.raises(LLMQuestionRefinementError):
+        analyze_project(
+            discover_inputs(FIXTURE),
+            tmp_path,
+            llm_mode="refine-questions",
+            llm_client=FakeLLMClient("not json"),
+        )
+
+    assert (tmp_path / "questions.md").exists()
+    assert (tmp_path / "system_model.json").exists()
+    assert not (tmp_path / "questions_refined.md").exists()
 
 
 def test_extract_readme_candidates_validates_structured_llm_output() -> None:

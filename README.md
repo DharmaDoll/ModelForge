@@ -12,20 +12,23 @@ API key is required unless an optional LLM mode is explicitly enabled.
 
 ## Quick Start
 
-Requirements:
+Requirements: Python 3.12+ and `uv`.
 
-* Python 3.12+
-* `uv`
-
-Run the sample project:
+Turn the bundled payments-service example into a reviewable threat-model draft:
 
 ```bash
 git clone https://github.com/DharmaDoll/ModelForge.git
 cd ModelForge
-uv run tm-ai analyze ./examples/sample-system --out ./out
+uv run tm-ai analyze ./examples/sample-system --out ./out/sample-system
 ```
 
-The generated files will be in `./out`.
+Open `out/sample-system/review.md` for the one-page summary, then
+`out/sample-system/questions.md` for decisions to take back to the team. The
+reports are generated locally without an API key or external LLM call. They
+are review candidates, not confirmed vulnerabilities.
+
+For a guided walkthrough, sample review scenarios, and a safe way to try your
+own repository, see the [Japanese Quick Start](docs/quickstart.ja.md).
 
 ## Analyze Your Own Project
 
@@ -83,6 +86,19 @@ only fully confident deterministic observations by default; generated candidates
 cannot be promoted directly, and human-reviewed candidates require an explicit
 normalization policy. Existing `extract_*` Python APIs remain compatible and
 return the normalized `SystemModel`.
+
+The current adapters wrap extractor-produced model claims as deterministic
+observations. That transport step does not independently verify every semantic
+inference. In particular, Terraform resource references are modeled as
+`references`, not runtime communication or storage flows. Public exposure is
+recognized only from supported explicit resource attributes; unknown controls
+remain questions and do not add review-priority points as if absent.
+
+An internal draft of schema 0.2 now defines explicit `Inference`, per-attribute
+evidence, and reviewed identity aliases. Its pure 0.1→0.2 migration moves
+legacy Mermaid type guesses out of fact fields, and a separate in-memory view
+can reapply non-conflicting inferences for analysis. The CLI still emits and
+renders 0.1 models by default; 0.2 is not yet a supported CLI artifact format.
 
 ```mermaid
 flowchart TD
@@ -166,10 +182,49 @@ show `Derived from` model IDs and a short evidence summary for review traceabili
 Mermaid node types are inferred only from explicit label or alias keywords. Ambiguous
 or unsupported Mermaid nodes remain `component`.
 
+Mermaid element IDs are scoped by the Markdown path relative to the analyzed
+project, diagram number, and Mermaid alias. A type or display-name change does
+not change a node ID. If an explicitly supplied document lies outside the
+project directory, its ID uses a location-bound fallback and may change when
+that file moves. Repeated aliases in distinct documents or diagrams remain
+separate; conflicting labels for one alias inside a diagram fail validation.
+Python callers using `extract_mermaid_markdown` directly should pass
+`identity_root=project_root` to obtain the same IDs as `tm-ai analyze`.
+
+For models generated before this identity change, preview possible old-to-new
+Mermaid ID mappings with:
+
+```bash
+tm-ai model identity-preview old/system_model.json new/system_model.json \
+  --out identity-preview.json
+```
+
+The preview never edits either model or carries reviewer decisions. It lists
+multiple matches as ambiguous, requiring explicit review before any future
+identity-alias migration.
+
 Mermaid `subgraph` blocks and Terraform network resources are treated as explicit
 trust boundaries when the input states them. Missing entry-point boundary
 membership is reported in `questions.md`; ModelForge does not infer boundaries
 from names alone.
+
+When two inputs disagree on a security-relevant field, the field is left
+unknown and a `model_conflict` question carries the competing evidence. The
+Terraform parser is intentionally heuristic; it does not implement full HCL
+evaluation, variable resolution, or deployment reachability analysis.
+
+## Quality Evaluation
+
+Run the deterministic, labeled-probe evaluation with:
+
+```bash
+tm-ai evaluate tests/fixtures/evaluation/manifest.json
+```
+
+The current six cases and 61 labels are seed regression examples, not an
+expert-reviewed gold standard. The command reports TP/FP/TN/FN by lens and
+marks expert-reviewed coverage explicitly. See [evaluation methodology](docs/evaluation.md)
+for denominator definitions, scope, and limitations.
 
 ## Review Workflow
 
@@ -190,21 +245,27 @@ LLM.
 To refine deterministic clarification questions into a separate review artifact:
 
 ```bash
-OPENAI_API_KEY=... uv run tm-ai analyze ./examples/sample-system \
+# Set OPENAI_API_KEY through your approved secret-management method first.
+uv run tm-ai analyze ./examples/sample-system \
   --out ./out \
   --llm refine-questions
 ```
 
 This writes `questions_refined.md` in addition to the deterministic artifacts.
+It shows the original and proposed wording side by side for every question ID.
 The source of truth remains `system_model.json` and `questions.md`. ModelForge
-sends only a minimal `system_model.json` summary and deterministic question data
-to the LLM, not raw input file contents. Set `MODELFORGE_LLM_MODEL` to override
-the default OpenAI model.
+sends only question IDs, categories, and deterministic question text to the LLM;
+it does not send the full model, evidence paths, or raw input files. The response
+must match a JSON schema and preserve every question ID exactly; otherwise the
+refinement fails without writing a new refined artifact. An existing artifact
+from an earlier run may still be present, so check the command result before
+using it. Set `MODELFORGE_LLM_MODEL` to override the default OpenAI model.
 
 To ask an LLM to extract structured candidates from README free text:
 
 ```bash
-OPENAI_API_KEY=... uv run tm-ai analyze ./examples/sample-system \
+# Set OPENAI_API_KEY through your approved secret-management method first.
+uv run tm-ai analyze ./examples/sample-system \
   --out ./out \
   --llm extract-readme
 ```

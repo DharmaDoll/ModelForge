@@ -1,25 +1,72 @@
-"""Optional LLM refinement for deterministic clarification questions."""
+"""Optional, validated LLM wording proposals for deterministic questions."""
 
 from __future__ import annotations
 
 import json
+import re
 
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+
+from threatmodel_ai.errors import ModelForgeError
 from threatmodel_ai.llm.client import LLMClient
-from threatmodel_ai.model.schema import Edge, Evidence, Node, SystemModel
+from threatmodel_ai.model.schema import SystemModel
 from threatmodel_ai.questions.generator import Question
 
 _INSTRUCTIONS = """\
-You refine security clarification questions for a threat model review.
+You improve the wording of security clarification questions for a human reviewer.
 
-Hard rules:
-- system_model.json and deterministic questions are the only source of truth.
-- Do not invent architecture, components, data stores, trust boundaries, controls, or threats.
-- Do not answer the questions.
-- Do not remove uncertainty. Unknown information must remain unknown.
-- Preserve every deterministic question ID exactly.
-- If evidence is weak or missing, say that the reviewer should confirm it.
-- Return Markdown only.
+The input questions are the only source of truth. Never answer a question, invent
+architecture or controls, or turn an unknown into an assertion. Return a JSON object
+with a questions array. For every input ID, return exactly one object with that same
+ID and a single-line wording string. If no improvement is possible, copy the original
+question. Do not add, omit, or combine questions.
 """
+
+_REFINEMENT_SCHEMA: dict[str, object] = {
+    "type": "object",
+    "properties": {
+        "questions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "wording": {"type": "string"},
+                },
+                "required": ["id", "wording"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["questions"],
+    "additionalProperties": False,
+}
+
+
+class LLMQuestionRefinementError(ModelForgeError):
+    """Raised when an LLM wording proposal cannot be matched to questions."""
+
+
+class _RefinedQuestion(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    id: str = Field(min_length=1)
+    wording: str = Field(min_length=1)
+
+    @field_validator("wording")
+    @classmethod
+    def one_line(cls, value: str) -> str:
+        """Keep each proposed wording inside its own Markdown list item."""
+
+        if "\n" in value or "\r" in value:
+            raise ValueError("wording must be a single line")
+        return value
+
+
+class _RefinementResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    questions: list[_RefinedQuestion]
 
 
 def refine_questions(
@@ -28,74 +75,68 @@ def refine_questions(
     questions: list[Question],
     client: LLMClient,
 ) -> str:
-    """Refine deterministic questions into a separate non-authoritative Markdown artifact."""
+    """Render wording proposals without changing deterministic questions.
+
+    The model argument remains for Python API compatibility but is deliberately
+    omitted from the outbound payload: wording needs only the questions.
+    """
+
+    if not questions:
+        return _with_header("No clarification questions were generated.\n")
 
     payload = {
-        "system": _model_summary(model),
-        "questions": [_question_summary(question) for question in questions],
+        "questions": [
+            {"id": item.id, "category": item.category, "question": item.question}
+            for item in questions
+        ]
     }
-    refined = client.generate_text(
+    response = client.generate_text(
         instructions=_INSTRUCTIONS,
-        input_text=json.dumps(payload, indent=2, sort_keys=True),
-    ).strip()
-    return _with_header(refined)
+        input_text=json.dumps(payload, sort_keys=True),
+        json_schema=_REFINEMENT_SCHEMA,
+    )
+    try:
+        parsed = _RefinementResponse.model_validate_json(response)
+    except ValidationError as exc:
+        raise LLMQuestionRefinementError(
+            "LLM question refinement did not match the required format.",
+            hint=(
+                "Review questions.md directly. An existing questions_refined.md may be stale; "
+                "retry before using it."
+            ),
+        ) from exc
+
+    expected_ids = {item.id for item in questions}
+    actual_ids = [item.id for item in parsed.questions]
+    if len(actual_ids) != len(expected_ids) or set(actual_ids) != expected_ids:
+        raise LLMQuestionRefinementError(
+            "LLM question refinement changed the question IDs.",
+            hint=(
+                "Review questions.md directly. An existing questions_refined.md may be stale; "
+                "retry before using it."
+            ),
+        )
+
+    wording_by_id = {item.id: item.wording for item in parsed.questions}
+    lines: list[str] = []
+    for number, item in enumerate(questions, start=1):
+        lines.extend(
+            [
+                f"## Question {number}",
+                "",
+                f"- ID: `{item.id}`",
+                f"- Original: {_escape_markdown(item.question)}",
+                f"- Proposed wording: {_escape_markdown(wording_by_id[item.id])}",
+                "",
+            ]
+        )
+    return _with_header("\n".join(lines))
 
 
-def _model_summary(model: SystemModel) -> dict[str, object]:
-    nodes = [_node_summary(node) for node in model.nodes]
-    edges = [_edge_summary(edge) for edge in model.edges]
-    return {
-        "name": model.name,
-        "nodes": nodes,
-        "edges": edges,
-        "unknown_count": len(model.unknowns),
-    }
+def _escape_markdown(value: str) -> str:
+    """Prevent a proposed single line from adding Markdown links or formatting."""
 
-
-def _node_summary(node: Node) -> dict[str, object]:
-    return {
-        "id": node.id,
-        "name": node.name,
-        "type": node.type.value,
-        "trust_boundary_id": node.trust_boundary_id,
-        "evidence": [_evidence_summary(item) for item in node.evidence[:3]],
-    }
-
-
-def _edge_summary(edge: Edge) -> dict[str, object]:
-    return {
-        "id": edge.id,
-        "source": edge.source,
-        "target": edge.target,
-        "type": edge.type.value,
-        "protocol": edge.protocol,
-        "authentication": edge.authentication,
-        "authorization": edge.authorization,
-        "data_assets": edge.data_assets,
-        "evidence": [_evidence_summary(item) for item in edge.evidence[:3]],
-    }
-
-
-def _question_summary(question: Question) -> dict[str, object]:
-    return {
-        "id": question.id,
-        "category": question.category,
-        "question": question.question,
-        "rationale": question.rationale,
-        "related_elements": question.related_elements,
-        "derived_from": question.derived_from,
-        "evidence": [_evidence_summary(item) for item in question.evidence[:3]],
-    }
-
-
-def _evidence_summary(value: Evidence) -> dict[str, object]:
-    return {
-        "source_type": value.source_type.value,
-        "source_path": value.source_path,
-        "extractor": value.extractor,
-        "detail": value.detail,
-        "line": value.line,
-    }
+    return re.sub(r"([\\`*_\[\]<>])", r"\\\1", value)
 
 
 def _with_header(markdown: str) -> str:
@@ -103,9 +144,9 @@ def _with_header(markdown: str) -> str:
         [
             "# Refined Questions",
             "",
-            "Generated by an optional LLM from deterministic `questions.md` and a minimal "
-            "`system_model.json` summary. This file is not the source of truth.",
+            "Optional LLM wording proposals. Compare each proposal with its deterministic "
+            "original in `questions.md` before use. This file is not the source of truth.",
             "",
         ]
     )
-    return header + markdown + "\n"
+    return header + markdown.rstrip() + "\n"

@@ -23,7 +23,13 @@ class LLMRequestError(ModelForgeError):
 class LLMClient(Protocol):
     """Interface used by optional LLM refinement features."""
 
-    def generate_text(self, *, instructions: str, input_text: str) -> str:
+    def generate_text(
+        self,
+        *,
+        instructions: str,
+        input_text: str,
+        json_schema: dict[str, object] | None = None,
+    ) -> str:
         """Generate text from instructions and a user input payload."""
 
 
@@ -43,7 +49,7 @@ class OpenAIResponsesClient:
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
             raise LLMConfigurationError(
-                "OPENAI_API_KEY is required when --llm refine-questions is used.",
+                "OPENAI_API_KEY is required when an --llm mode is used.",
                 hint=(
                     "Set OPENAI_API_KEY or run without --llm to keep deterministic-only "
                     "analysis."
@@ -55,14 +61,29 @@ class OpenAIResponsesClient:
             base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         )
 
-    def generate_text(self, *, instructions: str, input_text: str) -> str:
+    def generate_text(
+        self,
+        *,
+        instructions: str,
+        input_text: str,
+        json_schema: dict[str, object] | None = None,
+    ) -> str:
         """Call the OpenAI Responses API and return output text."""
 
-        payload = {
+        payload: dict[str, object] = {
             "model": self.model,
             "instructions": instructions,
             "input": input_text,
         }
+        if json_schema is not None:
+            payload["text"] = {
+                "format": {
+                    "type": "json_schema",
+                    "name": "question_refinement",
+                    "strict": True,
+                    "schema": json_schema,
+                }
+            }
         request = urllib.request.Request(
             url=f"{self.base_url.rstrip('/')}/responses",
             data=json.dumps(payload).encode("utf-8"),

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -29,6 +29,7 @@ class NodeType(StrEnum):
     SECRET = "secret"
     DATA_ASSET = "data_asset"
     TRUST_BOUNDARY = "trust_boundary"
+    UNKNOWN = "unknown"
 
 
 class EdgeType(StrEnum):
@@ -39,6 +40,7 @@ class EdgeType(StrEnum):
     AUTHENTICATES = "authenticates"
     INVOKES = "invokes"
     OWNS = "owns"
+    REFERENCES = "references"
 
 
 class Evidence(BaseModel):
@@ -63,6 +65,7 @@ class Unknown(BaseModel):
     description: str = Field(min_length=1)
     related_element_id: str | None = None
     evidence: Evidence | None = None
+    conflicting_evidence: list[Evidence] | None = None
 
 
 class Node(BaseModel):
@@ -102,7 +105,7 @@ class SystemModel(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    schema_version: str = Field(default="0.1", min_length=1)
+    schema_version: Literal["0.1"] = "0.1"
     id: str = Field(default="system", min_length=1)
     name: str = Field(default="unknown", min_length=1)
     description: str = Field(default="unknown", min_length=1)

@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from threatmodel_ai.model.evidence import evidence_from_model
+from threatmodel_ai.model.exposure import is_actor_entrypoint, is_explicit_public_entrypoint
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
 from threatmodel_ai.stride.models import StrideCategory, Threat
@@ -37,24 +38,18 @@ def generate_threats(model: SystemModel) -> list[Threat]:
 
 
 def _is_entrypoint(edge: Edge, source: Node, target: Node) -> bool:
-    return (
-        edge.type == EdgeType.COMMUNICATES_WITH
-        and source.type == NodeType.ACTOR
-        and target.type in {NodeType.API, NodeType.COMPONENT, NodeType.EXTERNAL_SERVICE}
-    )
+    return is_actor_entrypoint(edge, source, target)
 
 
 def _crosses_boundary(edge: Edge, source: Node, target: Node) -> bool:
     return bool(
-        source.trust_boundary_id != target.trust_boundary_id
-        or source.type == NodeType.ACTOR
-        or target.metadata.get("internet_exposed")
-        or edge.metadata.get("internet_exposed")
+        (
+            source.trust_boundary_id is not None
+            and target.trust_boundary_id is not None
+            and source.trust_boundary_id != target.trust_boundary_id
+        )
+        or is_explicit_public_entrypoint(edge, source, target)
     )
-
-
-def _known_none_or_unknown(value: str) -> bool:
-    return value in {"unknown", "none", ""}
 
 
 def _build_entrypoint_threat(
@@ -87,7 +82,7 @@ def _build_entrypoint_threat(
 
 
 def _spoofing(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
-    confidence = "high" if _known_none_or_unknown(edge.authentication) else "medium"
+    confidence = "high" if edge.authentication == "none" else "medium"
     auth_context = (
         "Authentication is not specified for this data flow."
         if edge.authentication == "unknown"
@@ -113,11 +108,7 @@ def _spoofing(model: SystemModel, edge: Edge, source: Node, target: Node) -> Thr
 def _tampering(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
     crosses_boundary = _crosses_boundary(edge, source, target)
     confidence = "high" if crosses_boundary else "medium"
-    boundary_context = (
-        "This flow crosses a trust boundary or starts from an actor. "
-        if crosses_boundary
-        else ""
-    )
+    boundary_context = "This flow crosses a trust boundary. " if crosses_boundary else ""
     return _build_entrypoint_threat(
         model,
         "entrypoint-tampering",
@@ -137,12 +128,11 @@ def _tampering(model: SystemModel, edge: Edge, source: Node, target: Node) -> Th
 
 
 def _repudiation(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
-    logging_known = bool(
-        model.metadata.get("mentions_logging")
-        or model.metadata.get("mentions_monitoring")
-        or target.metadata.get("logging")
+    confidence = (
+        "high"
+        if target.metadata.get("logging") is False or edge.metadata.get("logging") is False
+        else "medium"
     )
-    confidence = "medium" if logging_known else "high"
     return _build_entrypoint_threat(
         model,
         "entrypoint-repudiation",
@@ -160,7 +150,7 @@ def _repudiation(model: SystemModel, edge: Edge, source: Node, target: Node) -> 
 
 
 def _information_disclosure(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
-    confidence = "high" if edge.protocol in {"unknown", "HTTP"} or edge.data_assets else "medium"
+    confidence = "high" if edge.protocol == "HTTP" or edge.data_assets else "medium"
     return _build_entrypoint_threat(
         model,
         "entrypoint-information-disclosure",
@@ -179,7 +169,12 @@ def _information_disclosure(model: SystemModel, edge: Edge, source: Node, target
 
 
 def _denial_of_service(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
-    confidence = "high" if not model.metadata.get("mentions_rate_limiting") else "medium"
+    confidence = (
+        "high"
+        if target.metadata.get("rate_limiting") is False
+        or edge.metadata.get("rate_limiting") is False
+        else "medium"
+    )
     return _build_entrypoint_threat(
         model,
         "entrypoint-denial-of-service",
@@ -197,7 +192,7 @@ def _denial_of_service(model: SystemModel, edge: Edge, source: Node, target: Nod
 
 
 def _elevation_of_privilege(model: SystemModel, edge: Edge, source: Node, target: Node) -> Threat:
-    confidence = "high" if edge.authorization == "unknown" else "medium"
+    confidence = "high" if edge.authorization == "none" else "medium"
     return _build_entrypoint_threat(
         model,
         "entrypoint-elevation-of-privilege",
@@ -303,15 +298,17 @@ _RULES = (
     _Rule(
         id="store-information-disclosure",
         category=StrideCategory.INFORMATION_DISCLOSURE,
-        applies=lambda _model, edge, _source, target: edge.type == EdgeType.STORES
-        and target.type in {NodeType.DATABASE, NodeType.DATA_ASSET},
+        applies=lambda _model, edge, _source, target: (
+            edge.type == EdgeType.STORES and target.type in {NodeType.DATABASE, NodeType.DATA_ASSET}
+        ),
         build=_store_information_disclosure,
     ),
     _Rule(
         id="store-tampering",
         category=StrideCategory.TAMPERING,
-        applies=lambda _model, edge, _source, target: edge.type == EdgeType.STORES
-        and target.type in {NodeType.DATABASE, NodeType.DATA_ASSET},
+        applies=lambda _model, edge, _source, target: (
+            edge.type == EdgeType.STORES and target.type in {NodeType.DATABASE, NodeType.DATA_ASSET}
+        ),
         build=_store_tampering,
     ),
 )

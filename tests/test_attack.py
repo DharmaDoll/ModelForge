@@ -16,22 +16,23 @@ def test_attack_engine_generates_topology_based_techniques(tmp_path: Path) -> No
 
     assert "T1190" in technique_ids
     assert "T1499" in technique_ids
-    assert "T1110" in technique_ids
-    assert "T1078" in technique_ids
-    assert "T1557" in technique_ids
-    assert "T1565" in technique_ids
+    assert "T1110" not in technique_ids
+    assert "T1078" not in technique_ids
+    assert "T1557" not in technique_ids
+    assert "T1565" not in technique_ids
     assert all(finding.affected_elements for finding in findings)
     assert all(finding.derived_from for finding in findings)
     assert all(finding.evidence for finding in findings)
 
 
-def test_attack_engine_maps_secret_nodes_to_unsecured_credentials() -> None:
+def test_attack_engine_maps_explicitly_exposed_secret_to_unsecured_credentials() -> None:
     model = SystemModel(
         nodes=[
             Node(
                 id="secret:api-key",
                 name="API Key",
                 type=NodeType.SECRET,
+                metadata={"exposed": True},
             )
         ]
     )

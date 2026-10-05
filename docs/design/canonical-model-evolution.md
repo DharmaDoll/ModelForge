@@ -2,9 +2,21 @@
 
 Status: Proposed
 
+Implementation note (2026-10-04): the 0.1 schema now rejects unsupported
+versions, and contradictory security-relevant node/edge claims are retained as
+conflict unknowns. Mermaid IDs are now scoped by project-relative document and
+diagram. A read-only `model identity-preview` command suggests unique legacy
+Mermaid ID matches and flags ambiguous matches; it does not establish accepted
+identity aliases or migrate reviewer decisions. The current `ObservationBatch`
+adapters still wrap extractor-produced models; they do not yet enforce the
+fact-versus-inference acceptance policy specified below. A draft 0.2 schema,
+pure 0.1→0.2 migration, and in-memory resolved view now exist, but the CLI still
+uses 0.1 and the new acceptance policy is not enforced end-to-end. Cross-source
+identity aliases, Model Diff, and SQLite review state remain future work.
+
 Target: `system_model.json` 0.2 and the first Model Diff implementation
 
-Last updated: 2026-08-15
+Last updated: 2026-10-04
 
 ## Purpose
 
@@ -250,6 +262,11 @@ overwrite their input.
 
 The migration preserves all existing IDs and report behavior before the 0.2
 writer becomes the default.
+
+This refers to IDs in the input 0.1 model. Older Mermaid models generated
+before document scoping have different IDs; `model identity-preview` can suggest
+unambiguous matches, but migration does not automatically treat a suggestion as
+an accepted identity alias.
 
 1. Copy nodes, edges, unknowns, metadata, and Evidence without loss.
 2. Add empty `inferences`, `attribute_evidence`, and `identity_aliases` fields.

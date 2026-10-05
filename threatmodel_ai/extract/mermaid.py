@@ -6,7 +6,9 @@ import re
 from collections.abc import Iterator
 from pathlib import Path
 
-from threatmodel_ai.model.ids import make_id
+from threatmodel_ai.errors import InputFormatError
+from threatmodel_ai.model.evidence import merge_evidence
+from threatmodel_ai.model.ids import make_id, short_hash, slugify
 from threatmodel_ai.model.observations import (
     ObservationBatch,
     model_to_observation_batch,
@@ -48,13 +50,13 @@ _TYPE_KEYWORDS: tuple[tuple[NodeType, tuple[str, ...]], ...] = (
 )
 
 
-def extract_mermaid_markdown(path: Path) -> SystemModel:
+def extract_mermaid_markdown(path: Path, *, identity_root: Path | None = None) -> SystemModel:
     """Extract conservative graph facts from Mermaid flowchart blocks in Markdown."""
 
-    return normalize_observation_batch(observe_mermaid_markdown(path))
+    return normalize_observation_batch(observe_mermaid_markdown(path, identity_root=identity_root))
 
 
-def observe_mermaid_markdown(path: Path) -> ObservationBatch:
+def observe_mermaid_markdown(path: Path, *, identity_root: Path | None = None) -> ObservationBatch:
     """Extract evidence-bearing candidate observations from Mermaid Markdown."""
 
     evidence = Evidence(
@@ -64,21 +66,35 @@ def observe_mermaid_markdown(path: Path) -> ObservationBatch:
         detail="Markdown document",
     )
     return model_to_observation_batch(
-        _extract_mermaid_model(path),
+        _extract_mermaid_model(path, identity_root=identity_root),
         fallback_evidence=[evidence],
     )
 
 
-def _extract_mermaid_model(path: Path) -> SystemModel:
+def _extract_mermaid_model(path: Path, *, identity_root: Path | None) -> SystemModel:
     """Build the Mermaid adapter's proposed model before normalization."""
 
     text = path.read_text(encoding="utf-8")
     nodes: dict[str, Node] = {}
     edges: dict[str, Edge] = {}
     unknowns: dict[str, Unknown] = {}
+    document_scope = _document_scope(path, identity_root or path.parent)
 
-    for block_index, (block_start_line, block) in enumerate(_mermaid_blocks(text), start=1):
-        _extract_block(path, block_index, block_start_line, block, nodes, edges, unknowns)
+    block_index = 0
+    for block_start_line, block in _mermaid_blocks(text):
+        if not any(_DIAGRAM_HEADER_RE.match(line) for line in block):
+            continue
+        block_index += 1
+        _extract_block(
+            path,
+            document_scope,
+            block_index,
+            block_start_line,
+            block,
+            nodes,
+            edges,
+            unknowns,
+        )
 
     return SystemModel(
         name="unknown",
@@ -86,7 +102,34 @@ def _extract_mermaid_model(path: Path) -> SystemModel:
         nodes=sorted(nodes.values(), key=lambda node: (node.type.value, node.id)),
         edges=sorted(edges.values(), key=lambda edge: (edge.type.value, edge.id)),
         unknowns=sorted(unknowns.values(), key=lambda unknown: unknown.id),
-        metadata={"mermaid_files": [str(path)] if nodes or edges else []},
+        metadata={
+            "mermaid_files": [str(path)] if nodes or edges else [],
+            "mermaid_identity_version": 2,
+        },
+    )
+
+
+def _document_scope(path: Path, identity_root: Path) -> str:
+    """Build a portable scope for project files and a location-bound external fallback."""
+
+    resolved = path.resolve()
+    try:
+        relative = resolved.relative_to(identity_root.resolve()).as_posix()
+    except ValueError:
+        return f"external-{slugify(path.name)}-{short_hash(resolved, length=12)}"
+    return f"{slugify(relative)}-{short_hash(relative, length=12)}"
+
+
+def _scoped_id(kind: str, document_scope: str, block_index: int, alias: str) -> str:
+    """Keep Mermaid identities independent of inferred node type and display label."""
+
+    return make_id(
+        "mermaid",
+        kind,
+        document_scope,
+        f"diagram-{block_index}",
+        alias,
+        short_hash(alias, length=8),
     )
 
 
@@ -111,6 +154,7 @@ def _mermaid_blocks(text: str) -> Iterator[tuple[int, list[str]]]:
 
 def _extract_block(
     path: Path,
+    document_scope: str,
     block_index: int,
     block_start_line: int,
     block: list[str],
@@ -118,9 +162,6 @@ def _extract_block(
     edges: dict[str, Edge],
     unknowns: dict[str, Unknown],
 ) -> None:
-    if not any(_DIAGRAM_HEADER_RE.match(line) for line in block):
-        return
-
     boundary_stack: list[str] = []
     for block_line_number, raw_line in enumerate(block, start=1):
         line = _strip_comment(raw_line).strip().rstrip(";")
@@ -135,8 +176,10 @@ def _extract_block(
         )
         subgraph_match = _SUBGRAPH_RE.match(line)
         if subgraph_match:
-            boundary = _trust_boundary(subgraph_match.group("body"), evidence)
-            nodes[boundary.id] = _merge_node(nodes.get(boundary.id), boundary)
+            boundary = _trust_boundary(
+                subgraph_match.group("body"), evidence, document_scope, block_index
+            )
+            nodes[boundary.id] = _merge_node(nodes.get(boundary.id), boundary, path)
             boundary_stack.append(boundary.id)
             continue
         if _END_RE.match(line):
@@ -155,13 +198,15 @@ def _extract_block(
 
         label = (match.group("label") or "").strip()
         trust_boundary_id = boundary_stack[-1] if boundary_stack else None
-        source = _node(left, evidence, trust_boundary_id)
-        target = _node(right, evidence, trust_boundary_id)
-        nodes[source.id] = _merge_node(nodes.get(source.id), source)
-        nodes[target.id] = _merge_node(nodes.get(target.id), target)
+        source = _node(left, evidence, trust_boundary_id, document_scope, block_index)
+        target = _node(right, evidence, trust_boundary_id, document_scope, block_index)
+        nodes[source.id] = _merge_node(nodes.get(source.id), source, path)
+        nodes[target.id] = _merge_node(nodes.get(target.id), target, path)
 
         protocol = _protocol_from_label(label)
-        edge_id = make_id("edge", source.id, target.id, "mermaid")
+        edge_id = make_id(
+            "edge", source.id, target.id, "mermaid", short_hash(label, match.group("arrow"))
+        )
         edge = Edge(
             id=edge_id,
             source=source.id,
@@ -173,6 +218,12 @@ def _extract_block(
                 "source_format": "mermaid",
                 "mermaid_label": label,
                 "mermaid_arrow": match.group("arrow"),
+                "legacy_mermaid_id_suggestion": make_id(
+                    "edge",
+                    str(source.metadata["legacy_mermaid_id_suggestion"]),
+                    str(target.metadata["legacy_mermaid_id_suggestion"]),
+                    "mermaid",
+                ),
             },
             evidence=[evidence],
         )
@@ -191,16 +242,17 @@ class _ParsedNode:
         self.label = label
 
 
-def _trust_boundary(raw: str, evidence: Evidence) -> Node:
+def _trust_boundary(raw: str, evidence: Evidence, document_scope: str, block_index: int) -> Node:
     parsed = _parse_boundary(raw)
     return Node(
-        id=make_id("trust_boundary", "mermaid", parsed.alias),
+        id=_scoped_id("boundary", document_scope, block_index, parsed.alias),
         name=parsed.label,
         type=NodeType.TRUST_BOUNDARY,
         description=f"Mermaid subgraph {parsed.alias}.",
         metadata={
             "source_format": "mermaid",
             "mermaid_alias": parsed.alias,
+            "legacy_mermaid_id_suggestion": make_id("trust_boundary", "mermaid", parsed.alias),
         },
         evidence=[evidence],
     )
@@ -233,9 +285,15 @@ def _parse_node(raw: str) -> _ParsedNode | None:
     return _ParsedNode(alias=alias, label=label or alias)
 
 
-def _node(parsed: _ParsedNode, evidence: Evidence, trust_boundary_id: str | None) -> Node:
+def _node(
+    parsed: _ParsedNode,
+    evidence: Evidence,
+    trust_boundary_id: str | None,
+    document_scope: str,
+    block_index: int,
+) -> Node:
     node_type, inference_metadata = _infer_node_type(parsed)
-    node_id = make_id(node_type.value, "mermaid", parsed.alias)
+    node_id = _scoped_id("node", document_scope, block_index, parsed.alias)
     return Node(
         id=node_id,
         name=parsed.label,
@@ -244,6 +302,7 @@ def _node(parsed: _ParsedNode, evidence: Evidence, trust_boundary_id: str | None
         metadata={
             "source_format": "mermaid",
             "mermaid_alias": parsed.alias,
+            "legacy_mermaid_id_suggestion": make_id(node_type.value, "mermaid", parsed.alias),
             **inference_metadata,
         },
         trust_boundary_id=trust_boundary_id,
@@ -271,21 +330,49 @@ def _infer_node_type(parsed: _ParsedNode) -> tuple[NodeType, dict[str, str]]:
     }
 
 
-def _merge_node(existing: Node | None, incoming: Node) -> Node:
+def _merge_node(existing: Node | None, incoming: Node, path: Path) -> Node:
     if not existing:
         return incoming
     existing_alias = str(existing.metadata.get("mermaid_alias") or "")
     incoming_alias = str(incoming.metadata.get("mermaid_alias") or "")
+    alias = existing_alias or incoming_alias
+    if existing.name != incoming.name and existing.name != alias and incoming.name != alias:
+        raise InputFormatError(
+            f"Conflicting Mermaid labels for alias {alias!r} in {path}.",
+            hint="Use a distinct alias for each node or boundary in a diagram.",
+        )
+    existing_inferred = "type_inferred_from" in existing.metadata
+    incoming_inferred = "type_inferred_from" in incoming.metadata
+    if existing_inferred and incoming_inferred and existing.type != incoming.type:
+        raise InputFormatError(
+            f"Conflicting Mermaid node types for alias {alias!r} in {path}.",
+            hint="Give the alias one unambiguous type in the diagram.",
+        )
+    if (
+        existing.trust_boundary_id
+        and incoming.trust_boundary_id
+        and existing.trust_boundary_id != incoming.trust_boundary_id
+    ):
+        raise InputFormatError(
+            f"Conflicting Mermaid trust boundaries for alias {alias!r} in {path}.",
+            hint="Use a distinct alias or place the node in one boundary.",
+        )
+    selected_type = incoming.type if incoming_inferred and not existing_inferred else existing.type
     return existing.model_copy(
         update={
             "name": _prefer_labeled_name(
                 existing.name,
                 incoming.name,
-                existing_alias or incoming_alias,
+                alias,
             ),
+            "type": selected_type,
             "trust_boundary_id": _merge_trust_boundary_id(existing, incoming),
-            "metadata": {**existing.metadata, **incoming.metadata},
-            "evidence": [*existing.evidence, *incoming.evidence],
+            "metadata": {
+                **existing.metadata,
+                **incoming.metadata,
+                "legacy_mermaid_id_suggestion": make_id(selected_type.value, "mermaid", alias),
+            },
+            "evidence": merge_evidence([*existing.evidence, *incoming.evidence]),
         }
     )
 
@@ -308,7 +395,7 @@ def _merge_edge(existing: Edge | None, incoming: Edge) -> Edge:
             "description": existing.description,
             "protocol": existing.protocol if existing.protocol != "unknown" else incoming.protocol,
             "metadata": {**existing.metadata, **incoming.metadata},
-            "evidence": [*existing.evidence, *incoming.evidence],
+            "evidence": merge_evidence([*existing.evidence, *incoming.evidence]),
         }
     )
 

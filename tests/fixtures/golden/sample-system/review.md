@@ -7,23 +7,21 @@ Generated deterministically from `system_model.json`. All findings are review ca
 
 | Nodes | Data flows | Unknowns | STRIDE | ATT&CK | Questions |
 | ---: | ---: | ---: | ---: | ---: | ---: |
-| 21 | 11 | 21 | 26 | 12 | 45 |
+| 21 | 8 | 21 | 24 | 2 | 45 |
 
 ## Risk Priorities
 
 | High | Medium | Low | Total |
 | ---: | ---: | ---: | ---: |
-| 4 | 1 | 0 | 5 |
+| 0 | 0 | 3 | 3 |
 
 ### Highest Priorities
 
 | Rating | Score | Finding |
 | --- | ---: | --- |
-| High | 8 | Review priority for GET /payments/{paymentId} entry point |
-| High | 8 | Review priority for POST /payments entry point |
-| High | 8 | Review priority for payments-public-lb entry point |
-| High | 7 | Review priority for Payments Gateway entry point |
-| Medium | 5 | Review priority for storage path to payments-db |
+| Low | 3 | Review priority for payments-public-lb entry point |
+| Low | 2 | Review priority for GET /payments/{paymentId} entry point |
+| Low | 2 | Review priority for POST /payments entry point |
 
 ## Open Question Categories
 

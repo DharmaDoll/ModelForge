@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import Counter
 
 from threatmodel_ai.attack.models import AttackFinding
-from threatmodel_ai.model.schema import Evidence, SystemModel
+from threatmodel_ai.model.schema import EdgeType, Evidence, SystemModel
 from threatmodel_ai.questions.generator import Question
 from threatmodel_ai.risk.models import RiskFinding, RiskRating
 from threatmodel_ai.stride.models import Threat
@@ -23,6 +23,16 @@ def render_review_markdown(
     rating_counts = Counter(risk.rating for risk in risks)
     question_counts = Counter(question.category for question in questions)
     ordered_risks = sorted(risks, key=lambda risk: (-risk.score, risk.id))
+    flow_count = sum(
+        edge.type
+        in {
+            EdgeType.COMMUNICATES_WITH,
+            EdgeType.STORES,
+            EdgeType.AUTHENTICATES,
+            EdgeType.INVOKES,
+        }
+        for edge in model.edges
+    )
     lines = [
         "<!-- modelforge-review -->",
         "# ModelForge Review Summary",
@@ -34,7 +44,7 @@ def render_review_markdown(
         "",
         "| Nodes | Data flows | Unknowns | STRIDE | ATT&CK | Questions |",
         "| ---: | ---: | ---: | ---: | ---: | ---: |",
-        f"| {len(model.nodes)} | {len(model.edges)} | {len(model.unknowns)} | "
+        f"| {len(model.nodes)} | {flow_count} | {len(model.unknowns)} | "
         f"{len(threats)} | {len(attack_findings)} | {len(questions)} |",
         "",
         "## Risk Priorities",

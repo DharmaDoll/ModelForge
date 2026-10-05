@@ -81,7 +81,7 @@ def analyze_project(
     if inputs.readme:
         observation_batches.append(observe_readme(inputs.readme))
     for markdown_path in _markdown_paths(inputs):
-        mermaid_observations = observe_mermaid_markdown(markdown_path)
+        mermaid_observations = observe_mermaid_markdown(markdown_path, identity_root=inputs.target)
         if _has_topology_observations(mermaid_observations):
             observation_batches.append(mermaid_observations)
     if inputs.openapi:

@@ -28,7 +28,7 @@ class SystemContext(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    schema_version: str = Field(default="0.1", min_length=1)
+    schema_version: Literal["0.1"] = "0.1"
     id: str = Field(default="system", min_length=1)
     name: str = Field(default="unknown", min_length=1)
     description: str = Field(default="unknown", min_length=1)
@@ -99,7 +99,7 @@ class ObservationBatch(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    schema_version: str = Field(default="0.1", min_length=1)
+    schema_version: Literal["0.1"] = "0.1"
     observations: list[CandidateObservation] = Field(default_factory=list)
 
     @model_validator(mode="after")

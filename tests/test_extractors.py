@@ -56,7 +56,8 @@ def test_terraform_extractor_maps_resources_and_dependencies() -> None:
     )
     assert any(node.type == NodeType.TRUST_BOUNDARY for node in model.nodes)
     assert any(node.type == NodeType.ACTOR and node.name == "Internet" for node in model.nodes)
-    assert any(edge.type == EdgeType.STORES for edge in model.edges)
+    assert any(edge.type == EdgeType.REFERENCES for edge in model.edges)
+    assert not any(edge.type in {EdgeType.STORES, EdgeType.INVOKES} for edge in model.edges)
     database = next(node for node in model.nodes if node.name == "payments-db")
     assert database.evidence[0].extractor == "terraform"
     assert database.evidence[0].line is not None

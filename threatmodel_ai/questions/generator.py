@@ -5,6 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from threatmodel_ai.model.evidence import evidence_from_model
+from threatmodel_ai.model.exposure import is_actor_entrypoint
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import Edge, Evidence, Node, NodeType, SystemModel, Unknown
 
@@ -88,8 +89,12 @@ def _unknown_question_text(unknown: Unknown, related_name: str | None) -> str:
             return f"What rate limits or abuse controls are enforced{target}?"
         case "encryption":
             return f"What encryption is used in transit and at rest{target}?"
+        case "internet_exposure":
+            return f"Is {related_name or 'this resource'} internet-facing?"
         case "llm_candidate_review":
             return f"Should this LLM candidate be accepted into the system model{target}?"
+        case "model_conflict":
+            return f"Which conflicting source claim is correct{target}?"
         case _:
             return f"What is the missing {unknown.category.replace('_', ' ')} detail{target}?"
 
@@ -101,12 +106,7 @@ def _questions_for_edge(
     target: Node,
 ) -> list[Question]:
     questions: list[Question] = []
-    is_external_entry = source.type == NodeType.ACTOR and target.type in {
-        NodeType.API,
-        NodeType.COMPONENT,
-        NodeType.EXTERNAL_SERVICE,
-    }
-    if not is_external_entry:
+    if not is_actor_entrypoint(edge, source, target):
         return questions
 
     if target.trust_boundary_id is None:
@@ -159,7 +159,9 @@ def _questions_for_edge(
                 "Transport protection is not proven by the model.",
             )
         )
-    if not model.metadata.get("mentions_rate_limiting"):
+    if not (
+        edge.metadata.get("rate_limiting") is True or target.metadata.get("rate_limiting") is True
+    ):
         questions.append(
             _edge_question(
                 edge,
@@ -169,7 +171,7 @@ def _questions_for_edge(
                 "Rate limiting is not proven for this external entry point.",
             )
         )
-    if not (model.metadata.get("mentions_logging") or model.metadata.get("mentions_monitoring")):
+    if not (edge.metadata.get("logging") is True or target.metadata.get("logging") is True):
         questions.append(
             _edge_question(
                 edge,

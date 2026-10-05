@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from threatmodel_ai.attack.catalog import TECHNIQUES
 from threatmodel_ai.attack.models import AttackFinding
 from threatmodel_ai.model.evidence import evidence_from_model
+from threatmodel_ai.model.exposure import is_actor_entrypoint, is_explicit_public_entrypoint
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
 
@@ -57,27 +58,22 @@ def generate_attack_findings(model: SystemModel) -> list[AttackFinding]:
 
 
 def _is_entrypoint(edge: Edge, source: Node, target: Node) -> bool:
-    return (
-        edge.type == EdgeType.COMMUNICATES_WITH
-        and source.type == NodeType.ACTOR
-        and target.type in {NodeType.API, NodeType.COMPONENT, NodeType.EXTERNAL_SERVICE}
-    )
+    return is_actor_entrypoint(edge, source, target)
 
 
 def _is_public_entrypoint(edge: Edge, source: Node, target: Node) -> bool:
-    return _is_entrypoint(edge, source, target) and (
-        source.name.lower() in {"internet", "api client", "external user", "customer"}
-        or target.metadata.get("internet_exposed")
-        or edge.metadata.get("internet_exposed")
-    )
+    return is_explicit_public_entrypoint(edge, source, target)
 
 
 def _has_auth_surface(edge: Edge) -> bool:
-    return edge.authentication not in {"unknown", "none", ""}
+    scheme = edge.authentication.lower()
+    return any(token in scheme for token in ("basic", "password", "oauth", "openid"))
 
 
-def _rate_limit_unknown(model: SystemModel) -> bool:
-    return not bool(model.metadata.get("mentions_rate_limiting"))
+def _rate_limit_unknown(edge: Edge, target: Node) -> bool:
+    return not (
+        edge.metadata.get("rate_limiting") is True or target.metadata.get("rate_limiting") is True
+    )
 
 
 def _attack_finding(
@@ -149,7 +145,7 @@ def _endpoint_denial_of_service(
         "Monitor request rate, latency, error-rate spikes, queue depth, and saturation metrics.",
         "Apply rate limits, request budgets, autoscaling, backpressure, and upstream filtering.",
         [edge.id, source.id, target.id],
-        "high",
+        "medium",
     )
 
 
@@ -196,7 +192,6 @@ def _adversary_in_the_middle(
     source: Node,
     target: Node,
 ) -> AttackFinding:
-    confidence = "medium" if edge.protocol == "HTTP" else "low"
     return _attack_finding(
         model,
         "attack-entrypoint-aitm",
@@ -211,7 +206,7 @@ def _adversary_in_the_middle(
         "Require TLS, certificate validation, HSTS where applicable, and secure "
         "service-to-service channels.",
         [edge.id, source.id, target.id],
-        confidence,
+        "medium",
     )
 
 
@@ -241,8 +236,8 @@ def _unsecured_credentials(model: SystemModel, node: Node) -> AttackFinding:
         "T1552",
         f"Unsecured credentials technique candidate for {node.name}",
         (
-            f"{node.name} is modeled as a secret. Storage location, access path, and "
-            "rotation behavior are not proven."
+            f"{node.name} is explicitly marked exposed in the system model. "
+            "Storage location and rotation behavior require review."
         ),
         "Monitor secret reads, policy changes, unusual callers, and source-code or IaC "
         "secret exposure.",
@@ -263,38 +258,45 @@ _EDGE_RULES = (
     _EdgeRule(
         id="attack-entrypoint-dos",
         technique_id="T1499",
-        applies=lambda model, edge, source, target: _is_public_entrypoint(edge, source, target)
-        and _rate_limit_unknown(model),
+        applies=lambda _model, edge, source, target: (
+            _is_public_entrypoint(edge, source, target) and _rate_limit_unknown(edge, target)
+        ),
         build=_endpoint_denial_of_service,
     ),
     _EdgeRule(
         id="attack-authenticated-entrypoint-bruteforce",
         technique_id="T1110",
-        applies=lambda model, edge, source, target: _is_public_entrypoint(edge, source, target)
-        and _has_auth_surface(edge)
-        and _rate_limit_unknown(model),
+        applies=lambda _model, edge, source, target: (
+            _is_public_entrypoint(edge, source, target)
+            and _has_auth_surface(edge)
+            and _rate_limit_unknown(edge, target)
+        ),
         build=_brute_force,
     ),
     _EdgeRule(
         id="attack-authenticated-entrypoint-valid-accounts",
         technique_id="T1078",
-        applies=lambda _model, edge, source, target: _is_public_entrypoint(edge, source, target)
-        and _has_auth_surface(edge)
-        and edge.authorization == "unknown",
+        applies=lambda _model, edge, source, target: (
+            _is_public_entrypoint(edge, source, target)
+            and _has_auth_surface(edge)
+            and edge.authorization == "unknown"
+        ),
         build=_valid_accounts,
     ),
     _EdgeRule(
         id="attack-entrypoint-aitm",
         technique_id="T1557",
-        applies=lambda _model, edge, source, target: _is_public_entrypoint(edge, source, target)
-        and edge.protocol in {"unknown", "HTTP"},
+        applies=lambda _model, edge, source, target: (
+            _is_public_entrypoint(edge, source, target) and edge.protocol == "HTTP"
+        ),
         build=_adversary_in_the_middle,
     ),
     _EdgeRule(
         id="attack-stored-data-manipulation",
         technique_id="T1565",
-        applies=lambda _model, edge, _source, target: edge.type == EdgeType.STORES
-        and target.type in {NodeType.DATABASE, NodeType.DATA_ASSET},
+        applies=lambda _model, edge, _source, target: (
+            edge.type == EdgeType.STORES and target.type in {NodeType.DATABASE, NodeType.DATA_ASSET}
+        ),
         build=_data_manipulation,
     ),
 )
@@ -303,7 +305,9 @@ _NODE_RULES = (
     _NodeRule(
         id="attack-secret-unsecured-credentials",
         technique_id="T1552",
-        applies=lambda _model, node: node.type == NodeType.SECRET,
+        applies=lambda _model, node: (
+            node.type == NodeType.SECRET and node.metadata.get("exposed") is True
+        ),
         build=_unsecured_credentials,
     ),
 )

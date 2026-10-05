@@ -75,8 +75,8 @@ def test_risk_scoring_prioritizes_public_unknown_entrypoints() -> None:
     risks = score_risks(model, [threat], [attack])
 
     assert len(risks) == 1
-    assert risks[0].rating == RiskRating.HIGH
-    assert risks[0].score >= 7
+    assert risks[0].rating == RiskRating.MEDIUM
+    assert risks[0].score == 5
     assert "threat:spoofing" in risks[0].related_threats
     assert "attack:t1190" in risks[0].related_attack_findings
     assert "threat:spoofing" in risks[0].derived_from

@@ -24,9 +24,12 @@ from threatmodel_ai.model.schema import (
     Unknown,
 )
 
-_RESOURCE_START_RE = re.compile(r'resource\s+"([^"]+)"\s+"([^"]+)"\s*\{', re.MULTILINE)
+_RESOURCE_START_RE = re.compile(
+    r'^[ \t]*resource[ \t]+"([^"]+)"[ \t]+"([^"]+)"[ \t]*\{', re.MULTILINE
+)
 _ATTRIBUTE_RE = re.compile(r"^\s*([A-Za-z0-9_]+)\s*=\s*(.+?)\s*$", re.MULTILINE)
 _REFERENCE_RE = re.compile(r"\b([a-z][a-z0-9_]+)\.([A-Za-z0-9_-]+)\b")
+_LOAD_BALANCER_TYPES = {"aws_lb", "aws_alb", "aws_elb"}
 
 _EXACT_NODE_TYPES: dict[str, NodeType] = {
     "aws_api_gateway_rest_api": NodeType.API,
@@ -118,13 +121,13 @@ def _extract_terraform_model(paths: Iterable[Path]) -> SystemModel:
     for resource in resources:
         node_type = _node_type_for(resource.resource_type)
         node_id = _resource_id(resource.resource_type, resource.name)
-        attributes = _extract_attributes(resource.body)
+        attributes = _extract_attributes(_strip_hcl_comments(resource.body))
         display_name = _display_name(resource.resource_type, resource.name, attributes)
         metadata = {
             "terraform_type": resource.resource_type,
             "terraform_name": resource.name,
         }
-        if _is_internet_exposed(resource.body):
+        if _is_internet_exposed(resource.resource_type, attributes):
             metadata["internet_exposed"] = True
 
         nodes[node_id] = Node(
@@ -143,6 +146,22 @@ def _extract_terraform_model(paths: Iterable[Path]) -> SystemModel:
                 )
             ],
         )
+        if (
+            resource.resource_type in _LOAD_BALANCER_TYPES
+            and attributes.get("internal", "").lower() not in {"true", "false"}
+        ):
+            unknowns.append(
+                Unknown(
+                    id=make_id("unknown", "terraform", node_id, "internet-exposure"),
+                    category="internet_exposure",
+                    description=(
+                        f"Internet exposure for {display_name} is not established by a "
+                        "literal internal setting."
+                    ),
+                    related_element_id=node_id,
+                    evidence=nodes[node_id].evidence[0],
+                )
+            )
         resource_blocks[node_id] = resource.body
 
     nodes = _assign_trust_boundaries(nodes, resource_blocks)
@@ -216,7 +235,9 @@ class _TerraformResource:
 def _collect_resources(paths: Iterable[Path]) -> Iterator[_TerraformResource]:
     for path in sorted(paths):
         text = path.read_text(encoding="utf-8")
-        for resource_type, name, body, line in _iter_resource_blocks(text, path):
+        for resource_type, name, body, line in _iter_resource_blocks(
+            _strip_hcl_comments(text), path
+        ):
             yield _TerraformResource(
                 path=path,
                 resource_type=resource_type,
@@ -312,15 +333,12 @@ def _display_name(resource_type: str, name: str, attributes: dict[str, str]) -> 
     return f"{resource_type}.{name}"
 
 
-def _is_internet_exposed(body: str) -> bool:
-    lowered = body.lower()
-    return (
-        "0.0.0.0/0" in lowered
-        or "::/0" in lowered
-        or "publicly_accessible = true" in lowered
-        or "internal = false" in lowered
-        or "map_public_ip_on_launch = true" in lowered
-    )
+def _is_internet_exposed(resource_type: str, attributes: dict[str, str]) -> bool:
+    """Recognize explicitly internet-facing load balancers, not mere public addresses."""
+
+    if resource_type in _LOAD_BALANCER_TYPES:
+        return attributes.get("internal", "").lower() == "false"
+    return False
 
 
 def _assign_trust_boundaries(
@@ -340,7 +358,9 @@ def _assign_trust_boundaries(
             continue
         referenced_boundaries = [
             ref_id
-            for ref_id in _reference_ids(resource_blocks.get(node_id, ""))
+            for key, value in _ATTRIBUTE_RE.findall(resource_blocks.get(node_id, ""))
+            if key in {"vpc_id", "subnet_id", "subnet_ids", "vpc_security_group_ids"}
+            for ref_id in _reference_ids(value)
             if ref_id in trust_boundary_ids
         ]
         updated[node_id] = (
@@ -369,11 +389,7 @@ def _extract_edges(nodes: dict[str, Node], resource_blocks: dict[str, str]) -> d
         for target_id in sorted(set(_reference_ids(body))):
             if target_id == source_id or target_id not in nodes:
                 continue
-            edge_type = (
-                EdgeType.STORES
-                if nodes[target_id].type in {NodeType.DATABASE, NodeType.DATA_ASSET}
-                else EdgeType.INVOKES
-            )
+            edge_type = EdgeType.REFERENCES
             edge_id = make_id("edge", source_id, target_id, edge_type.value)
             edges[edge_id] = Edge(
                 id=edge_id,
@@ -381,8 +397,8 @@ def _extract_edges(nodes: dict[str, Node], resource_blocks: dict[str, str]) -> d
                 target=target_id,
                 type=edge_type,
                 description=(
-                    f"Terraform reference from {nodes[source_id].name} "
-                    f"to {nodes[target_id].name}."
+                    f"Terraform configuration for {nodes[source_id].name} references "
+                    f"{nodes[target_id].name}; runtime communication is unknown."
                 ),
                 evidence=nodes[source_id].evidence,
             )
@@ -406,6 +422,7 @@ def _add_internet_entrypoints(nodes: dict[str, Node], edges: dict[str, Edge]) ->
             name="Internet",
             type=NodeType.ACTOR,
             description="External network source implied by public Terraform exposure.",
+            metadata={"derived_from": "terraform_exposure"},
             evidence=[
                 Evidence(
                     source_type=SourceType.TERRAFORM,
@@ -424,12 +441,40 @@ def _add_internet_entrypoints(nodes: dict[str, Node], edges: dict[str, Edge]) ->
             target=node.id,
             type=EdgeType.COMMUNICATES_WITH,
             description=f"Public network access to {node.name} is implied by Terraform exposure.",
+            metadata={"derived_from": "terraform_exposure"},
             evidence=node.evidence,
         )
 
 
 def _reference_ids(body: str) -> Iterator[str]:
-    for resource_type, name in _REFERENCE_RE.findall(body):
+    for resource_type, name in _REFERENCE_RE.findall(_strip_hcl_comments(body)):
         if resource_type in {"var", "local", "data", "module", "each", "count"}:
             continue
         yield _resource_id(resource_type, name)
+
+
+def _strip_hcl_comments(body: str) -> str:
+    """Blank comments while preserving positions, line numbers, and quoted strings."""
+
+    result: list[str] = []
+    index = 0
+    in_string = False
+    while index < len(body):
+        char = body[index]
+        next_char = body[index + 1] if index + 1 < len(body) else ""
+        if char == '"' and (index == 0 or body[index - 1] != "\\"):
+            in_string = not in_string
+        if not in_string and (char == "#" or (char == "/" and next_char == "/")):
+            while index < len(body) and body[index] != "\n":
+                result.append(" ")
+                index += 1
+            continue
+        if not in_string and char == "/" and next_char == "*":
+            end = body.find("*/", index + 2)
+            stop = len(body) if end < 0 else end + 2
+            result.extend("\n" if part == "\n" else " " for part in body[index:stop])
+            index = stop
+            continue
+        result.append(char)
+        index += 1
+    return "".join(result)

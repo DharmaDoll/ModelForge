@@ -42,5 +42,6 @@ def evidence_from_model(model: SystemModel, element_ids: Iterable[str]) -> list[
             collected.extend(nodes[element_id].evidence)
         elif element_id in unknowns and unknowns[element_id].evidence:
             collected.append(unknowns[element_id].evidence)
+            collected.extend(unknowns[element_id].conflicting_evidence or [])
 
     return merge_evidence(collected)

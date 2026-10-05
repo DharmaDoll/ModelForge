@@ -106,13 +106,13 @@ def test_cli_check_fails_when_risk_meets_threshold(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["check", str(source_result.system_model_path), "--fail-on", "high"],
+        ["check", str(source_result.system_model_path), "--fail-on", "low"],
     )
 
     assert result.exit_code == 1
-    assert "Risk gate failed at threshold high." in result.output
-    assert "4 risk candidate(s) met or exceeded the threshold." in result.output
-    assert "Highest rating: High; highest score: 8." in result.output
+    assert "Risk gate failed at threshold low." in result.output
+    assert "3 risk candidate(s) met or exceeded the threshold." in result.output
+    assert "Highest rating: Low; highest score: 3." in result.output
     assert "GET /payments" not in result.output
     assert "Review risk.md and system_model.json" in result.output
 

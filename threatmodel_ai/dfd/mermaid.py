@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from threatmodel_ai.model.ids import short_hash
-from threatmodel_ai.model.schema import Edge, Node, NodeType, SystemModel
+from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
 
 
 def render_mermaid(model: SystemModel) -> str:
@@ -38,6 +38,8 @@ def render_mermaid(model: SystemModel) -> str:
         lines.append("  " + _node_statement(node, mermaid_ids[node.id]))
 
     for edge in sorted(model.edges, key=lambda item: (item.type.value, item.id)):
+        if edge.type in {EdgeType.REFERENCES, EdgeType.OWNS}:
+            continue
         source = node_by_id.get(edge.source)
         target = node_by_id.get(edge.target)
         if not source or not target:

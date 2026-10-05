@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from threatmodel_ai.attack.models import AttackFinding
 from threatmodel_ai.model.evidence import evidence_from_model
+from threatmodel_ai.model.exposure import is_actor_entrypoint, is_explicit_public_entrypoint
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.schema import Edge, EdgeType, Node, NodeType, SystemModel
 from threatmodel_ai.risk.models import RiskFinding, RiskRating
@@ -40,7 +41,8 @@ def score_risks(
                 threats_by_edge.get(edge.id, []),
                 attacks_by_edge.get(edge.id, []),
             )
-            risks.append(risk)
+            if risk.score > 0:
+                risks.append(risk)
             continue
 
         if edge.type == EdgeType.STORES:
@@ -67,11 +69,7 @@ def _candidate_ids_by_edge(candidates: list[Threat] | list[AttackFinding]) -> di
 
 
 def _is_external_entrypoint(edge: Edge, source: Node, target: Node) -> bool:
-    return (
-        edge.type == EdgeType.COMMUNICATES_WITH
-        and source.type == NodeType.ACTOR
-        and target.type in {NodeType.API, NodeType.COMPONENT, NodeType.EXTERNAL_SERVICE}
-    )
+    return is_actor_entrypoint(edge, source, target)
 
 
 def _score_entrypoint(
@@ -90,17 +88,20 @@ def _score_entrypoint(
         score += 3
         rationale.append("Entry point is public or internet-exposed.")
 
-    if edge.authentication in {"unknown", "none", ""}:
+    if edge.authentication == "none":
         score += 2
-        rationale.append(f"Authentication is {edge.authentication or 'unknown'}.")
+        rationale.append("Authentication is explicitly absent.")
+    elif edge.authentication in {"unknown", ""}:
+        rationale.append("Authentication is unknown.")
 
     if edge.authorization in {"unknown", ""}:
-        score += 1
         rationale.append("Authorization requirements are unknown.")
 
-    if edge.protocol in {"HTTP", "unknown", ""}:
+    if edge.protocol == "HTTP":
         score += 1
-        rationale.append(f"Transport protection is {edge.protocol or 'unknown'}.")
+        rationale.append("Transport protection is HTTP.")
+    elif edge.protocol in {"unknown", ""}:
+        rationale.append("Transport protection is unknown.")
 
     data_nodes = _data_nodes(edge, node_by_id)
     if data_nodes:
@@ -111,11 +112,14 @@ def _score_entrypoint(
             + "."
         )
         if any("classification" not in node.metadata for node in data_nodes):
-            score += 1
             rationale.append("Data classification is unknown for referenced data assets.")
 
-    if not model.metadata.get("mentions_rate_limiting"):
+    if edge.metadata.get("rate_limiting") is False or target.metadata.get("rate_limiting") is False:
         score += 1
+        rationale.append("Rate limiting is explicitly absent.")
+    elif not (
+        edge.metadata.get("rate_limiting") is True or target.metadata.get("rate_limiting") is True
+    ):
         rationale.append("Rate limiting or abuse controls are not proven.")
 
     affected_elements = [edge.id, source.id, target.id, *[node.id for node in data_nodes]]
@@ -129,9 +133,7 @@ def _score_entrypoint(
         related_threats=related_threats,
         related_attack_findings=related_attack_findings,
         affected_elements=model_elements,
-        derived_from=_unique_sorted(
-            [*model_elements, *related_threats, *related_attack_findings]
-        ),
+        derived_from=_unique_sorted([*model_elements, *related_threats, *related_attack_findings]),
         evidence=evidence_from_model(model, model_elements),
     )
 
@@ -152,7 +154,6 @@ def _score_storage_flow(
         rationale.append(f"Target is a {target.type.value}.")
 
     if "classification" not in target.metadata:
-        score += 1
         rationale.append("Data classification is unknown for the storage target.")
 
     model_elements = _unique_sorted([edge.id, source.id, target.id])
@@ -165,20 +166,13 @@ def _score_storage_flow(
         related_threats=related_threats,
         related_attack_findings=related_attack_findings,
         affected_elements=model_elements,
-        derived_from=_unique_sorted(
-            [*model_elements, *related_threats, *related_attack_findings]
-        ),
+        derived_from=_unique_sorted([*model_elements, *related_threats, *related_attack_findings]),
         evidence=evidence_from_model(model, model_elements),
     )
 
 
 def _is_public(edge: Edge, source: Node, target: Node) -> bool:
-    return bool(
-        source.name.lower() in {"internet", "api client", "external user", "customer"}
-        or source.type == NodeType.ACTOR
-        or target.metadata.get("internet_exposed")
-        or edge.metadata.get("internet_exposed")
-    )
+    return is_explicit_public_entrypoint(edge, source, target)
 
 
 def _data_nodes(edge: Edge, node_by_id: dict[str, Node]) -> list[Node]:

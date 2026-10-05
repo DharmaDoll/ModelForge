@@ -173,8 +173,15 @@ def _clean_list_item_name(value: str) -> str:
 
 
 def _mentions(text: str, *needles: str) -> bool:
-    lowered = text.lower()
-    return any(needle in lowered for needle in needles)
+    """Find positive documentation mentions without treating negation as a control."""
+
+    for line in text.lower().splitlines():
+        if not any(needle in line for needle in needles):
+            continue
+        if re.search(r"\b(no|not|never|without|disabled|absent|missing)\b", line):
+            continue
+        return True
+    return False
 
 
 def _readme_unknowns(

@@ -2,31 +2,6 @@
   "description": "Sample service that accepts payment requests and exposes a REST API.",
   "edges": [
     {
-      "authentication": "unknown",
-      "authorization": "unknown",
-      "data_assets": [],
-      "description": "Mermaid flow from Web Client to Payments Gateway: HTTPS.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 2",
-          "extractor": "mermaid",
-          "line": 5,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "edge:actor-mermaid-client:component-mermaid-gateway:mermaid",
-      "metadata": {
-        "mermaid_arrow": "-->",
-        "mermaid_label": "HTTPS",
-        "source_format": "mermaid"
-      },
-      "protocol": "HTTPS",
-      "source": "actor:mermaid:client",
-      "target": "component:mermaid:gateway",
-      "type": "communicates_with"
-    },
-    {
       "authentication": "apiKey header:X-API-Key",
       "authorization": "unknown",
       "data_assets": [
@@ -37,7 +12,7 @@
         {
           "detail": "GET /payments/{paymentId}",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -60,7 +35,7 @@
         {
           "detail": "POST /payments",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -81,15 +56,43 @@
           "detail": "resource \"aws_lb\" \"public\"",
           "extractor": "terraform",
           "line": 28,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
       "id": "edge:actor-terraform-internet:terraform-aws-lb-public:public-access",
-      "metadata": {},
+      "metadata": {
+        "derived_from": "terraform_exposure"
+      },
       "protocol": "unknown",
       "source": "actor:terraform:internet",
       "target": "terraform:aws-lb:public",
+      "type": "communicates_with"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Mermaid flow from Web Client to Payments Gateway: HTTPS.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "extractor": "mermaid",
+          "line": 5,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a",
+      "metadata": {
+        "legacy_mermaid_id_suggestion": "edge:actor-mermaid-client:component-mermaid-gateway:mermaid",
+        "mermaid_arrow": "-->",
+        "mermaid_label": "HTTPS",
+        "source_format": "mermaid"
+      },
+      "protocol": "HTTPS",
+      "source": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1",
+      "target": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818",
       "type": "communicates_with"
     },
     {
@@ -102,19 +105,20 @@
           "detail": "mermaid block 1, line 4",
           "extractor": "mermaid",
           "line": 7,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
-      "id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid",
+      "id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb",
       "metadata": {
+        "legacy_mermaid_id_suggestion": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid",
         "mermaid_arrow": "-->",
         "mermaid_label": "",
         "source_format": "mermaid"
       },
       "protocol": "unknown",
-      "source": "component:mermaid:gateway",
-      "target": "component:mermaid:processor",
+      "source": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818",
+      "target": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:processor:b74d0d4b",
       "type": "communicates_with"
     },
     {
@@ -127,19 +131,20 @@
           "detail": "mermaid block 1, line 5",
           "extractor": "mermaid",
           "line": 8,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
           "source_type": "markdown"
         }
       ],
-      "id": "edge:component-mermaid-processor:component-mermaid-store:mermaid",
+      "id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb",
       "metadata": {
+        "legacy_mermaid_id_suggestion": "edge:component-mermaid-processor:component-mermaid-store:mermaid",
         "mermaid_arrow": "-->",
         "mermaid_label": "",
         "source_format": "mermaid"
       },
       "protocol": "unknown",
-      "source": "component:mermaid:processor",
-      "target": "component:mermaid:store",
+      "source": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:processor:b74d0d4b",
+      "target": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:store:0d8a7046",
       "type": "communicates_with"
     },
     {
@@ -153,7 +158,7 @@
         {
           "detail": "GET /payments/{paymentId}",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -176,7 +181,7 @@
         {
           "detail": "POST /payments",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -191,64 +196,64 @@
       "authentication": "unknown",
       "authorization": "unknown",
       "data_assets": [],
-      "description": "Terraform reference from payments-api to aws_subnet.private.",
+      "description": "Terraform configuration for payments-api references payments-db; runtime communication is unknown.",
       "evidence": [
         {
           "detail": "resource \"aws_lambda_function\" \"api\"",
           "extractor": "terraform",
           "line": 14,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
-      "id": "edge:terraform-aws-lambda-function-api:terraform-aws-subnet-private:invokes",
+      "id": "edge:terraform-aws-lambda-function-api:terraform-aws-db-instance-payments:references",
       "metadata": {},
       "protocol": "unknown",
       "source": "terraform:aws-lambda-function:api",
-      "target": "terraform:aws-subnet:private",
-      "type": "invokes"
+      "target": "terraform:aws-db-instance:payments",
+      "type": "references"
     },
     {
       "authentication": "unknown",
       "authorization": "unknown",
       "data_assets": [],
-      "description": "Terraform reference from aws_subnet.private to aws_vpc.main.",
+      "description": "Terraform configuration for payments-api references aws_subnet.private; runtime communication is unknown.",
+      "evidence": [
+        {
+          "detail": "resource \"aws_lambda_function\" \"api\"",
+          "extractor": "terraform",
+          "line": 14,
+          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_type": "terraform"
+        }
+      ],
+      "id": "edge:terraform-aws-lambda-function-api:terraform-aws-subnet-private:references",
+      "metadata": {},
+      "protocol": "unknown",
+      "source": "terraform:aws-lambda-function:api",
+      "target": "terraform:aws-subnet:private",
+      "type": "references"
+    },
+    {
+      "authentication": "unknown",
+      "authorization": "unknown",
+      "data_assets": [],
+      "description": "Terraform configuration for aws_subnet.private references aws_vpc.main; runtime communication is unknown.",
       "evidence": [
         {
           "detail": "resource \"aws_subnet\" \"private\"",
           "extractor": "terraform",
           "line": 5,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
-      "id": "edge:terraform-aws-subnet-private:terraform-aws-vpc-main:invokes",
+      "id": "edge:terraform-aws-subnet-private:terraform-aws-vpc-main:references",
       "metadata": {},
       "protocol": "unknown",
       "source": "terraform:aws-subnet:private",
       "target": "terraform:aws-vpc:main",
-      "type": "invokes"
-    },
-    {
-      "authentication": "unknown",
-      "authorization": "unknown",
-      "data_assets": [],
-      "description": "Terraform reference from payments-api to payments-db.",
-      "evidence": [
-        {
-          "detail": "resource \"aws_lambda_function\" \"api\"",
-          "extractor": "terraform",
-          "line": 14,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
-          "source_type": "terraform"
-        }
-      ],
-      "id": "edge:terraform-aws-lambda-function-api:terraform-aws-db-instance-payments:stores",
-      "metadata": {},
-      "protocol": "unknown",
-      "source": "terraform:aws-lambda-function:api",
-      "target": "terraform:aws-db-instance:payments",
-      "type": "stores"
+      "type": "references"
     }
   ],
   "id": "system",
@@ -260,45 +265,25 @@
     "mentions_monitoring": false,
     "mentions_rate_limiting": false,
     "mermaid_files": [
-      "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md"
+      "tests/fixtures/sample-system/docs/architecture.md"
     ],
-    "openapi_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+    "mermaid_identity_version": 2,
+    "openapi_path": "tests/fixtures/sample-system/openapi.yaml",
     "openapi_version": "3.0.3",
-    "readme_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+    "readme_path": "tests/fixtures/sample-system/README.md",
     "terraform_files": [
-      "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf"
+      "tests/fixtures/sample-system/main.tf"
     ]
   },
   "name": "Sample Payments API",
   "nodes": [
-    {
-      "description": "Mermaid node Client.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 2",
-          "extractor": "mermaid",
-          "line": 5,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "actor:mermaid:client",
-      "metadata": {
-        "mermaid_alias": "Client",
-        "source_format": "mermaid",
-        "type_inference_keyword": "client",
-        "type_inferred_from": "mermaid_label"
-      },
-      "name": "Web Client",
-      "type": "actor"
-    },
     {
       "description": "Client role implied by the OpenAPI contract.",
       "evidence": [
         {
           "detail": "OpenAPI",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -314,7 +299,7 @@
           "detail": "README section: Actors",
           "extractor": "readme",
           "line": 7,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+          "source_path": "tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -334,8 +319,32 @@
         }
       ],
       "id": "actor:terraform:internet",
-      "metadata": {},
+      "metadata": {
+        "derived_from": "terraform_exposure"
+      },
       "name": "Internet",
+      "type": "actor"
+    },
+    {
+      "description": "Mermaid node Client.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "extractor": "mermaid",
+          "line": 5,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1",
+      "metadata": {
+        "legacy_mermaid_id_suggestion": "actor:mermaid:client",
+        "mermaid_alias": "Client",
+        "source_format": "mermaid",
+        "type_inference_keyword": "client",
+        "type_inferred_from": "mermaid_label"
+      },
+      "name": "Web Client",
       "type": "actor"
     },
     {
@@ -344,7 +353,7 @@
         {
           "detail": "GET /payments/{paymentId}",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -359,7 +368,7 @@
         {
           "detail": "POST /payments",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -369,86 +378,12 @@
       "type": "api"
     },
     {
-      "description": "Mermaid node Gateway.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 2",
-          "extractor": "mermaid",
-          "line": 5,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        },
-        {
-          "detail": "mermaid block 1, line 4",
-          "extractor": "mermaid",
-          "line": 7,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "component:mermaid:gateway",
-      "metadata": {
-        "mermaid_alias": "Gateway",
-        "source_format": "mermaid"
-      },
-      "name": "Payments Gateway",
-      "trust_boundary_id": "trust-boundary:mermaid:appboundary",
-      "type": "component"
-    },
-    {
-      "description": "Mermaid node Processor.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 4",
-          "extractor": "mermaid",
-          "line": 7,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        },
-        {
-          "detail": "mermaid block 1, line 5",
-          "extractor": "mermaid",
-          "line": 8,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "component:mermaid:processor",
-      "metadata": {
-        "mermaid_alias": "Processor",
-        "source_format": "mermaid"
-      },
-      "name": "Payment Processor",
-      "trust_boundary_id": "trust-boundary:mermaid:appboundary",
-      "type": "component"
-    },
-    {
-      "description": "Mermaid node Store.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 5",
-          "extractor": "mermaid",
-          "line": 8,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "component:mermaid:store",
-      "metadata": {
-        "mermaid_alias": "Store",
-        "source_format": "mermaid"
-      },
-      "name": "Payment Store",
-      "trust_boundary_id": "trust-boundary:mermaid:appboundary",
-      "type": "component"
-    },
-    {
       "description": "REST API for creating and reading payments.",
       "evidence": [
         {
           "detail": "OpenAPI",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -464,7 +399,7 @@
           "detail": "README section: Components",
           "extractor": "readme",
           "line": 11,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+          "source_path": "tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -479,7 +414,7 @@
         {
           "detail": "README",
           "extractor": "readme",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+          "source_path": "tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -489,13 +424,90 @@
       "type": "component"
     },
     {
+      "description": "Mermaid node Gateway.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 2",
+          "extractor": "mermaid",
+          "line": 5,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        },
+        {
+          "detail": "mermaid block 1, line 4",
+          "extractor": "mermaid",
+          "line": 7,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818",
+      "metadata": {
+        "legacy_mermaid_id_suggestion": "component:mermaid:gateway",
+        "mermaid_alias": "Gateway",
+        "source_format": "mermaid"
+      },
+      "name": "Payments Gateway",
+      "trust_boundary_id": "mermaid:boundary:docs-architecture-md-f48b101bb900:diagram-1:appboundary:e1a1799e",
+      "type": "component"
+    },
+    {
+      "description": "Mermaid node Processor.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 4",
+          "extractor": "mermaid",
+          "line": 7,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        },
+        {
+          "detail": "mermaid block 1, line 5",
+          "extractor": "mermaid",
+          "line": 8,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:processor:b74d0d4b",
+      "metadata": {
+        "legacy_mermaid_id_suggestion": "component:mermaid:processor",
+        "mermaid_alias": "Processor",
+        "source_format": "mermaid"
+      },
+      "name": "Payment Processor",
+      "trust_boundary_id": "mermaid:boundary:docs-architecture-md-f48b101bb900:diagram-1:appboundary:e1a1799e",
+      "type": "component"
+    },
+    {
+      "description": "Mermaid node Store.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 5",
+          "extractor": "mermaid",
+          "line": 8,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:store:0d8a7046",
+      "metadata": {
+        "legacy_mermaid_id_suggestion": "component:mermaid:store",
+        "mermaid_alias": "Store",
+        "source_format": "mermaid"
+      },
+      "name": "Payment Store",
+      "trust_boundary_id": "mermaid:boundary:docs-architecture-md-f48b101bb900:diagram-1:appboundary:e1a1799e",
+      "type": "component"
+    },
+    {
       "description": "Terraform resource aws_lambda_function.api",
       "evidence": [
         {
           "detail": "resource \"aws_lambda_function\" \"api\"",
           "extractor": "terraform",
           "line": 14,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -515,7 +527,7 @@
           "detail": "resource \"aws_lb\" \"public\"",
           "extractor": "terraform",
           "line": 28,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -534,7 +546,7 @@
         {
           "detail": "components.schemas.Payment",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -551,7 +563,7 @@
         {
           "detail": "components.schemas.PaymentRequest",
           "extractor": "openapi",
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "tests/fixtures/sample-system/openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -569,7 +581,7 @@
           "detail": "README section: Databases",
           "extractor": "readme",
           "line": 15,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+          "source_path": "tests/fixtures/sample-system/README.md",
           "source_type": "readme"
         }
       ],
@@ -585,7 +597,7 @@
           "detail": "resource \"aws_db_instance\" \"payments\"",
           "extractor": "terraform",
           "line": 10,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -598,13 +610,33 @@
       "type": "database"
     },
     {
+      "description": "Mermaid subgraph AppBoundary.",
+      "evidence": [
+        {
+          "detail": "mermaid block 1, line 3",
+          "extractor": "mermaid",
+          "line": 6,
+          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_type": "markdown"
+        }
+      ],
+      "id": "mermaid:boundary:docs-architecture-md-f48b101bb900:diagram-1:appboundary:e1a1799e",
+      "metadata": {
+        "legacy_mermaid_id_suggestion": "trust-boundary:mermaid:appboundary",
+        "mermaid_alias": "AppBoundary",
+        "source_format": "mermaid"
+      },
+      "name": "Application Boundary",
+      "type": "trust_boundary"
+    },
+    {
       "description": "Terraform resource aws_subnet.private",
       "evidence": [
         {
           "detail": "resource \"aws_subnet\" \"private\"",
           "extractor": "terraform",
           "line": 5,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -623,7 +655,7 @@
           "detail": "resource \"aws_vpc\" \"main\"",
           "extractor": "terraform",
           "line": 1,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+          "source_path": "tests/fixtures/sample-system/main.tf",
           "source_type": "terraform"
         }
       ],
@@ -633,25 +665,6 @@
         "terraform_type": "aws_vpc"
       },
       "name": "aws_vpc.main",
-      "type": "trust_boundary"
-    },
-    {
-      "description": "Mermaid subgraph AppBoundary.",
-      "evidence": [
-        {
-          "detail": "mermaid block 1, line 3",
-          "extractor": "mermaid",
-          "line": 6,
-          "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
-          "source_type": "markdown"
-        }
-      ],
-      "id": "trust-boundary:mermaid:appboundary",
-      "metadata": {
-        "mermaid_alias": "AppBoundary",
-        "source_format": "mermaid"
-      },
-      "name": "Application Boundary",
       "type": "trust_boundary"
     }
   ],
@@ -664,11 +677,11 @@
         "detail": "mermaid block 1, line 2",
         "extractor": "mermaid",
         "line": 5,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authentication",
-      "related_element_id": "edge:actor-mermaid-client:component-mermaid-gateway:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client--c8b7536671:authentication",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a"
     },
     {
       "category": "authorization",
@@ -677,11 +690,11 @@
         "detail": "mermaid block 1, line 2",
         "extractor": "mermaid",
         "line": 5,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-actor-mermaid-client-component-mermaid-gateway-mermaid:authorization",
-      "related_element_id": "edge:actor-mermaid-client:component-mermaid-gateway:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client--c8b7536671:authorization",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a"
     },
     {
       "category": "authentication",
@@ -690,11 +703,11 @@
         "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
         "line": 7,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authentication",
-      "related_element_id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:authentication",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb"
     },
     {
       "category": "authorization",
@@ -703,11 +716,11 @@
         "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
         "line": 7,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:authorization",
-      "related_element_id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:authorization",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb"
     },
     {
       "category": "protocol",
@@ -716,11 +729,11 @@
         "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
         "line": 7,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-gateway-component-mermaid-processor-mermaid:protocol",
-      "related_element_id": "edge:component-mermaid-gateway:component-mermaid-processor:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:protocol",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb"
     },
     {
       "category": "authentication",
@@ -729,11 +742,11 @@
         "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
         "line": 8,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authentication",
-      "related_element_id": "edge:component-mermaid-processor:component-mermaid-store:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:authentication",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb"
     },
     {
       "category": "authorization",
@@ -742,11 +755,11 @@
         "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
         "line": 8,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:authorization",
-      "related_element_id": "edge:component-mermaid-processor:component-mermaid-store:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:authorization",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb"
     },
     {
       "category": "protocol",
@@ -755,11 +768,11 @@
         "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
         "line": 8,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
         "source_type": "markdown"
       },
-      "id": "unknown:mermaid:edge-component-mermaid-processor-component-mermaid-store-mermaid:protocol",
-      "related_element_id": "edge:component-mermaid-processor:component-mermaid-store:mermaid"
+      "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:protocol",
+      "related_element_id": "edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb"
     },
     {
       "category": "authorization",
@@ -767,7 +780,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:api-get-payments-paymentid:authorization",
@@ -779,7 +792,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:api-post-payments:authorization",
@@ -791,7 +804,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:payment:data-classification",
@@ -803,7 +816,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "tests/fixtures/sample-system/openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:paymentrequest:data-classification",
@@ -815,7 +828,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+        "source_path": "tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:authentication",
@@ -827,7 +840,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+        "source_path": "tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:authorization",
@@ -839,7 +852,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+        "source_path": "tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:encryption",
@@ -851,7 +864,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+        "source_path": "tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:logging",
@@ -863,7 +876,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+        "source_path": "tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:monitoring",
@@ -875,7 +888,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/README.md",
+        "source_path": "tests/fixtures/sample-system/README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:rate-limiting",
@@ -888,7 +901,7 @@
         "detail": "resource \"aws_db_instance\" \"payments\"",
         "extractor": "terraform",
         "line": 10,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+        "source_path": "tests/fixtures/sample-system/main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-db-instance-payments:encryption",
@@ -901,7 +914,7 @@
         "detail": "resource \"aws_lb\" \"public\"",
         "extractor": "terraform",
         "line": 28,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+        "source_path": "tests/fixtures/sample-system/main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-lb-public:authentication",
@@ -914,7 +927,7 @@
         "detail": "resource \"aws_lb\" \"public\"",
         "extractor": "terraform",
         "line": 28,
-        "source_path": "/home/calvet/git/ModelForge/tests/fixtures/sample-system/main.tf",
+        "source_path": "tests/fixtures/sample-system/main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-lb-public:rate-limiting",

@@ -67,7 +67,7 @@ def test_question_generator_asks_for_unknown_entrypoint_boundary() -> None:
     ]
 
 
-def test_stride_tampering_scenario_mentions_boundary_crossing() -> None:
+def test_stride_does_not_infer_boundary_crossing_from_unplaced_actor() -> None:
     model = SystemModel(
         nodes=[
             Node(id="actor:user", name="User", type=NodeType.ACTOR),
@@ -99,5 +99,5 @@ def test_stride_tampering_scenario_mentions_boundary_crossing() -> None:
         if threat.category == StrideCategory.TAMPERING
     )
 
-    assert tampering.confidence == "high"
-    assert "crosses a trust boundary" in tampering.scenario
+    assert tampering.confidence == "medium"
+    assert "crosses a trust boundary" not in tampering.scenario

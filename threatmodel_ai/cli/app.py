@@ -15,7 +15,12 @@ from threatmodel_ai.evaluation import evaluate_manifest
 from threatmodel_ai.ingest import discover_inputs
 from threatmodel_ai.llm import merge_llm_candidates, read_llm_candidates
 from threatmodel_ai.model.identity import preview_legacy_mermaid_identities
-from threatmodel_ai.model.io import read_system_model, write_system_model
+from threatmodel_ai.model.io import (
+    read_system_model,
+    read_versioned_system_model,
+    write_system_model,
+)
+from threatmodel_ai.model.migration import migrate_system_model
 from threatmodel_ai.pipeline import analyze_project, render_model_artifacts
 from threatmodel_ai.risk import RiskThreshold, risks_at_or_above, score_risks
 from threatmodel_ai.stride import generate_threats
@@ -392,6 +397,61 @@ def identity_preview(
         f"{len(preview.suggestions)} unique suggestion(s); "
         f"{len(preview.ambiguous)} ambiguous legacy ID(s)."
     )
+
+
+@model_app.command("validate")
+def validate_model(
+    system_model: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+) -> None:
+    """Validate a 0.1 or 0.2 model without modifying it."""
+
+    try:
+        model = read_versioned_system_model(system_model)
+    except ValidationError as exc:
+        _echo_error("Input system model failed validation.", detail=_validation_detail(exc))
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Input system model failed validation.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Valid system model: schema {model.schema_version}.")
+
+
+@model_app.command("migrate")
+def migrate_model(
+    system_model: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    target_version: Annotated[str, typer.Option("--to", help="Target schema version: 0.2.")],
+    out: Annotated[Path, typer.Option("--out", "-o", help="New output JSON path.")],
+) -> None:
+    """Write a deterministic 0.2 model without overwriting existing files."""
+
+    try:
+        if out.resolve() == system_model.resolve():
+            raise ValueError("Migration output must not overwrite the input model.")
+        model = read_versioned_system_model(system_model)
+        migrated = migrate_system_model(
+            model.model_dump(mode="json", exclude_none=True), target_version=target_version
+        )
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with out.open("x", encoding="utf-8") as destination:
+            destination.write(json.dumps(migrated, indent=2, sort_keys=True) + "\n")
+    except ValidationError as exc:
+        _echo_error("Input system model failed validation.", detail=_validation_detail(exc))
+        raise typer.Exit(code=1) from exc
+    except FileExistsError as exc:
+        _echo_error("Migration output already exists.", hint="Choose a new --out path.")
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Model migration failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {out} (schema {target_version}).")
 
 
 def _echo_error(message: str, *, detail: str | None = None, hint: str | None = None) -> None:

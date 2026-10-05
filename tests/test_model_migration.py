@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from threatmodel_ai.attack import generate_attack_findings
 from threatmodel_ai.dfd import render_mermaid
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.migration import migrate_system_model
@@ -28,6 +29,8 @@ from threatmodel_ai.model.schema_v02 import (
     NodeV02,
     SystemModelV02,
 )
+from threatmodel_ai.risk import score_risks
+from threatmodel_ai.stride import generate_threats
 
 
 def _evidence() -> Evidence:
@@ -170,6 +173,16 @@ def test_sample_system_migrates_and_resolves_without_dfd_regression() -> None:
     assert canonical.inferences
     assert render_mermaid(resolved.model) == render_mermaid(legacy)
     assert {node.id for node in canonical.nodes} == {node.id for node in legacy.nodes}
+
+    legacy_threats = generate_threats(legacy)
+    resolved_threats = generate_threats(resolved.model)
+    legacy_attack = generate_attack_findings(legacy)
+    resolved_attack = generate_attack_findings(resolved.model)
+    assert resolved_threats == legacy_threats
+    assert resolved_attack == legacy_attack
+    assert score_risks(resolved.model, resolved_threats, resolved_attack) == score_risks(
+        legacy, legacy_threats, legacy_attack
+    )
 
 
 def test_v02_schema_rejects_inference_that_overwrites_fact() -> None:

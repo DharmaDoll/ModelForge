@@ -46,12 +46,15 @@ unverified extraction claims:
    automatically.
 3. **P0 — canonical 0.2:** separate observations, facts, inferences, and
    assessments in storage. Add attribute-level evidence and a version-aware
-   reader/migrator before releasing 0.2. The current 0.1 reader rejects future
-   versions; the existing observation wrapper is a transport contract, not yet
+   reader/migrator before releasing 0.2. The version-aware inspection reader
+   accepts explicit 0.1 and 0.2 artifacts; the existing observation wrapper is
+   a transport contract, not yet
    proof that each proposed semantic claim is an accepted fact.
-   A draft 0.2 schema, pure 0.1→0.2 migrator, and non-serializing resolved view
-   are implemented with unit and sample-system parity tests. They are not yet
-   wired into the default CLI or fact-acceptance policy.
+   A draft 0.2 schema, pure 0.1→0.2 migrator, non-serializing resolved view,
+   and opt-in `model validate` / `model migrate` commands are implemented with
+   unit and sample-system parity tests. `analyze`, `render`, `check`, and
+   candidate merge remain 0.1-only; 0.2 is not yet the default writer or part
+   of the fact-acceptance policy.
 4. **P1 — evaluated baseline:** build expert-labeled positive and negative
    fixtures across extraction, STRIDE, ATT&CK, questions, and review priority.
    Measure false candidates and model precision before setting CI thresholds.

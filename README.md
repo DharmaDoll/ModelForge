@@ -94,11 +94,24 @@ inference. In particular, Terraform resource references are modeled as
 recognized only from supported explicit resource attributes; unknown controls
 remain questions and do not add review-priority points as if absent.
 
-An internal draft of schema 0.2 now defines explicit `Inference`, per-attribute
-evidence, and reviewed identity aliases. Its pure 0.1→0.2 migration moves
-legacy Mermaid type guesses out of fact fields, and a separate in-memory view
-can reapply non-conflicting inferences for analysis. The CLI still emits and
-renders 0.1 models by default; 0.2 is not yet a supported CLI artifact format.
+An experimental schema 0.2 defines explicit `Inference`, per-attribute evidence,
+and reviewed identity aliases. Validate either version and make a separate,
+deterministic 0.2 copy of an existing 0.1 model with:
+
+```bash
+uv run tm-ai model validate ./out/system_model.json
+uv run tm-ai model migrate ./out/system_model.json \
+  --to 0.2 --out ./out/system_model.v0.2.json
+uv run tm-ai model validate ./out/system_model.v0.2.json
+```
+
+Migration never overwrites its input or an existing output. It moves legacy
+Mermaid type guesses out of fact fields and records ambiguous legacy component
+types as review unknowns. Keep the original source and reviewed 0.1 model for
+comparison; migration does not verify old claims against source files.
+`analyze`, `render`, `check`, and `candidates merge` still consume or emit 0.1;
+do not pass a 0.2 model to those commands yet. No LLM is used by validation or
+migration.
 
 ```mermaid
 flowchart TD

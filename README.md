@@ -102,13 +102,16 @@ deterministic 0.2 copy of an existing 0.1 model with:
 uv run tm-ai model validate ./out/system_model.json
 uv run tm-ai model migrate ./out/system_model.json \
   --to 0.2 --out ./out/system_model.v0.2.json
-uv run tm-ai model validate ./out/system_model.v0.2.json
+uv run tm-ai model validate ./out/system_model.v0.2.json --check-generators
 ```
 
 Migration never overwrites its input or an existing output. It moves legacy
 Mermaid type guesses out of fact fields and records ambiguous legacy component
 types as review unknowns. Keep the original source and reviewed 0.1 model for
 comparison; migration does not verify old claims against source files.
+`--check-generators` also exercises DFD, STRIDE, ATT&CK, risk, questions, and
+Markdown renderers in memory without writing reports. It checks compatibility,
+not the correctness of the source claims or the quality of the generated findings.
 `analyze`, `render`, `check`, and `candidates merge` still consume or emit 0.1;
 do not pass a 0.2 model to those commands yet. No LLM is used by validation or
 migration.

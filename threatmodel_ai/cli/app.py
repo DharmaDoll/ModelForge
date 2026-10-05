@@ -21,7 +21,13 @@ from threatmodel_ai.model.io import (
     write_system_model,
 )
 from threatmodel_ai.model.migration import migrate_system_model
-from threatmodel_ai.pipeline import analyze_project, render_model_artifacts
+from threatmodel_ai.model.resolution import resolve_system_model_v02
+from threatmodel_ai.model.schema_v02 import SystemModelV02
+from threatmodel_ai.pipeline import (
+    analyze_project,
+    build_artifact_preview,
+    render_model_artifacts,
+)
 from threatmodel_ai.risk import RiskThreshold, risks_at_or_above, score_risks
 from threatmodel_ai.stride import generate_threats
 
@@ -405,6 +411,13 @@ def validate_model(
         Path,
         typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
     ],
+    check_generators: Annotated[
+        bool,
+        typer.Option(
+            "--check-generators",
+            help="Exercise all deterministic artifact generators in memory; write nothing.",
+        ),
+    ] = False,
 ) -> None:
     """Validate a 0.1 or 0.2 model without modifying it."""
 
@@ -417,7 +430,21 @@ def validate_model(
         _echo_error("Input system model failed validation.", detail=str(exc))
         raise typer.Exit(code=1) from exc
 
+    if check_generators:
+        try:
+            analysis_model = (
+                resolve_system_model_v02(model).model
+                if isinstance(model, SystemModelV02)
+                else model
+            )
+            build_artifact_preview(analysis_model)
+        except Exception as exc:
+            _echo_error("Generator compatibility check failed.", detail=str(exc))
+            raise typer.Exit(code=1) from exc
+
     typer.echo(f"Valid system model: schema {model.schema_version}.")
+    if check_generators:
+        typer.echo("All deterministic artifact generators passed; no files were written.")
 
 
 @model_app.command("migrate")

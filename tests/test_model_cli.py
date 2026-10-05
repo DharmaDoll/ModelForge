@@ -10,7 +10,9 @@ from typer.testing import CliRunner
 from threatmodel_ai.cli.app import app
 from threatmodel_ai.model.io import read_versioned_system_model
 from threatmodel_ai.model.migration import migrate_system_model
+from threatmodel_ai.model.resolution import resolve_system_model_v02
 from threatmodel_ai.model.schema_v02 import SystemModelV02
+from threatmodel_ai.pipeline import build_artifact_preview
 
 LEGACY = Path(__file__).parent / "fixtures" / "golden" / "sample-system" / "system_model.json"
 RUNNER = CliRunner()
@@ -76,6 +78,37 @@ def test_migrate_writes_canonical_model_and_is_idempotent(tmp_path: Path) -> Non
     assert first.read_bytes() == second.read_bytes()
     assert LEGACY.read_bytes() == legacy_bytes
     assert isinstance(read_versioned_system_model(first), SystemModelV02)
+
+
+def test_generator_compatibility_check_is_read_only_for_both_versions(tmp_path: Path) -> None:
+    migrated = tmp_path / "system_model.v0.2.json"
+    migrated.write_text(
+        json.dumps(migrate_system_model(json.loads(LEGACY.read_text(encoding="utf-8")))),
+        encoding="utf-8",
+    )
+    before = migrated.read_bytes()
+    files_before = set(tmp_path.iterdir())
+
+    for path in (LEGACY, migrated):
+        result = RUNNER.invoke(
+            app, ["model", "validate", str(path), "--check-generators"]
+        )
+        assert result.exit_code == 0, result.output
+        assert "All deterministic artifact generators passed" in result.output
+
+    assert migrated.read_bytes() == before
+    assert set(tmp_path.iterdir()) == files_before
+
+    legacy_preview = build_artifact_preview(read_versioned_system_model(LEGACY))
+    canonical = read_versioned_system_model(migrated)
+    assert isinstance(canonical, SystemModelV02)
+    resolved_preview = build_artifact_preview(resolve_system_model_v02(canonical).model)
+    assert resolved_preview.dfd == legacy_preview.dfd
+    assert resolved_preview.threats == legacy_preview.threats
+    assert resolved_preview.attack == legacy_preview.attack
+    assert resolved_preview.risk == legacy_preview.risk
+    assert resolved_preview.questions_markdown
+    assert resolved_preview.review
 
 
 def test_migrate_refuses_input_and_existing_output(tmp_path: Path) -> None:

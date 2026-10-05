@@ -68,6 +68,19 @@ class AnalysisResult:
     llm_candidates_path: Path | None = None
 
 
+@dataclass(frozen=True)
+class ArtifactPreview:
+    """Deterministic artifact bodies built without writing or calling an LLM."""
+
+    dfd: str
+    threats: str
+    attack: str
+    risk: str
+    questions_markdown: str
+    review: str
+    questions: tuple[Question, ...]
+
+
 def analyze_project(
     inputs: AnalysisInputs,
     out_dir: Path,
@@ -157,10 +170,7 @@ def analyze_project(
 def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
     """Write deterministic artifacts from a validated system model."""
 
-    threats = generate_threats(model)
-    attack_findings = generate_attack_findings(model)
-    risks = score_risks(model, threats, attack_findings)
-    questions = generate_questions(model)
+    preview = build_artifact_preview(model)
 
     out_dir.mkdir(parents=True, exist_ok=True)
     system_model_path = out_dir / "system_model.json"
@@ -172,15 +182,12 @@ def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
     review_path = out_dir / "review.md"
 
     write_system_model(model, system_model_path)
-    dfd_path.write_text(render_mermaid(model), encoding="utf-8")
-    threats_path.write_text(render_threats_markdown(threats), encoding="utf-8")
-    attack_path.write_text(render_attack_markdown(attack_findings), encoding="utf-8")
-    risk_path.write_text(render_risks_markdown(risks), encoding="utf-8")
-    questions_path.write_text(render_questions_markdown(questions), encoding="utf-8")
-    review_path.write_text(
-        render_review_markdown(model, threats, attack_findings, risks, questions),
-        encoding="utf-8",
-    )
+    dfd_path.write_text(preview.dfd, encoding="utf-8")
+    threats_path.write_text(preview.threats, encoding="utf-8")
+    attack_path.write_text(preview.attack, encoding="utf-8")
+    risk_path.write_text(preview.risk, encoding="utf-8")
+    questions_path.write_text(preview.questions_markdown, encoding="utf-8")
+    review_path.write_text(preview.review, encoding="utf-8")
 
     return RenderResult(
         model=model,
@@ -191,6 +198,24 @@ def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
         risk_path=risk_path,
         questions_path=questions_path,
         review_path=review_path,
+        questions=preview.questions,
+    )
+
+
+def build_artifact_preview(model: SystemModel) -> ArtifactPreview:
+    """Exercise every deterministic generator without persisting a resolved view."""
+
+    threats = generate_threats(model)
+    attack_findings = generate_attack_findings(model)
+    risks = score_risks(model, threats, attack_findings)
+    questions = generate_questions(model)
+    return ArtifactPreview(
+        dfd=render_mermaid(model),
+        threats=render_threats_markdown(threats),
+        attack=render_attack_markdown(attack_findings),
+        risk=render_risks_markdown(risks),
+        questions_markdown=render_questions_markdown(questions),
+        review=render_review_markdown(model, threats, attack_findings, risks, questions),
         questions=tuple(questions),
     )
 

@@ -52,7 +52,9 @@ unverified extraction claims:
    proof that each proposed semantic claim is an accepted fact.
    A draft 0.2 schema, pure 0.1→0.2 migrator, non-serializing resolved view,
    and opt-in `model validate` / `model migrate` commands are implemented with
-   unit and sample-system parity tests. `analyze`, `render`, `check`, and
+   unit and sample-system parity tests. `model validate --check-generators`
+   exercises all deterministic lenses and report renderers in memory without
+   publishing 0.2 artifacts. `analyze`, `render`, `check`, and
    candidate merge remain 0.1-only; 0.2 is not yet the default writer or part
    of the fact-acceptance policy.
 4. **P1 — evaluated baseline:** build expert-labeled positive and negative

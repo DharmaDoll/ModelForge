@@ -23,6 +23,18 @@ Generated deterministically from `system_model.json`. All findings are review ca
 | Low | 2 | Review priority for GET /payments/{paymentId} entry point |
 | Low | 2 | Review priority for POST /payments entry point |
 
+## Suggested Starting Questions
+
+45 underlying questions form 38 review tasks. These are navigation suggestions, not new risk scores; no question or evidence was discarded.
+
+| Subject | Review focus | Questions | Details |
+| --- | --- | ---: | --- |
+| Internet → payments-public-lb | How is payments-public-lb authenticated when called by Internet? | 1 | [Open](questions.md#question-group-076fc4cecb) |
+| API Client → GET /payments/{paymentId} | What authorization checks protect GET /payments/{paymentId}? | 2 | [Open](questions.md#question-group-943b7dc6ec) |
+| API Client → POST /payments | What authorization checks protect POST /payments? | 2 | [Open](questions.md#question-group-40f611654f) |
+| Internet → payments-public-lb | What authorization checks protect payments-public-lb? | 1 | [Open](questions.md#question-group-87934b869a) |
+| API Client → GET /payments/{paymentId} | What rate limits protect GET /payments/{paymentId}? | 1 | [Open](questions.md#question-group-a963c98f8e) |
+
 ## Open Question Categories
 
 | Category | Count |

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from difflib import unified_diff
 from pathlib import Path
 
@@ -37,6 +38,21 @@ def test_sample_system_outputs_match_golden(generated_artifacts: Path, artifact:
     actual = _normalized_text(generated_artifacts / artifact)
 
     assert actual == expected, _unified_diff(expected, actual, artifact)
+
+
+def test_sample_starting_question_links_resolve_without_losing_questions(
+    generated_artifacts: Path,
+) -> None:
+    review = (generated_artifacts / "review.md").read_text(encoding="utf-8")
+    questions = (generated_artifacts / "questions.md").read_text(encoding="utf-8")
+
+    links = re.findall(r"\[Open\]\(questions\.md#(question-group-[a-f0-9]+)\)", review)
+    anchors = set(re.findall(r'<a id="(question-group-[a-f0-9]+)"></a>', questions))
+    detail_ids = re.findall(r"^- ID: `(question:[^`]+)`$", questions, flags=re.MULTILINE)
+
+    assert len(links) == 5
+    assert set(links) <= anchors
+    assert len(detail_ids) == len(set(detail_ids)) == 45
 
 
 def _normalized_text(path: Path) -> str:

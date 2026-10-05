@@ -7,6 +7,7 @@ from collections import Counter
 from threatmodel_ai.attack.models import AttackFinding
 from threatmodel_ai.model.schema import EdgeType, Evidence, SystemModel
 from threatmodel_ai.questions.generator import Question
+from threatmodel_ai.questions.triage import group_questions, starting_question_groups
 from threatmodel_ai.risk.models import RiskFinding, RiskRating
 from threatmodel_ai.stride.models import Threat
 
@@ -22,6 +23,8 @@ def render_review_markdown(
 
     rating_counts = Counter(risk.rating for risk in risks)
     question_counts = Counter(question.category for question in questions)
+    question_groups = group_questions(questions, model)
+    starting_groups = starting_question_groups(question_groups, risks)
     ordered_risks = sorted(risks, key=lambda risk: (-risk.score, risk.id))
     flow_count = sum(
         edge.type
@@ -66,12 +69,32 @@ def render_review_markdown(
             ]
         )
         for risk in ordered_risks[:5]:
-            lines.append(
-                f"| {risk.rating.value} | {risk.score} | {_escape_table(risk.title)} |"
-            )
+            lines.append(f"| {risk.rating.value} | {risk.score} | {_escape_table(risk.title)} |")
         lines.append("")
     else:
         lines.extend(["No deterministic risk priorities were generated.", ""])
+
+    if question_groups:
+        lines.extend(
+            [
+                "## Suggested Starting Questions",
+                "",
+                f"{len(questions)} underlying questions form {len(question_groups)} review tasks. "
+                "These are navigation suggestions, not new risk scores; no question "
+                "or evidence was discarded.",
+                "",
+                "| Subject | Review focus | Questions | Details |",
+                "| --- | --- | ---: | --- |",
+            ]
+        )
+        for group in starting_groups:
+            lines.append(
+                f"| {_escape_table(group.subject_label)} | "
+                f"{_escape_table(group.representative.question)} | "
+                f"{len(group.questions)} | "
+                f"[Open](questions.md#{group.anchor}) |"
+            )
+        lines.append("")
 
     if question_counts:
         lines.extend(
@@ -235,8 +258,7 @@ def render_risks_markdown(risks: list[RiskFinding]) -> str:
     )
     for risk in risks:
         lines.append(
-            f"| `{risk.id}` | {risk.rating.value} | {risk.score} | "
-            f"{_escape_table(risk.title)} |"
+            f"| `{risk.id}` | {risk.rating.value} | {risk.score} | {_escape_table(risk.title)} |"
         )
     lines.append("")
 
@@ -249,12 +271,9 @@ def render_risks_markdown(risks: list[RiskFinding]) -> str:
                 f"- Rating: {risk.rating.value}",
                 f"- Score: {risk.score}",
                 f"- Status: {risk.status}",
-                "- Affected elements: "
-                f"{', '.join(f'`{item}`' for item in risk.affected_elements)}",
-                "- Related STRIDE threats: "
-                f"{_format_optional_ids(risk.related_threats)}",
-                "- Related ATT&CK findings: "
-                f"{_format_optional_ids(risk.related_attack_findings)}",
+                f"- Affected elements: {', '.join(f'`{item}`' for item in risk.affected_elements)}",
+                f"- Related STRIDE threats: {_format_optional_ids(risk.related_threats)}",
+                f"- Related ATT&CK findings: {_format_optional_ids(risk.related_attack_findings)}",
                 f"- Derived from: {_format_optional_ids(risk.derived_from)}",
                 f"- Evidence: {_format_evidence(risk.evidence)}",
                 "",
@@ -267,21 +286,47 @@ def render_risks_markdown(risks: list[RiskFinding]) -> str:
     return "\n".join(lines)
 
 
-def render_questions_markdown(questions: list[Question]) -> str:
+def render_questions_markdown(questions: list[Question], model: SystemModel | None = None) -> str:
     """Render clarification questions as Markdown."""
 
+    groups = group_questions(questions, model)
     lines = [
         "# Questions",
         "",
         "Questions generated from unknown or incomplete model facts.",
         "",
         f"Total questions: {len(questions)}",
+        f"Grouped review tasks: {len(groups)}",
         "",
     ]
     if not questions:
         lines.extend(["No clarification questions were generated.", ""])
         return "\n".join(lines)
 
+    lines.extend(
+        [
+            "## Review Tasks",
+            "",
+            "Questions are grouped only when they concern the same model element "
+            "and review intent. Every original question ID and Evidence pointer remains below.",
+            "",
+            "| Subject | Review focus | Questions | Details |",
+            "| --- | --- | ---: | --- |",
+        ]
+    )
+    for group in groups:
+        lines.append(
+            f"| {_escape_table(group.subject_label)} | "
+            f"{_escape_table(group.representative.question)} | "
+            f"{len(group.questions)} | [Open](#{group.anchor}) |"
+        )
+    lines.extend(
+        [
+            "",
+            "## All Question IDs",
+            "",
+        ]
+    )
     lines.extend(
         [
             "| ID | Category | Question |",
@@ -294,22 +339,32 @@ def render_questions_markdown(questions: list[Question]) -> str:
         )
     lines.append("")
 
-    for question in questions:
+    for group in groups:
         lines.extend(
             [
-                f"## {question.question}",
+                f'<a id="{group.anchor}"></a>',
+                f"## {group.subject_label}: {group.category}",
                 "",
-                f"- ID: `{question.id}`",
-                f"- Category: {question.category}",
-                "- Related elements: "
-                f"{', '.join(f'`{item}`' for item in question.related_elements)}",
-                f"- Derived from: {_format_optional_ids(question.derived_from)}",
-                f"- Evidence: {_format_evidence(question.evidence)}",
-                "",
-                f"Rationale: {question.rationale}",
+                f"Underlying questions: {len(group.questions)}",
                 "",
             ]
         )
+        for question in group.questions:
+            lines.extend(
+                [
+                    f"### {question.question}",
+                    "",
+                    f"- ID: `{question.id}`",
+                    f"- Category: {question.category}",
+                    "- Related elements: "
+                    f"{', '.join(f'`{item}`' for item in question.related_elements)}",
+                    f"- Derived from: {_format_optional_ids(question.derived_from)}",
+                    f"- Evidence: {_format_evidence(question.evidence)}",
+                    "",
+                    f"Rationale: {question.rationale}",
+                    "",
+                ]
+            )
     return "\n".join(lines)
 
 

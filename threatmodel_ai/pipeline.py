@@ -217,7 +217,7 @@ def build_artifact_preview(model: SystemModel | SystemModelV02) -> ArtifactPrevi
         threats=render_threats_markdown(results.threats),
         attack=render_attack_markdown(results.attack_findings),
         risk=render_risks_markdown(results.risks),
-        questions_markdown=render_questions_markdown(results.questions),
+        questions_markdown=render_questions_markdown(results.questions, analysis_model),
         review=render_review_markdown(
             analysis_model,
             results.threats,

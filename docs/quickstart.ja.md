@@ -21,16 +21,16 @@ out/sample-system/review.md       全体像とレビュー優先順位
 out/sample-system/questions.md    まだ確認が必要な設計事項
 ```
 
-`review.md` はノード・データフロー・STRIDE 候補・質問の件数を短くまとめます。`questions.md` には、たとえば「`GET /payments/{paymentId}` を保護する認可チェックは何か」「`POST /payments` にどんなレート制限があるか」といった質問が並びます。これらは対策が*存在しない*という断定ではありません。入力資料からは確認できなかった、という意味です。
+`review.md` はノード・データフロー・STRIDE 候補・質問の件数を短くまとめ、最初に確認したい質問へのリンクを最大5件示します。`questions.md` には、たとえば「`GET /payments/{paymentId}` を保護する認可チェックは何か」「`POST /payments` にどんなレート制限があるか」といった質問が並びます。現在のサンプルでは45件の元質問を38のレビュータスクに整理しています。これは表示上の整理で、個々の質問 ID・根拠・Unknown を削除したものではありません。これらは対策が*存在しない*という断定ではなく、入力資料からは確認できなかったという意味です。
 
 ## サンプルの読み方：公開入口からレビューを始める
 
 題材の [`sample-system`](../examples/sample-system/README.md) には、決済 API の説明、[OpenAPI](../examples/sample-system/openapi.yaml)、[Terraform](../examples/sample-system/main.tf)、[Mermaid 設計図](../examples/sample-system/docs/architecture.md) が入っています。次の順に読むと、生成物がレビューの会話につながります。
 
-1. `out/sample-system/review.md` で、最初に見るべき入口と未回答の質問を把握します。
+1. `out/sample-system/review.md` の「Suggested Starting Questions」で、最初に見るべき入口と未回答の質問を把握します。`Open` から同じ対象・検討事項の質問と根拠に移動できます。ここでの順序は閲覧の案内で、新しいリスクスコアではありません。
 2. `out/sample-system/risk.md` で `payments-public-lb` の優先順位と理由を読みます。Terraform の `internal = false` が公開入口の根拠です。ここでの High / Medium / Low は**レビュー優先順位**であり、CVSS や確定した脆弱性の深刻度ではありません。
 3. `out/sample-system/dfd.mmd` で、生成されたデータフロー図を Mermaid 対応ビューアで確認します。図にない接続を想像で補わず、`out/sample-system/system_model.json` のノード・エッジと根拠を確認します。
-4. `out/sample-system/questions.md` から、API の認可、データ分類、レート制限など、担当者に確認する問いを選びます。回答後に入力資料を更新して再実行できます。
+4. `out/sample-system/questions.md` の「Review Tasks」から、API の認可、データ分類、レート制限など、担当者に確認する問いを選びます。似た問いをまとめても、元の ID と Evidence は各タスクの詳細に残ります。回答後に入力資料を更新して再実行できます。
 
 ここで重要なのは、サンプルの公開ロードバランサーと OpenAPI の各操作が**同じ経路でつながっているとは証明されていない**ことです。ModelForge は別々の資料に現れた要素を表示しますが、裏付けのない接続は作りません。図や結果に不足が見つかれば、それ自体が設計レビューの成果です。
 

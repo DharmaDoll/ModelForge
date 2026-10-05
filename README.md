@@ -22,8 +22,9 @@ cd ModelForge
 uv run tm-ai analyze ./examples/sample-system --out ./out/sample-system
 ```
 
-Open `out/sample-system/review.md` for the one-page summary, then
-`out/sample-system/questions.md` for decisions to take back to the team. The
+Open `out/sample-system/review.md` for the one-page summary and its linked
+starting questions, then `out/sample-system/questions.md` for the grouped
+review tasks and every underlying question ID and evidence pointer. The
 reports are generated locally without an API key or external LLM call. They
 are review candidates, not confirmed vulnerabilities.
 

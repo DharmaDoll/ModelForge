@@ -153,6 +153,9 @@ Delivery order and acceptance criteria:
    number of grouped review tasks. Tests must cover multiple sources asking
    the same thing, similar wording about different elements, and stable output
    across reruns; grouping must never imply that an unanswered control exists.
+   Implemented as presentation-only groups with a linked, deterministic
+   five-task starting queue. The sample retains 45 underlying questions and
+   displays 38 review tasks; source facts and question IDs remain unchanged.
 2. **Unresolved identity visibility:** show exact-name cross-source duplicates
    and other evidence-backed possible matches in a separate review section,
    including source pointers and a reason for the suggestion. Keep all nodes

@@ -43,7 +43,9 @@ unverified extraction claims:
    Document- and diagram-scoped Mermaid IDs plus a read-only legacy-ID preview
    are implemented. Cross-source identity aliases and acceptance/migration of
    reviewed identities remain pending; ambiguous legacy IDs are never mapped
-   automatically.
+   automatically. The Quick Start review also showed distinct nodes with the
+   same display name; surface these as possible identity matches with their
+   sources, without inventing an alias or a missing data flow.
 3. **P0 — canonical 0.2:** separate observations, facts, inferences, and
    assessments in storage. Add attribute-level evidence and a version-aware
    reader/migrator before releasing 0.2. The version-aware inspection reader
@@ -60,14 +62,19 @@ unverified extraction claims:
    `analyze`, `render`, `check`, and
    candidate merge remain 0.1-only; 0.2 is not yet the default writer or part
    of the fact-acceptance policy.
-4. **P1 — evaluated baseline:** build expert-labeled positive and negative
+4. **P1 — first-run review usability:** turn the sample's long question list
+   into a navigable review queue without discarding Unknowns or Evidence. Make
+   possible duplicate identities visible, distinguish assessment confidence
+   from review priority, and verify the documented Quick Start in a clean
+   environment. Detailed acceptance criteria follow below.
+5. **P1 — evaluated baseline:** build expert-labeled positive and negative
    fixtures across extraction, STRIDE, ATT&CK, questions, and review priority.
    Measure false candidates and model precision before setting CI thresholds.
-5. **P1 — Model Diff:** stabilize semantic IDs and fingerprints, then compare a
+6. **P1 — Model Diff:** stabilize semantic IDs and fingerprints, then compare a
    reviewed baseline with the current model. Initially produce a full,
    deterministic diff; optimize affected-graph re-analysis only after parity
    tests show it does not omit changed candidates.
-6. **P1 — reviewer lifecycle and CI:** persist decisions separately from the
+7. **P1 — reviewer lifecycle and CI:** persist decisions separately from the
    architecture model. Add SQLite only once identity/diff semantics are stable.
    Keep CI gates opt-in, based on newly unreviewed candidates rather than the
    presence of any candidate.
@@ -127,6 +134,53 @@ Raw artifact
   -> accepted facts + explicit inferences + unknowns
   -> system_model.json
 ```
+
+### P1: First-Run Review Usability
+
+The October 2026 Quick Start walkthrough completed successfully and produced
+deterministic artifacts, but its sample output had 45 questions and several
+visually repeated prompts. The DFD also showed separate same-name nodes from
+different sources. These are presentation and identity-review problems, not
+permission to merge evidence or suppress unknown facts.
+
+Delivery order and acceptance criteria:
+
+1. **Question triage (first):** group questions by reviewed subject and intent in
+   the presentation layer, preserving every question ID, Unknown, and Evidence
+   pointer in `system_model.json` and the detailed question artifact. Show a
+   deterministic top 3–5 review queue in `review.md` with links or stable IDs
+   leading to the full details. Keep the raw question count distinct from the
+   number of grouped review tasks. Tests must cover multiple sources asking
+   the same thing, similar wording about different elements, and stable output
+   across reruns; grouping must never imply that an unanswered control exists.
+2. **Unresolved identity visibility:** show exact-name cross-source duplicates
+   and other evidence-backed possible matches in a separate review section,
+   including source pointers and a reason for the suggestion. Keep all nodes
+   and edges distinct in the canonical model and DFD until an explicit reviewed
+   alias is accepted. Test both an unambiguous same-name suggestion and an
+   ambiguous case where no alias can be accepted automatically.
+3. **Metric explanation:** add a short legend to `review.md` and the Quick Start
+   separating STRIDE/ATT&CK candidate confidence from risk *review priority*.
+   A high-confidence candidate may still have Low review priority; neither is
+   vulnerability severity or proof of exploitability. Keep the scoring rules
+   unchanged in this documentation/presentation step and add a regression
+   assertion for the sample's mixed-scale output.
+4. **Cold-start verification:** run the documented clone and
+   `uv run tm-ai analyze` commands from a clean checkout and Python 3.12+
+   environment without preinstalled project dependencies or an LLM key. Verify
+   the seven files, `model validate`, deterministic rerun, and the documented
+   high/low risk-check exit codes. Add an automated smoke test where practical
+   and record any platform or network prerequisite that cannot be CI-tested.
+5. **Evidence-path portability:** replace machine-specific absolute paths in
+   generated Evidence for files inside the analyzed project with stable
+   project-relative paths. Define how explicit inputs outside that root are
+   represented before changing their output, and update golden fixtures and
+   compatibility tests. Reports must not disclose the operator's home path
+   merely because they are shared for review.
+
+Do not add an LLM dependency to any of these tasks. Re-run the Japanese Quick
+Start as a reader after each presentation change; preserve the no-LLM path and
+the existing model/DFD semantics.
 
 ### P1: Gold Standard Evaluation
 

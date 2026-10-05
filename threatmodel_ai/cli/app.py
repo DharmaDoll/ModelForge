@@ -21,8 +21,6 @@ from threatmodel_ai.model.io import (
     write_system_model,
 )
 from threatmodel_ai.model.migration import migrate_system_model
-from threatmodel_ai.model.resolution import resolve_system_model_v02
-from threatmodel_ai.model.schema_v02 import SystemModelV02
 from threatmodel_ai.pipeline import (
     analyze_project,
     build_artifact_preview,
@@ -432,12 +430,7 @@ def validate_model(
 
     if check_generators:
         try:
-            analysis_model = (
-                resolve_system_model_v02(model).model
-                if isinstance(model, SystemModelV02)
-                else model
-            )
-            build_artifact_preview(analysis_model)
+            build_artifact_preview(model)
         except Exception as exc:
             _echo_error("Generator compatibility check failed.", detail=str(exc))
             raise typer.Exit(code=1) from exc

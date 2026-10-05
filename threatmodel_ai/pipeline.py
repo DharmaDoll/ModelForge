@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from threatmodel_ai.attack import generate_attack_findings
+from threatmodel_ai.analysis import analyze_canonical_model, analyze_model
 from threatmodel_ai.dfd import render_mermaid
 from threatmodel_ai.errors import AnalysisInputError
 from threatmodel_ai.extract import (
@@ -25,7 +25,8 @@ from threatmodel_ai.llm import (
 from threatmodel_ai.model.io import write_system_model
 from threatmodel_ai.model.observations import ObservationBatch, normalize_observation_batches
 from threatmodel_ai.model.schema import SystemModel
-from threatmodel_ai.questions import Question, generate_questions
+from threatmodel_ai.model.schema_v02 import SystemModelV02
+from threatmodel_ai.questions import Question
 from threatmodel_ai.report import (
     render_attack_markdown,
     render_questions_markdown,
@@ -33,8 +34,6 @@ from threatmodel_ai.report import (
     render_risks_markdown,
     render_threats_markdown,
 )
-from threatmodel_ai.risk import score_risks
-from threatmodel_ai.stride import generate_threats
 
 
 @dataclass(frozen=True)
@@ -170,6 +169,8 @@ def analyze_project(
 def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
     """Write deterministic artifacts from a validated system model."""
 
+    if isinstance(model, SystemModelV02):
+        raise ValueError("0.2 report writing is not enabled; use the in-memory preview")
     preview = build_artifact_preview(model)
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -202,21 +203,29 @@ def render_model_artifacts(model: SystemModel, out_dir: Path) -> RenderResult:
     )
 
 
-def build_artifact_preview(model: SystemModel) -> ArtifactPreview:
+def build_artifact_preview(model: SystemModel | SystemModelV02) -> ArtifactPreview:
     """Exercise every deterministic generator without persisting a resolved view."""
 
-    threats = generate_threats(model)
-    attack_findings = generate_attack_findings(model)
-    risks = score_risks(model, threats, attack_findings)
-    questions = generate_questions(model)
+    results = (
+        analyze_canonical_model(model)
+        if isinstance(model, SystemModelV02)
+        else analyze_model(model)
+    )
+    analysis_model = results.model
     return ArtifactPreview(
-        dfd=render_mermaid(model),
-        threats=render_threats_markdown(threats),
-        attack=render_attack_markdown(attack_findings),
-        risk=render_risks_markdown(risks),
-        questions_markdown=render_questions_markdown(questions),
-        review=render_review_markdown(model, threats, attack_findings, risks, questions),
-        questions=tuple(questions),
+        dfd=render_mermaid(analysis_model),
+        threats=render_threats_markdown(results.threats),
+        attack=render_attack_markdown(results.attack_findings),
+        risk=render_risks_markdown(results.risks),
+        questions_markdown=render_questions_markdown(results.questions),
+        review=render_review_markdown(
+            analysis_model,
+            results.threats,
+            results.attack_findings,
+            results.risks,
+            results.questions,
+        ),
+        questions=tuple(results.questions),
     )
 
 

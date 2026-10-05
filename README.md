@@ -112,6 +112,10 @@ comparison; migration does not verify old claims against source files.
 `--check-generators` also exercises DFD, STRIDE, ATT&CK, risk, questions, and
 Markdown renderers in memory without writing reports. It checks compatibility,
 not the correctness of the source claims or the quality of the generated findings.
+For 0.2, the internal preview cites an applied inference ID in a candidate's
+`derived_from` only when removing that inference changes the candidate. This
+counterfactual check is conservative and costs additional generator passes for
+each applied inference group; it is not yet a public 0.2 report format.
 `analyze`, `render`, `check`, and `candidates merge` still consume or emit 0.1;
 do not pass a 0.2 model to those commands yet. No LLM is used by validation or
 migration.

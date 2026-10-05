@@ -12,7 +12,7 @@ from threatmodel_ai.model.io import read_versioned_system_model
 from threatmodel_ai.model.migration import migrate_system_model
 from threatmodel_ai.model.resolution import resolve_system_model_v02
 from threatmodel_ai.model.schema_v02 import SystemModelV02
-from threatmodel_ai.pipeline import build_artifact_preview
+from threatmodel_ai.pipeline import build_artifact_preview, render_model_artifacts
 
 LEGACY = Path(__file__).parent / "fixtures" / "golden" / "sample-system" / "system_model.json"
 RUNNER = CliRunner()
@@ -109,6 +109,11 @@ def test_generator_compatibility_check_is_read_only_for_both_versions(tmp_path: 
     assert resolved_preview.risk == legacy_preview.risk
     assert resolved_preview.questions_markdown
     assert resolved_preview.review
+
+    report_dir = tmp_path / "reports"
+    with pytest.raises(ValueError, match="0.2 report writing is not enabled"):
+        render_model_artifacts(canonical, report_dir)
+    assert not report_dir.exists()
 
 
 def test_migrate_refuses_input_and_existing_output(tmp_path: Path) -> None:

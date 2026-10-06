@@ -46,6 +46,13 @@ unverified extraction claims:
    automatically. The Quick Start review also showed distinct nodes with the
    same display name; surface these as possible identity matches with their
    sources, without inventing an alias or a missing data flow.
+   Terraform IDs and references are now scoped by source directory, retaining
+   root-level IDs. This prevents separate local modules with the same resource
+   names from merging. Same-directory duplicate declarations now produce a
+   `model_conflict` Unknown with both source pointers; their nodes and
+   dependent edges are not accepted. Do not automatically carry reviewer
+   decisions from historical unscoped IDs to newly scoped IDs. Explicit
+   Terraform module boundaries beyond source directories remain unmodeled.
 3. **P0 — canonical 0.2:** separate observations, facts, inferences, and
    assessments in storage. Add attribute-level evidence and a version-aware
    reader/migrator before releasing 0.2. The version-aware inspection reader
@@ -70,14 +77,34 @@ unverified extraction claims:
 5. **P1 — evaluated baseline:** build expert-labeled positive and negative
    fixtures across extraction, STRIDE, ATT&CK, questions, and review priority.
    Measure false candidates and model precision before setting CI thresholds.
-6. **P1 — Model Diff:** stabilize semantic IDs and fingerprints, then compare a
+6. **P1 — developer-answer review loop:** capture answers to stable question
+   IDs as sourced, reviewable observations. Preview conflicts and model changes
+   before explicit acceptance; do not equate a developer's claim with verified
+   implementation. Re-run deterministic analysis after accepted changes. The
+   capture/preview workflow can precede Model Diff; carrying review decisions
+   across runs depends on stable identity and diff semantics.
+7. **P1 — business context and ingestion visibility:** capture business scope,
+   assets, assumptions, and constraints as sourced, reviewable observations;
+   report what each input adapter did and did not extract. Establish an honest
+   baseline before adding diagram formats or LLM-generated context. The first
+   `ingestion.json` slice reports selected-file and structured-proposal counts
+   plus recognized/skipped Mermaid syntax and OpenAPI path/HTTP-operation
+   declarations. Terraform now reports recognized resource blocks and ID
+   collisions; unsupported HCL syntax and comparable coverage metrics remain
+   pending.
+8. **P1 — Model Diff:** stabilize semantic IDs and fingerprints, then compare a
    reviewed baseline with the current model. Initially produce a full,
    deterministic diff; optimize affected-graph re-analysis only after parity
    tests show it does not omit changed candidates.
-7. **P1 — reviewer lifecycle and CI:** persist decisions separately from the
+9. **P1 — reviewer lifecycle and CI:** persist decisions separately from the
    architecture model. Add SQLite only once identity/diff semantics are stable.
    Keep CI gates opt-in, based on newly unreviewed candidates rather than the
    presence of any candidate.
+10. **P1 — playbook-guided review questions:** pilot selected OWASP Secure Agent
+   Playbook API and IaC checks as versioned question/verification guidance over
+   supported model facts and unknowns. Evaluate usefulness and false prompts
+   against expert-reviewed fixtures before expanding the catalog or adding an
+   optional LLM discussion assistant.
 
 Each stage needs unit tests, reviewed regression fixtures, an unchanged default
 no-LLM path, and documentation of known unknowns before moving to the next.
@@ -174,7 +201,7 @@ Delivery order and acceptance criteria:
 4. **Cold-start verification:** run the documented clone and
    `uv run tm-ai analyze` commands from a clean checkout and Python 3.12+
    environment without preinstalled project dependencies or an LLM key. Verify
-   the seven files, `model validate`, deterministic rerun, and the documented
+   the expected artifacts, `model validate`, deterministic rerun, and the documented
    high/low risk-check exit codes. Add an automated smoke test where practical
    and record any platform or network prerequisite that cannot be CI-tested.
 5. **Evidence-path portability:** replace machine-specific absolute paths in
@@ -211,6 +238,95 @@ Deliverables:
   an LLM in the default unit-test suite.
 * Make rule, schema, and prompt regressions visible in CI while keeping approval
   thresholds explicitly configured.
+
+### P1: Developer-Answer Review Loop
+
+Make developer conversations a traceable input to Continuous Threat Modeling,
+not an unrecorded edit to a generated report.
+
+Deliverables and acceptance criteria:
+
+* Give each answer a stable question/subject reference, respondent, timestamp,
+  scope/environment, original statement, and evidence pointer. Distinguish a
+  developer assertion or intended design from independently verified behavior;
+  neither confidence nor repetition is proof of implementation.
+* Convert answers into typed `CandidateObservation` records. Provide a CLI
+  import/preview/accept-or-reject workflow using the canonical acceptance policy;
+  an answer must not silently overwrite a deterministic fact, resolve a conflict,
+  or close an unknown. Preserve the original answer and reviewer decision in an
+  auditable record separate from accepted model facts.
+* On explicit acceptance, validate the updated model and regenerate DFD,
+  questions, STRIDE, ATT&CK, and reports deterministically. Once Model Diff and
+  reviewer lifecycle exist, show what changed and reopen decisions when their
+  supporting context changes; never transfer decisions across ambiguous IDs.
+* Test conflicting answers, unsupported claims, stale question IDs, changed
+  environments, repeat imports, rejected answers, and deterministic reruns.
+  Preserve a complete no-LLM workflow and avoid logging confidential answers.
+
+### P1: Business Context and Ingestion Visibility
+
+[Threat Thinker](https://github.com/melonattacker/threat-thinker) shows the
+practical value of business context and diagram-import metrics. Adapt those
+ideas to ModelForge's evidence-backed, no-LLM-default pipeline rather than
+adopting LLM-completed architecture or threat generation.
+
+Deliverables and acceptance criteria:
+
+* Define a versioned, structured business-context input for review scope,
+  critical assets, data sensitivity, workflows, availability needs, assumptions,
+  and constraints. Map only supported claims into typed observations with source
+  locations and verification status; retain unsupported narrative as context or
+  questions. Reuse the developer-answer acceptance and conflict rules so a
+  stated intention cannot silently override observed implementation.
+* Emit deterministic per-input ingestion diagnostics: discovered inputs,
+  recognized and parsed items, proposed and accepted observations, unresolved or
+  conflicting claims, and unsupported or failed items. Define denominators and
+  distinguish parser coverage from architectural completeness; never report a
+  single misleading completeness percentage. Keep private source text and
+  machine-specific paths out of shared summaries. Begin with per-adapter
+  selected-file/batch/proposal counts and normalized-model counts, then add
+  item-level diagnostics only when adapters can supply honest denominators.
+  Mermaid now reports closed/unclosed fences, supported/unsupported diagram
+  blocks, and parsed/skipped nonblank statements without changing extraction;
+  OpenAPI reports declared paths and HTTP operations versus malformed entries
+  skipped by its current parser. Terraform reports recognized resource blocks,
+  files with none, and ID collisions, but cannot count all valid HCL resources
+  with its current heuristic. These are not architectural-completeness metrics.
+* Add positive and negative fixtures for absent context, conflicting scope,
+  unverified controls, partially parsed diagrams, and reruns. Evaluate whether
+  context improves question usefulness and threat relevance without increasing
+  unsupported model facts or silently suppressing unknowns.
+* If optional retrieval or LLM discussion is added later, select minimum
+  necessary, approved context under the External LLM Data Policy. A local
+  knowledge-base lookup does not itself authorize transmitting retrieved text
+  to an external provider.
+
+### P1: Playbook-Guided Review Questions
+
+Use the [OWASP Secure Agent Playbook](https://github.com/OWASP/secure-agent-playbook)
+as a source of review *methodology*, not as an executable dependency or an
+authority for architecture facts. Pilot its
+[API Security Review](https://github.com/OWASP/secure-agent-playbook/blob/main/plugins/code-security-skills/plays/api-security-review.md)
+and [IaC Security Review](https://github.com/OWASP/secure-agent-playbook/blob/main/plugins/code-security-skills/plays/iac-security-review.md)
+procedures because OpenAPI and Terraform are current input types.
+
+Deliverables and acceptance criteria:
+
+* Curate a small, versioned mapping from supported model facts/unknowns to
+  specific review questions, verification steps, and source references. A
+  missing declaration can produce a question, but must not be treated as a
+  missing control or a confirmed vulnerability. Keep question IDs and evidence
+  links stable and deduplicate at the review-presentation layer only.
+* Compare question usefulness, unsupported-question rate, and duplicates with
+  the deterministic baseline on expert-reviewed positive and negative fixtures.
+  Do not increase default question volume merely to cover a checklist.
+* Keep active API testing, source-code vulnerability scanning, and autonomous
+  security agents outside this milestone. Consider the playbook's
+  [multi-agent threat-model procedure](https://github.com/OWASP/secure-agent-playbook/blob/main/plugins/ai-security-skills/plays/multi-agentic-threat-model.md)
+  only when agent-system modeling becomes an explicit supported domain.
+* Record upstream version and attribution for any adapted material. The
+  playbook is [CC BY 4.0](https://github.com/OWASP/secure-agent-playbook/blob/main/LICENSE.md);
+  do not copy its templates or text without the required attribution.
 
 ### P1: Model Diff and Threat Delta
 
@@ -366,6 +482,9 @@ Recommended initial uses:
 * Refine wording for deterministic STRIDE, ATT&CK, risk, and mitigation descriptions
 * Improve clarification question wording
 * Assist with non-structured document ingestion such as ADRs, design notes, and wiki exports
+* Optionally discuss approved model context and developer answers to propose
+  follow-up questions, attack paths, and verification steps; retain every
+  suggestion as a review candidate, never an accepted fact or closed finding
 
 Constraints:
 
@@ -440,7 +559,11 @@ Future work:
 * Model Diff and Threat Delta in pull requests
 * Threat-review lifecycle and persistence of reviewer decisions
 * Jira tickets
-* Threat Dragon export
+* Threat Dragon import/export round-trip after stable model IDs and review-state
+  semantics: preserve source layout and cell identity where possible, attach
+  evidence-linked threat candidates, and test no-op round trips and ambiguous
+  mappings. Keep the canonical model authoritative rather than treating an
+  exported diagram as a second source of truth.
 * AWS Config ingestion
 * Kubernetes ingestion
 * SBOM integration

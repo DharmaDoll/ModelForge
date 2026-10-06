@@ -82,6 +82,7 @@ uv run tm-ai check ./out/sample-system/system_model.json --fail-on high
 | `review.md` / `risk.md` | 全体像とレビュー順を決める。 |
 | `threats.md` / `attack.md` | STRIDE と MITRE ATT&CK の候補を検討する。 |
 | `questions.md` | 不明点を担当者に確認する。 |
+| `ingestion.json` | 入力種別ごとの抽出候補数、Mermaid・OpenAPI の解析／スキップ件数、Terraform の認識リソース数と ID 衝突数を見る。構成の網羅率ではない。 |
 
 自分のリポジトリで試すときは、生成先を分析対象の**外側**に置くと、次回の自動検出で生成された Markdown を再入力することを避けられます。機密性の高い設計を扱う場合も、保存先のアクセス権や共有範囲を確認してください。通常モードはローカル処理ですが、生成レポートには構成情報が含まれます。
 

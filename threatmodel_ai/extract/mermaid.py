@@ -7,6 +7,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from threatmodel_ai.errors import InputFormatError
+from threatmodel_ai.ingest.diagnostics import MermaidParseMetrics
 from threatmodel_ai.model.evidence import merge_evidence
 from threatmodel_ai.model.ids import make_id, short_hash, slugify
 from threatmodel_ai.model.observations import (
@@ -59,19 +60,32 @@ def extract_mermaid_markdown(path: Path, *, identity_root: Path | None = None) -
 def observe_mermaid_markdown(path: Path, *, identity_root: Path | None = None) -> ObservationBatch:
     """Extract evidence-bearing candidate observations from Mermaid Markdown."""
 
+    batch, _ = observe_mermaid_markdown_with_diagnostics(path, identity_root=identity_root)
+    return batch
+
+
+def observe_mermaid_markdown_with_diagnostics(
+    path: Path, *, identity_root: Path | None = None
+) -> tuple[ObservationBatch, MermaidParseMetrics]:
+    """Extract observations and count recognized or skipped Mermaid syntax."""
+
     evidence = Evidence(
         source_type=SourceType.MARKDOWN,
         source_path=str(path),
         extractor="mermaid",
         detail="Markdown document",
     )
-    return model_to_observation_batch(
-        _extract_mermaid_model(path, identity_root=identity_root),
+    metrics = MermaidParseMetrics()
+    batch = model_to_observation_batch(
+        _extract_mermaid_model(path, identity_root=identity_root, metrics=metrics),
         fallback_evidence=[evidence],
     )
+    return batch, metrics
 
 
-def _extract_mermaid_model(path: Path, *, identity_root: Path | None) -> SystemModel:
+def _extract_mermaid_model(
+    path: Path, *, identity_root: Path | None, metrics: MermaidParseMetrics
+) -> SystemModel:
     """Build the Mermaid adapter's proposed model before normalization."""
 
     text = path.read_text(encoding="utf-8")
@@ -81,9 +95,15 @@ def _extract_mermaid_model(path: Path, *, identity_root: Path | None) -> SystemM
     document_scope = _document_scope(path, identity_root or path.parent)
 
     block_index = 0
-    for block_start_line, block in _mermaid_blocks(text):
-        if not any(_DIAGRAM_HEADER_RE.match(line) for line in block):
+    for block_start_line, block, closed in _mermaid_blocks(text):
+        if not closed:
+            metrics.unclosed_fences += 1
             continue
+        metrics.closed_fences += 1
+        if not any(_DIAGRAM_HEADER_RE.match(line) for line in block):
+            metrics.unsupported_diagram_blocks += 1
+            continue
+        metrics.flowchart_blocks += 1
         block_index += 1
         _extract_block(
             path,
@@ -94,6 +114,7 @@ def _extract_mermaid_model(path: Path, *, identity_root: Path | None) -> SystemM
             nodes,
             edges,
             unknowns,
+            metrics,
         )
 
     return SystemModel(
@@ -133,7 +154,7 @@ def _scoped_id(kind: str, document_scope: str, block_index: int, alias: str) -> 
     )
 
 
-def _mermaid_blocks(text: str) -> Iterator[tuple[int, list[str]]]:
+def _mermaid_blocks(text: str) -> Iterator[tuple[int, list[str], bool]]:
     in_block = False
     block: list[str] = []
     block_start_line = 1
@@ -145,11 +166,13 @@ def _mermaid_blocks(text: str) -> Iterator[tuple[int, list[str]]]:
             continue
         if in_block and _FENCE_END_RE.match(line):
             in_block = False
-            yield block_start_line, block
+            yield block_start_line, block, True
             block = []
             continue
         if in_block:
             block.append(line)
+    if in_block:
+        yield block_start_line, block, False
 
 
 def _extract_block(
@@ -161,6 +184,7 @@ def _extract_block(
     nodes: dict[str, Node],
     edges: dict[str, Edge],
     unknowns: dict[str, Unknown],
+    metrics: MermaidParseMetrics,
 ) -> None:
     boundary_stack: list[str] = []
     for block_line_number, raw_line in enumerate(block, start=1):
@@ -181,20 +205,28 @@ def _extract_block(
             )
             nodes[boundary.id] = _merge_node(nodes.get(boundary.id), boundary, path)
             boundary_stack.append(boundary.id)
+            metrics.parsed_statements += 1
             continue
         if _END_RE.match(line):
             if boundary_stack:
                 boundary_stack.pop()
+                metrics.parsed_statements += 1
+            else:
+                metrics.skipped_statements += 1
             continue
 
         match = _EDGE_RE.match(line)
         if not match:
+            metrics.skipped_statements += 1
             continue
 
         left = _parse_node(match.group("left"))
         right = _parse_node(match.group("right"))
         if not left or not right:
+            metrics.skipped_statements += 1
             continue
+
+        metrics.parsed_statements += 1
 
         label = (match.group("label") or "").strip()
         trust_boundary_id = boundary_stack[-1] if boundary_stack else None

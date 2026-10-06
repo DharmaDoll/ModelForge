@@ -10,12 +10,20 @@ from threatmodel_ai.analysis import analyze_canonical_model, analyze_model
 from threatmodel_ai.dfd import render_mermaid
 from threatmodel_ai.errors import AnalysisInputError
 from threatmodel_ai.extract import (
-    observe_mermaid_markdown,
-    observe_openapi,
     observe_readme,
-    observe_terraform,
 )
+from threatmodel_ai.extract.mermaid import observe_mermaid_markdown_with_diagnostics
+from threatmodel_ai.extract.openapi import observe_openapi_with_diagnostics
+from threatmodel_ai.extract.terraform import observe_terraform_with_diagnostics
 from threatmodel_ai.ingest import AnalysisInputs
+from threatmodel_ai.ingest.diagnostics import (
+    ADAPTER_ORDER,
+    AdapterName,
+    MermaidParseMetrics,
+    OpenApiParseMetrics,
+    TerraformParseMetrics,
+    summarize_ingestion,
+)
 from threatmodel_ai.llm import (
     LLMClient,
     OpenAIResponsesClient,
@@ -63,6 +71,7 @@ class AnalysisResult:
     risk_path: Path
     questions_path: Path
     review_path: Path
+    ingestion_path: Path
     questions_refined_path: Path | None = None
     llm_candidates_path: Path | None = None
 
@@ -90,16 +99,35 @@ def analyze_project(
     """Run deterministic extraction and write all MVP artifacts."""
 
     observation_batches: list[ObservationBatch] = []
+    batches_by_adapter: dict[AdapterName, list[ObservationBatch]] = {
+        adapter: [] for adapter in ADAPTER_ORDER
+    }
+    mermaid_parse = MermaidParseMetrics()
+    openapi_parse = OpenApiParseMetrics()
+    terraform_parse = TerraformParseMetrics()
+    markdown_paths = _markdown_paths(inputs)
     if inputs.readme:
-        observation_batches.append(observe_readme(inputs.readme))
-    for markdown_path in _markdown_paths(inputs):
-        mermaid_observations = observe_mermaid_markdown(markdown_path, identity_root=inputs.target)
+        batch = observe_readme(inputs.readme)
+        observation_batches.append(batch)
+        batches_by_adapter["readme"].append(batch)
+    for markdown_path in markdown_paths:
+        mermaid_observations, document_metrics = observe_mermaid_markdown_with_diagnostics(
+            markdown_path, identity_root=inputs.target
+        )
+        mermaid_parse.add(document_metrics)
         if _has_topology_observations(mermaid_observations):
             observation_batches.append(mermaid_observations)
+            batches_by_adapter["mermaid"].append(mermaid_observations)
     if inputs.openapi:
-        observation_batches.append(observe_openapi(inputs.openapi))
+        batch, openapi_parse = observe_openapi_with_diagnostics(inputs.openapi)
+        observation_batches.append(batch)
+        batches_by_adapter["openapi"].append(batch)
     if inputs.terraform:
-        observation_batches.append(observe_terraform(inputs.terraform))
+        batch, terraform_parse = observe_terraform_with_diagnostics(
+            inputs.terraform, identity_root=inputs.target
+        )
+        observation_batches.append(batch)
+        batches_by_adapter["terraform"].append(batch)
     if not observation_batches:
         raise AnalysisInputError(
             f"No supported input files were found under {inputs.target}.",
@@ -113,6 +141,24 @@ def analyze_project(
 
     model = normalize_observation_batches(observation_batches)
     render_result = render_model_artifacts(model, out_dir)
+    diagnostics = summarize_ingestion(
+        selected_files={
+            "readme": int(inputs.readme is not None),
+            "mermaid": len(markdown_paths),
+            "openapi": int(inputs.openapi is not None),
+            "terraform": len(inputs.terraform),
+        },
+        batches_by_adapter=batches_by_adapter,
+        model=model,
+        mermaid_parse=mermaid_parse,
+        openapi_parse=openapi_parse,
+        terraform_parse=terraform_parse,
+    )
+    ingestion_path = out_dir / "ingestion.json"
+    ingestion_path.write_text(
+        json.dumps(diagnostics.model_dump(mode="json"), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     questions_refined_path: Path | None = None
     llm_candidates_path: Path | None = None
 
@@ -161,6 +207,7 @@ def analyze_project(
         risk_path=render_result.risk_path,
         questions_path=render_result.questions_path,
         review_path=render_result.review_path,
+        ingestion_path=ingestion_path,
         questions_refined_path=questions_refined_path,
         llm_candidates_path=llm_candidates_path,
     )

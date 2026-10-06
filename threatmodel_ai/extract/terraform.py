@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 import re
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
 from threatmodel_ai.errors import InputFormatError
-from threatmodel_ai.model.ids import make_id
+from threatmodel_ai.ingest.diagnostics import TerraformParseMetrics
+from threatmodel_ai.model.ids import make_id, short_hash, slugify
 from threatmodel_ai.model.observations import (
     ObservationBatch,
     model_to_observation_batch,
@@ -85,14 +87,27 @@ _BOUNDARY_PRIORITY = {
 }
 
 
-def extract_terraform(paths: Iterable[Path]) -> SystemModel:
+def extract_terraform(
+    paths: Iterable[Path], *, identity_root: Path | None = None
+) -> SystemModel:
     """Extract cloud resources and Terraform dependency edges from .tf files."""
 
-    return normalize_observation_batch(observe_terraform(paths))
+    return normalize_observation_batch(observe_terraform(paths, identity_root=identity_root))
 
 
-def observe_terraform(paths: Iterable[Path]) -> ObservationBatch:
+def observe_terraform(
+    paths: Iterable[Path], *, identity_root: Path | None = None
+) -> ObservationBatch:
     """Extract evidence-bearing candidate observations from Terraform files."""
+
+    batch, _ = observe_terraform_with_diagnostics(paths, identity_root=identity_root)
+    return batch
+
+
+def observe_terraform_with_diagnostics(
+    paths: Iterable[Path], *, identity_root: Path | None = None
+) -> tuple[ObservationBatch, TerraformParseMetrics]:
+    """Extract observations and count resource blocks recognized by the adapter."""
 
     path_list = tuple(paths)
     fallback_evidence = [
@@ -104,23 +119,66 @@ def observe_terraform(paths: Iterable[Path]) -> ObservationBatch:
         )
         for path in path_list
     ]
-    return model_to_observation_batch(
-        _extract_terraform_model(path_list),
+    metrics = TerraformParseMetrics()
+    root = identity_root or _common_parent(path_list)
+    batch = model_to_observation_batch(
+        _extract_terraform_model(path_list, identity_root=root, metrics=metrics),
         fallback_evidence=fallback_evidence,
     )
+    return batch, metrics
 
 
-def _extract_terraform_model(paths: Iterable[Path]) -> SystemModel:
+def _extract_terraform_model(
+    paths: Iterable[Path], *, identity_root: Path, metrics: TerraformParseMetrics
+) -> SystemModel:
     """Build the Terraform adapter's proposed model before normalization."""
 
-    resources = list(_collect_resources(paths))
+    path_list = tuple(paths)
+    resources = list(_collect_resources(path_list))
+    resource_groups: dict[str, list[_TerraformResource]] = {}
+    for resource in resources:
+        node_id = _resource_id(
+            resource.resource_type,
+            resource.name,
+            _module_scope(resource.path, identity_root),
+        )
+        resource_groups.setdefault(node_id, []).append(resource)
+    selected_paths = {path.resolve() for path in path_list}
+    recognized_paths = {item.path.resolve() for item in resources}
+    metrics.files_without_recognized_resources = len(selected_paths - recognized_paths)
+    metrics.resource_blocks_recognized = len(resources)
+    metrics.distinct_resource_ids = len(resource_groups)
+    metrics.colliding_resource_declarations = len(resources) - len(resource_groups)
     nodes: dict[str, Node] = {}
     resource_blocks: dict[str, str] = {}
+    resource_scopes: dict[str, str | None] = {}
     unknowns: list[Unknown] = []
+
+    conflicted_ids = {
+        node_id for node_id, group in resource_groups.items() if len(group) > 1
+    }
+    for node_id in sorted(conflicted_ids):
+        group = resource_groups[node_id]
+        evidence = [_resource_evidence(resource) for resource in group]
+        unknowns.append(
+            Unknown(
+                id=make_id("unknown", "terraform", node_id, "identity-conflict"),
+                category="model_conflict",
+                description=(
+                    f"Multiple Terraform declarations map to {node_id}; "
+                    "their attributes and references were not accepted."
+                ),
+                evidence=evidence[0],
+                conflicting_evidence=evidence[1:],
+            )
+        )
 
     for resource in resources:
         node_type = _node_type_for(resource.resource_type)
-        node_id = _resource_id(resource.resource_type, resource.name)
+        module_scope = _module_scope(resource.path, identity_root)
+        node_id = _resource_id(resource.resource_type, resource.name, module_scope)
+        if node_id in conflicted_ids:
+            continue
         attributes = _extract_attributes(_strip_hcl_comments(resource.body))
         display_name = _display_name(resource.resource_type, resource.name, attributes)
         metadata = {
@@ -136,15 +194,7 @@ def _extract_terraform_model(paths: Iterable[Path]) -> SystemModel:
             type=node_type,
             description=f"Terraform resource {resource.resource_type}.{resource.name}",
             metadata=metadata,
-            evidence=[
-                Evidence(
-                    source_type=SourceType.TERRAFORM,
-                    source_path=str(resource.path),
-                    extractor="terraform",
-                    detail=f'resource "{resource.resource_type}" "{resource.name}"',
-                    line=resource.line,
-                )
-            ],
+            evidence=[_resource_evidence(resource)],
         )
         if (
             resource.resource_type in _LOAD_BALANCER_TYPES
@@ -163,9 +213,10 @@ def _extract_terraform_model(paths: Iterable[Path]) -> SystemModel:
                 )
             )
         resource_blocks[node_id] = resource.body
+        resource_scopes[node_id] = module_scope
 
-    nodes = _assign_trust_boundaries(nodes, resource_blocks)
-    edges = _extract_edges(nodes, resource_blocks)
+    nodes = _assign_trust_boundaries(nodes, resource_blocks, resource_scopes)
+    edges = _extract_edges(nodes, resource_blocks, resource_scopes)
     _add_internet_entrypoints(nodes, edges)
 
     for node in nodes.values():
@@ -212,7 +263,7 @@ def _extract_terraform_model(paths: Iterable[Path]) -> SystemModel:
         nodes=sorted(nodes.values(), key=lambda node: (node.type.value, node.id)),
         edges=sorted(edges.values(), key=lambda edge: (edge.type.value, edge.id)),
         unknowns=sorted(unknowns, key=lambda unknown: unknown.id),
-        metadata={"terraform_files": sorted(str(path) for path in paths)},
+        metadata={"terraform_files": sorted(str(path) for path in path_list)},
     )
 
 
@@ -230,6 +281,18 @@ class _TerraformResource:
         self.name = name
         self.body = body
         self.line = line
+
+
+def _resource_evidence(resource: _TerraformResource) -> Evidence:
+    """Point to one resource declaration without copying its source text."""
+
+    return Evidence(
+        source_type=SourceType.TERRAFORM,
+        source_path=str(resource.path),
+        extractor="terraform",
+        detail=f'resource "{resource.resource_type}" "{resource.name}"',
+        line=resource.line,
+    )
 
 
 def _collect_resources(paths: Iterable[Path]) -> Iterator[_TerraformResource]:
@@ -322,8 +385,32 @@ def _node_type_for(resource_type: str) -> NodeType:
     return NodeType.COMPONENT
 
 
-def _resource_id(resource_type: str, name: str) -> str:
-    return make_id("terraform", resource_type, name)
+def _common_parent(paths: tuple[Path, ...]) -> Path:
+    """Choose a fallback root when an adapter is called outside the CLI."""
+
+    if not paths:
+        return Path.cwd()
+    return Path(os.path.commonpath([str(path.resolve().parent) for path in paths]))
+
+
+def _module_scope(path: Path, identity_root: Path) -> str | None:
+    """Scope a Terraform resource to its directory without checkout-specific IDs."""
+
+    parent = path.resolve().parent
+    try:
+        relative = parent.relative_to(identity_root.resolve())
+    except ValueError:
+        return f"external-{slugify(parent.name)}-{short_hash(parent, length=10)}"
+    if not relative.parts:
+        return None
+    relative_text = relative.as_posix()
+    return f"{slugify(relative_text)}-{short_hash(relative_text, length=10)}"
+
+
+def _resource_id(resource_type: str, name: str, module_scope: str | None = None) -> str:
+    if module_scope is None:
+        return make_id("terraform", resource_type, name)
+    return make_id("terraform", module_scope, resource_type, name)
 
 
 def _display_name(resource_type: str, name: str, attributes: dict[str, str]) -> str:
@@ -344,6 +431,7 @@ def _is_internet_exposed(resource_type: str, attributes: dict[str, str]) -> bool
 def _assign_trust_boundaries(
     nodes: dict[str, Node],
     resource_blocks: dict[str, str],
+    resource_scopes: dict[str, str | None],
 ) -> dict[str, Node]:
     trust_boundary_ids = {
         node.id for node in nodes.values() if node.type == NodeType.TRUST_BOUNDARY
@@ -360,7 +448,7 @@ def _assign_trust_boundaries(
             ref_id
             for key, value in _ATTRIBUTE_RE.findall(resource_blocks.get(node_id, ""))
             if key in {"vpc_id", "subnet_id", "subnet_ids", "vpc_security_group_ids"}
-            for ref_id in _reference_ids(value)
+            for ref_id in _reference_ids(value, resource_scopes[node_id])
             if ref_id in trust_boundary_ids
         ]
         updated[node_id] = (
@@ -379,14 +467,18 @@ def _select_trust_boundary(boundary_ids: list[str]) -> str:
 
 def _boundary_priority(boundary_id: str) -> int:
     parts = boundary_id.split(":")
-    resource_type = parts[1] if len(parts) >= 2 else ""
+    resource_type = parts[-2] if len(parts) >= 3 else ""
     return _BOUNDARY_PRIORITY.get(resource_type, 99)
 
 
-def _extract_edges(nodes: dict[str, Node], resource_blocks: dict[str, str]) -> dict[str, Edge]:
+def _extract_edges(
+    nodes: dict[str, Node],
+    resource_blocks: dict[str, str],
+    resource_scopes: dict[str, str | None],
+) -> dict[str, Edge]:
     edges: dict[str, Edge] = {}
     for source_id, body in resource_blocks.items():
-        for target_id in sorted(set(_reference_ids(body))):
+        for target_id in sorted(set(_reference_ids(body, resource_scopes[source_id]))):
             if target_id == source_id or target_id not in nodes:
                 continue
             edge_type = EdgeType.REFERENCES
@@ -446,11 +538,11 @@ def _add_internet_entrypoints(nodes: dict[str, Node], edges: dict[str, Edge]) ->
         )
 
 
-def _reference_ids(body: str) -> Iterator[str]:
+def _reference_ids(body: str, module_scope: str | None = None) -> Iterator[str]:
     for resource_type, name in _REFERENCE_RE.findall(_strip_hcl_comments(body)):
         if resource_type in {"var", "local", "data", "module", "each", "count"}:
             continue
-        yield _resource_id(resource_type, name)
+        yield _resource_id(resource_type, name, module_scope)
 
 
 def _strip_hcl_comments(body: str) -> str:

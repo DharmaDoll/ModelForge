@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,7 @@ def test_pipeline_writes_all_mvp_artifacts(tmp_path: Path) -> None:
     assert result.risk_path.exists()
     assert result.questions_path.exists()
     assert result.review_path.exists()
+    assert result.ingestion_path.exists()
     assert model.nodes
     assert any(node.name == "Payments Gateway" for node in model.nodes)
     assert "flowchart LR" in result.dfd_path.read_text(encoding="utf-8")
@@ -32,6 +34,36 @@ def test_pipeline_writes_all_mvp_artifacts(tmp_path: Path) -> None:
     assert "Risk Priorities" in result.risk_path.read_text(encoding="utf-8")
     assert "authentication" in result.questions_path.read_text(encoding="utf-8")
     assert "ModelForge Review Summary" in result.review_path.read_text(encoding="utf-8")
+    diagnostics = json.loads(result.ingestion_path.read_text(encoding="utf-8"))
+    assert diagnostics["schema_version"] == "0.1"
+    assert [item["adapter"] for item in diagnostics["adapters"]] == [
+        "readme", "mermaid", "openapi", "terraform"
+    ]
+    assert diagnostics["normalized_model"]["nodes"] == len(model.nodes)
+    assert diagnostics["normalized_model"]["edges"] == len(model.edges)
+    assert str(FIXTURE.resolve()) not in result.ingestion_path.read_text(encoding="utf-8")
+
+
+def test_ingestion_diagnostics_are_deterministic_and_do_not_claim_coverage(
+    tmp_path: Path,
+) -> None:
+    inputs = discover_inputs(FIXTURE)
+    first = analyze_project(inputs, tmp_path / "first")
+    second = analyze_project(inputs, tmp_path / "second")
+
+    assert first.ingestion_path.read_bytes() == second.ingestion_path.read_bytes()
+    diagnostics = json.loads(first.ingestion_path.read_text(encoding="utf-8"))
+    by_adapter = {item["adapter"]: item for item in diagnostics["adapters"]}
+    assert by_adapter["readme"]["selected_files"] == 1
+    assert by_adapter["mermaid"]["selected_files"] >= 1
+    assert by_adapter["terraform"]["selected_files"] == len(inputs.terraform)
+    assert by_adapter["terraform"]["batches_used"] == 1
+    assert diagnostics["mermaid_parse"]["flowchart_blocks"] >= 1
+    assert diagnostics["openapi_parse"]["http_operations_declared"] >= 1
+    assert diagnostics["openapi_parse"]["http_operations_skipped"] == 0
+    assert diagnostics["terraform_parse"]["resource_blocks_recognized"] >= 1
+    assert diagnostics["terraform_parse"]["colliding_resource_declarations"] == 0
+    assert "do not measure parser coverage" in diagnostics["interpretation"]
 
 
 def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
@@ -47,6 +79,7 @@ def test_cli_analyze_writes_artifacts(tmp_path: Path) -> None:
     assert (tmp_path / "risk.md").exists()
     assert (tmp_path / "questions.md").exists()
     assert (tmp_path / "review.md").exists()
+    assert (tmp_path / "ingestion.json").exists()
     assert not (tmp_path / "questions_refined.md").exists()
     assert not (tmp_path / "llm_candidates.json").exists()
 
@@ -74,6 +107,7 @@ def test_cli_render_writes_artifacts_from_existing_system_model(
     assert (render_out / "risk.md").exists()
     assert (render_out / "questions.md").exists()
     assert (render_out / "review.md").exists()
+    assert not (render_out / "ingestion.json").exists()
     assert "Wrote" in result.output
     assert read_system_model(render_out / "system_model.json") == read_system_model(
         input_model_path
@@ -154,6 +188,21 @@ def test_cli_accepts_explicit_markdown_doc_with_mermaid(tmp_path: Path) -> None:
     model = read_system_model(tmp_path / "out" / "system_model.json")
     assert any(node.name == "API" for node in model.nodes)
     assert any(edge.protocol == "gRPC" for edge in model.edges)
+
+
+def test_ingestion_diagnostics_show_markdown_without_mermaid_topology(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "README.md").write_text("# Plain notes\n", encoding="utf-8")
+    result = analyze_project(discover_inputs(project), tmp_path / "out")
+
+    diagnostics = json.loads(result.ingestion_path.read_text(encoding="utf-8"))
+    mermaid = next(item for item in diagnostics["adapters"] if item["adapter"] == "mermaid")
+    assert mermaid["selected_files"] == 1
+    assert mermaid["batches_used"] == 0
+    assert mermaid["proposed"] == {"system": 0, "node": 0, "edge": 0, "unknown": 0}
+    assert diagnostics["openapi_parse"]["http_operations_declared"] == 0
+    assert diagnostics["terraform_parse"]["resource_blocks_recognized"] == 0
 
 
 def test_cli_llm_refinement_requires_api_key_after_deterministic_outputs(tmp_path: Path) -> None:

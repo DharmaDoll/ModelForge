@@ -122,6 +122,7 @@ def analyze(
     typer.echo(f"Wrote {result.risk_path}")
     typer.echo(f"Wrote {result.questions_path}")
     typer.echo(f"Wrote {result.review_path}")
+    typer.echo(f"Wrote {result.ingestion_path}")
     if result.questions_refined_path:
         typer.echo(f"Wrote {result.questions_refined_path}")
     if result.llm_candidates_path:

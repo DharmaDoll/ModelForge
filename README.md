@@ -179,6 +179,7 @@ Without `--llm`, the LLM branch is skipped and no external API is called.
 * `risk.md`
 * `questions.md`
 * `review.md`
+* `ingestion.json`
 * `questions_refined.md` when optional LLM question refinement is enabled
 * `llm_candidates.json` when optional LLM README extraction is enabled
 
@@ -191,6 +192,15 @@ What they mean:
 * `risk.md` - deterministic High / Medium / Low review priorities
 * `questions.md` - missing information to ask reviewers or system owners
 * `review.md` - compact deterministic summary for CI jobs and pull requests
+* `ingestion.json` - `analyze`-only deterministic counts of selected files,
+  adapter proposals, normalized model elements, Mermaid syntax recognized or
+  skipped, OpenAPI paths/HTTP operations declared or skipped, and Terraform
+  resource blocks recognized or colliding by ID; it does not prove that the
+  architecture is complete, and contains no source paths or file text. A
+  Terraform ID collision requires manual review. Resources in different
+  directories receive distinct IDs; duplicate declarations within one
+  directory become an evidence-linked `model_conflict` Unknown rather than an
+  accepted resource node
 * `questions_refined.md` - optional LLM-refined wording for `questions.md`; not
   the source of truth
 * `llm_candidates.json` - optional LLM-extracted README candidates for review;

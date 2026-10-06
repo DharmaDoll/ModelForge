@@ -12,6 +12,7 @@ import yaml
 from yaml import YAMLError
 
 from threatmodel_ai.errors import InputFormatError
+from threatmodel_ai.ingest.diagnostics import OpenApiParseMetrics
 from threatmodel_ai.model.ids import make_id
 from threatmodel_ai.model.observations import (
     ObservationBatch,
@@ -41,19 +42,30 @@ def extract_openapi(path: Path) -> SystemModel:
 def observe_openapi(path: Path) -> ObservationBatch:
     """Extract evidence-bearing candidate observations from an OpenAPI file."""
 
+    batch, _ = observe_openapi_with_diagnostics(path)
+    return batch
+
+
+def observe_openapi_with_diagnostics(
+    path: Path,
+) -> tuple[ObservationBatch, OpenApiParseMetrics]:
+    """Extract observations and report declared or skipped API operations."""
+
     evidence = Evidence(
         source_type=SourceType.OPENAPI,
         source_path=str(path),
         extractor="openapi",
         detail="OpenAPI",
     )
-    return model_to_observation_batch(
-        _extract_openapi_model(path),
+    metrics = OpenApiParseMetrics()
+    batch = model_to_observation_batch(
+        _extract_openapi_model(path, metrics=metrics),
         fallback_evidence=[evidence],
     )
+    return batch, metrics
 
 
-def _extract_openapi_model(path: Path) -> SystemModel:
+def _extract_openapi_model(path: Path, *, metrics: OpenApiParseMetrics) -> SystemModel:
     """Build the OpenAPI adapter's proposed model before normalization."""
 
     document = _load_document(path)
@@ -112,13 +124,21 @@ def _extract_openapi_model(path: Path) -> SystemModel:
     protocol = _resolve_protocol(document)
     global_security = document.get("security")
 
-    for api_path, path_item in sorted(_mapping(document.get("paths")).items()):
+    paths = _mapping(document.get("paths"))
+    metrics.path_items_declared = len(paths)
+    for api_path, path_item in sorted(paths.items()):
         if not isinstance(path_item, Mapping):
+            metrics.path_items_skipped += 1
             continue
         for method, operation in sorted(path_item.items()):
             method_lower = str(method).lower()
-            if method_lower not in _HTTP_METHODS or not isinstance(operation, Mapping):
+            if method_lower not in _HTTP_METHODS:
                 continue
+            metrics.http_operations_declared += 1
+            if not isinstance(operation, Mapping):
+                metrics.http_operations_skipped += 1
+                continue
+            metrics.http_operations_modeled += 1
 
             operation_id = make_id("api", method_lower, api_path)
             operation_name = f"{method_upper(method_lower)} {api_path}"

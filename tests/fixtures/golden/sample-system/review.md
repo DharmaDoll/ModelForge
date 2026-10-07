@@ -15,6 +15,8 @@ Generated deterministically from `system_model.json`. All findings are review ca
 | ---: | ---: | ---: | ---: |
 | 0 | 0 | 3 | 3 |
 
+STRIDE/ATT&CK confidence (high/medium/low) describes how strongly a candidate matches its deterministic rule and evidence. Risk rating (High/Medium/Low) and score order review attention from modeled facts. These are separate scales: neither is CVSS, confirmed vulnerability severity, or exploitability proof.
+
 ### Highest Priorities
 
 | Rating | Score | Finding |

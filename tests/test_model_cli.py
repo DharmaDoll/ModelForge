@@ -145,3 +145,44 @@ def test_migrate_rejects_unsupported_target_without_writing(tmp_path: Path) -> N
     assert result.exit_code == 1
     assert "unsupported migration target" in result.output
     assert not out.exists()
+
+
+@pytest.mark.parametrize("version", ["0.1", "0.2"])
+def test_schema_export_is_versioned_deterministic_and_structural(
+    tmp_path: Path, version: str
+) -> None:
+    first = tmp_path / "first.json"
+    second = tmp_path / "second.json"
+    args = ["model", "schema", "--schema-version", version, "--out"]
+
+    first_result = RUNNER.invoke(app, [*args, str(first)])
+    second_result = RUNNER.invoke(app, [*args, str(second)])
+
+    assert first_result.exit_code == 0, first_result.output
+    assert second_result.exit_code == 0, second_result.output
+    assert first.read_bytes() == second.read_bytes()
+    schema = json.loads(first.read_text(encoding="utf-8"))
+    assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert schema["properties"]["schema_version"]["const"] == version
+    assert "schema_version" in schema["required"]
+    assert schema["additionalProperties"] is False
+    assert "semantic checks" in schema["$comment"]
+    assert ("inferences" in schema["properties"]) is (version == "0.2")
+
+
+def test_schema_export_rejects_unsupported_version_and_existing_output(tmp_path: Path) -> None:
+    out = tmp_path / "schema.json"
+    unsupported = RUNNER.invoke(
+        app, ["model", "schema", "--schema-version", "0.3", "--out", str(out)]
+    )
+    assert unsupported.exit_code == 1
+    assert "supported: 0.1, 0.2" in unsupported.output
+    assert not out.exists()
+
+    out.write_text("keep me", encoding="utf-8")
+    existing = RUNNER.invoke(
+        app, ["model", "schema", "--schema-version", "0.2", "--out", str(out)]
+    )
+    assert existing.exit_code == 1
+    assert "already exists" in existing.output
+    assert out.read_text(encoding="utf-8") == "keep me"

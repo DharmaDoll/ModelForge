@@ -51,8 +51,7 @@ class OpenAIResponsesClient:
             raise LLMConfigurationError(
                 "OPENAI_API_KEY is required when an --llm mode is used.",
                 hint=(
-                    "Set OPENAI_API_KEY or run without --llm to keep deterministic-only "
-                    "analysis."
+                    "Set OPENAI_API_KEY or run without --llm to keep deterministic-only analysis."
                 ),
             )
         return cls(
@@ -79,7 +78,7 @@ class OpenAIResponsesClient:
             payload["text"] = {
                 "format": {
                     "type": "json_schema",
-                    "name": "question_refinement",
+                    "name": "model_forge_output",
                     "strict": True,
                     "schema": json_schema,
                 }

@@ -12,7 +12,7 @@
         {
           "detail": "GET /payments/{paymentId}",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -35,7 +35,7 @@
         {
           "detail": "POST /payments",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -56,7 +56,7 @@
           "detail": "resource \"aws_lb\" \"public\"",
           "extractor": "terraform",
           "line": 28,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -79,7 +79,7 @@
           "detail": "mermaid block 1, line 2",
           "extractor": "mermaid",
           "line": 5,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -105,7 +105,7 @@
           "detail": "mermaid block 1, line 4",
           "extractor": "mermaid",
           "line": 7,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -131,7 +131,7 @@
           "detail": "mermaid block 1, line 5",
           "extractor": "mermaid",
           "line": 8,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -158,7 +158,7 @@
         {
           "detail": "GET /payments/{paymentId}",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -181,7 +181,7 @@
         {
           "detail": "POST /payments",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -202,7 +202,7 @@
           "detail": "resource \"aws_lambda_function\" \"api\"",
           "extractor": "terraform",
           "line": 14,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -223,7 +223,7 @@
           "detail": "resource \"aws_lambda_function\" \"api\"",
           "extractor": "terraform",
           "line": 14,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -244,7 +244,7 @@
           "detail": "resource \"aws_subnet\" \"private\"",
           "extractor": "terraform",
           "line": 5,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -265,14 +265,14 @@
     "mentions_monitoring": false,
     "mentions_rate_limiting": false,
     "mermaid_files": [
-      "tests/fixtures/sample-system/docs/architecture.md"
+      "docs/architecture.md"
     ],
     "mermaid_identity_version": 2,
-    "openapi_path": "tests/fixtures/sample-system/openapi.yaml",
+    "openapi_path": "openapi.yaml",
     "openapi_version": "3.0.3",
-    "readme_path": "tests/fixtures/sample-system/README.md",
+    "readme_path": "README.md",
     "terraform_files": [
-      "tests/fixtures/sample-system/main.tf"
+      "main.tf"
     ]
   },
   "name": "Sample Payments API",
@@ -283,7 +283,7 @@
         {
           "detail": "OpenAPI",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -299,7 +299,7 @@
           "detail": "README section: Actors",
           "extractor": "readme",
           "line": 7,
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_path": "README.md",
           "source_type": "readme"
         }
       ],
@@ -332,7 +332,7 @@
           "detail": "mermaid block 1, line 2",
           "extractor": "mermaid",
           "line": 5,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -353,7 +353,7 @@
         {
           "detail": "GET /payments/{paymentId}",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -368,7 +368,7 @@
         {
           "detail": "POST /payments",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -383,7 +383,7 @@
         {
           "detail": "OpenAPI",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -399,7 +399,7 @@
           "detail": "README section: Components",
           "extractor": "readme",
           "line": 11,
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_path": "README.md",
           "source_type": "readme"
         }
       ],
@@ -414,7 +414,7 @@
         {
           "detail": "README",
           "extractor": "readme",
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_path": "README.md",
           "source_type": "readme"
         }
       ],
@@ -430,14 +430,14 @@
           "detail": "mermaid block 1, line 2",
           "extractor": "mermaid",
           "line": 5,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         },
         {
           "detail": "mermaid block 1, line 4",
           "extractor": "mermaid",
           "line": 7,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -458,14 +458,14 @@
           "detail": "mermaid block 1, line 4",
           "extractor": "mermaid",
           "line": 7,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         },
         {
           "detail": "mermaid block 1, line 5",
           "extractor": "mermaid",
           "line": 8,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -486,7 +486,7 @@
           "detail": "mermaid block 1, line 5",
           "extractor": "mermaid",
           "line": 8,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -507,7 +507,7 @@
           "detail": "resource \"aws_lambda_function\" \"api\"",
           "extractor": "terraform",
           "line": 14,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -527,7 +527,7 @@
           "detail": "resource \"aws_lb\" \"public\"",
           "extractor": "terraform",
           "line": 28,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -546,7 +546,7 @@
         {
           "detail": "components.schemas.Payment",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -563,7 +563,7 @@
         {
           "detail": "components.schemas.PaymentRequest",
           "extractor": "openapi",
-          "source_path": "tests/fixtures/sample-system/openapi.yaml",
+          "source_path": "openapi.yaml",
           "source_type": "openapi"
         }
       ],
@@ -581,7 +581,7 @@
           "detail": "README section: Databases",
           "extractor": "readme",
           "line": 15,
-          "source_path": "tests/fixtures/sample-system/README.md",
+          "source_path": "README.md",
           "source_type": "readme"
         }
       ],
@@ -597,7 +597,7 @@
           "detail": "resource \"aws_db_instance\" \"payments\"",
           "extractor": "terraform",
           "line": 10,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -616,7 +616,7 @@
           "detail": "mermaid block 1, line 3",
           "extractor": "mermaid",
           "line": 6,
-          "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+          "source_path": "docs/architecture.md",
           "source_type": "markdown"
         }
       ],
@@ -636,7 +636,7 @@
           "detail": "resource \"aws_subnet\" \"private\"",
           "extractor": "terraform",
           "line": 5,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -655,7 +655,7 @@
           "detail": "resource \"aws_vpc\" \"main\"",
           "extractor": "terraform",
           "line": 1,
-          "source_path": "tests/fixtures/sample-system/main.tf",
+          "source_path": "main.tf",
           "source_type": "terraform"
         }
       ],
@@ -677,7 +677,7 @@
         "detail": "mermaid block 1, line 2",
         "extractor": "mermaid",
         "line": 5,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client--c8b7536671:authentication",
@@ -690,7 +690,7 @@
         "detail": "mermaid block 1, line 2",
         "extractor": "mermaid",
         "line": 5,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client--c8b7536671:authorization",
@@ -703,7 +703,7 @@
         "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
         "line": 7,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:authentication",
@@ -716,7 +716,7 @@
         "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
         "line": 7,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:authorization",
@@ -729,7 +729,7 @@
         "detail": "mermaid block 1, line 4",
         "extractor": "mermaid",
         "line": 7,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:protocol",
@@ -742,7 +742,7 @@
         "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
         "line": 8,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:authentication",
@@ -755,7 +755,7 @@
         "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
         "line": 8,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:authorization",
@@ -768,7 +768,7 @@
         "detail": "mermaid block 1, line 5",
         "extractor": "mermaid",
         "line": 8,
-        "source_path": "tests/fixtures/sample-system/docs/architecture.md",
+        "source_path": "docs/architecture.md",
         "source_type": "markdown"
       },
       "id": "unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:protocol",
@@ -780,7 +780,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:api-get-payments-paymentid:authorization",
@@ -792,7 +792,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:api-post-payments:authorization",
@@ -804,7 +804,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:payment:data-classification",
@@ -816,7 +816,7 @@
       "evidence": {
         "detail": "OpenAPI",
         "extractor": "openapi",
-        "source_path": "tests/fixtures/sample-system/openapi.yaml",
+        "source_path": "openapi.yaml",
         "source_type": "openapi"
       },
       "id": "unknown:openapi:paymentrequest:data-classification",
@@ -828,7 +828,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_path": "README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:authentication",
@@ -840,7 +840,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_path": "README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:authorization",
@@ -852,7 +852,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_path": "README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:encryption",
@@ -864,7 +864,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_path": "README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:logging",
@@ -876,7 +876,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_path": "README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:monitoring",
@@ -888,7 +888,7 @@
       "evidence": {
         "detail": "README",
         "extractor": "readme",
-        "source_path": "tests/fixtures/sample-system/README.md",
+        "source_path": "README.md",
         "source_type": "readme"
       },
       "id": "unknown:readme:rate-limiting",
@@ -901,7 +901,7 @@
         "detail": "resource \"aws_db_instance\" \"payments\"",
         "extractor": "terraform",
         "line": 10,
-        "source_path": "tests/fixtures/sample-system/main.tf",
+        "source_path": "main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-db-instance-payments:encryption",
@@ -914,7 +914,7 @@
         "detail": "resource \"aws_lb\" \"public\"",
         "extractor": "terraform",
         "line": 28,
-        "source_path": "tests/fixtures/sample-system/main.tf",
+        "source_path": "main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-lb-public:authentication",
@@ -927,7 +927,7 @@
         "detail": "resource \"aws_lb\" \"public\"",
         "extractor": "terraform",
         "line": 28,
-        "source_path": "tests/fixtures/sample-system/main.tf",
+        "source_path": "main.tf",
         "source_type": "terraform"
       },
       "id": "unknown:terraform:terraform-aws-lb-public:rate-limiting",

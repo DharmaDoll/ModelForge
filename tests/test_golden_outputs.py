@@ -20,9 +20,6 @@ ARTIFACTS = (
     "questions.md",
     "review.md",
 )
-NORMALIZED_FIXTURE_PATH = "tests/fixtures/sample-system"
-
-
 @pytest.fixture(scope="module")
 def generated_artifacts(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Generate sample-system artifacts once for golden output comparisons."""
@@ -34,8 +31,8 @@ def generated_artifacts(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 @pytest.mark.parametrize("artifact", ARTIFACTS)
 def test_sample_system_outputs_match_golden(generated_artifacts: Path, artifact: str) -> None:
-    expected = _normalized_text(GOLDEN / artifact)
-    actual = _normalized_text(generated_artifacts / artifact)
+    expected = (GOLDEN / artifact).read_text(encoding="utf-8")
+    actual = (generated_artifacts / artifact).read_text(encoding="utf-8")
 
     assert actual == expected, _unified_diff(expected, actual, artifact)
 
@@ -68,11 +65,17 @@ def test_sample_identity_suggestion_does_not_merge_dfd_nodes(
     assert dfd.count("Sample Payments API\\n(component)") == 2
 
 
-def _normalized_text(path: Path) -> str:
-    """Normalize environment-specific paths before comparing golden outputs."""
+def test_sample_confidence_and_review_priority_are_distinct(
+    generated_artifacts: Path,
+) -> None:
+    review = (generated_artifacts / "review.md").read_text(encoding="utf-8")
+    attack = (generated_artifacts / "attack.md").read_text(encoding="utf-8")
 
-    text = path.read_text(encoding="utf-8")
-    return text.replace(str(FIXTURE.resolve()), NORMALIZED_FIXTURE_PATH)
+    assert "These are separate scales: neither is CVSS" in review
+    assert "| 0 | 0 | 3 | 3 |" in review
+    assert "Public-facing application technique candidate" in attack
+    assert "| high |" in attack
+    assert "| Low | 3 | Review priority for payments-public-lb entry point |" in review
 
 
 def _unified_diff(expected: str, actual: str, artifact: str) -> str:

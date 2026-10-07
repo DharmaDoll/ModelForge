@@ -30,6 +30,7 @@ from threatmodel_ai.llm import (
     extract_readme_candidates,
     refine_questions,
 )
+from threatmodel_ai.model.evidence import relativize_project_paths
 from threatmodel_ai.model.io import write_system_model
 from threatmodel_ai.model.observations import ObservationBatch, normalize_observation_batches
 from threatmodel_ai.model.schema import SystemModel
@@ -139,7 +140,9 @@ def analyze_project(
             ),
         )
 
-    model = normalize_observation_batches(observation_batches)
+    model = relativize_project_paths(
+        normalize_observation_batches(observation_batches), inputs.target
+    )
     render_result = render_model_artifacts(model, out_dir)
     diagnostics = summarize_ingestion(
         selected_files={
@@ -186,7 +189,9 @@ def analyze_project(
                     "README input is required when --llm extract-readme is used.",
                     hint="Add README.md, pass --readme, or run without --llm extract-readme.",
                 )
-            candidates = extract_readme_candidates(inputs.readme, client)
+            candidates = extract_readme_candidates(
+                inputs.readme, client, project_root=inputs.target
+            )
             llm_candidates_path = out_dir / "llm_candidates.json"
             llm_candidates_path.write_text(
                 json.dumps(

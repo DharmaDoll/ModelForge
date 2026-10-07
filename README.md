@@ -10,6 +10,37 @@ risk-priority, and clarification-question reports.
 By default, ModelForge is deterministic and does not call external LLM APIs. No
 API key is required unless an optional LLM mode is explicitly enabled.
 
+## How It Works
+
+```mermaid
+flowchart TD
+  Inputs["Project inputs<br/>README, Markdown/Mermaid, OpenAPI, Terraform"]
+  Extract["Discover files and extract supported structure"]
+  Observations["Evidence-linked candidate observations"]
+  Normalize["Validate and normalize deterministic observations"]
+  Model["system_model.json<br/>structured source of truth"]
+  Analyze["Generate DFD, STRIDE, ATT&CK,<br/>review priorities, and questions"]
+  Reports["Review artifacts<br/>dfd.mmd, threats.md, attack.md,<br/>risk.md, questions.md, review.md"]
+  Diagnostics["ingestion.json<br/>selected, recognized, and skipped counts"]
+  Reviewer["Human review<br/>check evidence and resolve unknowns"]
+  LLM["Optional LLM assistance<br/>separate proposals, not accepted facts"]
+
+  Inputs --> Extract --> Observations --> Normalize --> Model --> Analyze --> Reports --> Reviewer
+  Extract --> Diagnostics --> Reviewer
+  Normalize --> Diagnostics
+  Inputs -. approved README text only .-> LLM
+  Model -. approved scoped context only .-> LLM
+  LLM -. review-only artifacts .-> Reviewer
+  Reviewer -. update inputs and rerun .-> Inputs
+```
+
+The solid path runs locally without an LLM. Reviewers can correct source
+documents or supply missing information and rerun analysis; ModelForge does not
+invent unknown architecture. Optional LLM modes produce separate suggestions,
+never automatic changes to the model or deterministic reports. See
+[Execution Flow](#execution-flow) for the observation policy and optional merge
+details.
+
 ## Quick Start
 
 Requirements: Python 3.12+ and `uv`.
@@ -42,7 +73,8 @@ uv run tm-ai analyze /path/to/your/project --out ./out
 Auto-discovery looks for:
 
 * `README.md` or `readme.md` in the project root
-* Markdown docs with Mermaid fenced blocks under the project tree
+* `*.md` documents under the project tree; currently, only supported Mermaid
+  flowchart blocks are extracted, not surrounding prose
 * `openapi.yaml`, `openapi.yml`, `openapi.json`, `swagger.yaml`, `swagger.yml`, or
   `swagger.json` in the project root
 * `*.tf` Terraform files recursively, excluding `.terraform`
@@ -104,12 +136,24 @@ uv run tm-ai model validate ./out/system_model.json
 uv run tm-ai model migrate ./out/system_model.json \
   --to 0.2 --out ./out/system_model.v0.2.json
 uv run tm-ai model validate ./out/system_model.v0.2.json --check-generators
+uv run tm-ai model schema --schema-version 0.2 \
+  --out ./out/system_model.v0.2.schema.json
 ```
 
 Migration never overwrites its input or an existing output. It moves legacy
 Mermaid type guesses out of fact fields and records ambiguous legacy component
 types as review unknowns. Keep the original source and reviewed 0.1 model for
 comparison; migration does not verify old claims against source files.
+`model schema` also supports `--schema-version 0.1` and refuses to overwrite an
+existing file. Its JSON Schema checks structure, not cross-element references,
+provenance policy, or other semantic rules; use `model validate` for those.
+For a 0.2 model, `model validate --require-attribute-evidence` additionally
+checks that each accepted element and known security-relevant attribute has a
+direct Evidence pointer. It also requires direct attribute Evidence on every
+known fact cited by an inference's `based_on` reference, including a Mermaid
+label or alias. This stricter check is opt-in while migrated 0.1
+claims are being reviewed; migration alone will not make an old model pass it.
+Pointers marked `derived` alone do not satisfy the direct Evidence audit.
 `--check-generators` also exercises DFD, STRIDE, ATT&CK, risk, questions, and
 Markdown renderers in memory without writing reports. It checks compatibility,
 not the correctness of the source claims or the quality of the generated findings.
@@ -120,6 +164,10 @@ each applied inference group; it is not yet a public 0.2 report format.
 `analyze`, `render`, `check`, and `candidates merge` still consume or emit 0.1;
 do not pass a 0.2 model to those commands yet. No LLM is used by validation or
 migration.
+In 0.2, an inference must cite a supported, known source claim through
+`based_on`; an unknown value or a bookkeeping field such as an element ID does
+not count as evidence for that inference. A valid pointer alone does not prove
+that its source supports the proposed inference.
 
 ```mermaid
 flowchart TD
@@ -141,6 +189,9 @@ flowchart TD
   Merge["Explicit merge\ntm-ai candidates merge"]
   Merged["system_model.merged.json\nreviewed model"]
   Render["Render from model\ntm-ai render"]
+  Challenger["Optional LLM hypotheses\ntm-ai hypotheses propose"]
+  Hypotheses["threat_hypotheses.json\nreview-only proposals"]
+  Triage["Human triage\nhypothesis_review.json"]
 
   Inputs --> Extract --> Observations --> Normalize --> Model
   Model --> DFD
@@ -154,6 +205,7 @@ flowchart TD
   Inputs -. README text, opt-in only .-> ExtractLLM -.-> Candidates
   Model -. base model .-> Merge
   Candidates -. human review .-> Merge -.-> Merged -.-> Render
+  Model -. scoped context, opt-in only .-> Challenger -.-> Hypotheses -.-> Triage
   Render -. regenerated .-> DFD
   Render -. regenerated .-> STRIDE
   Render -. regenerated .-> ATTACK
@@ -238,8 +290,11 @@ identity-alias migration.
 come from distinct source files. Each candidate keeps its own ID and a compact
 source hint. A same-name pair is only a review suggestion, not an accepted alias;
 three or more nodes are marked ambiguous. No nodes or flows are merged by this
-check. Full Evidence pointers remain in `system_model.json` and may contain
-local paths, so protect the model artifact when sharing it.
+check. In `tm-ai analyze` output, Evidence and file-list metadata for inputs
+inside the analyzed project use project-relative paths; explicit inputs outside
+that root retain absolute paths so their original location remains identifiable.
+Existing models loaded by `render` are not rewritten. Protect model artifacts
+when sharing them, especially if external files were supplied.
 
 Mermaid `subgraph` blocks and Terraform network resources are treated as explicit
 trust boundaries when the input states them. Missing entry-point boundary
@@ -280,6 +335,43 @@ guessing.
 LLM usage is opt-in. The default `tm-ai analyze` command never calls an external
 LLM.
 
+```mermaid
+sequenceDiagram
+  actor Reviewer
+  participant CLI as tm-ai CLI
+  participant Rules as Deterministic pipeline
+  participant Files as Local artifacts
+  participant LLM as External LLM
+  Reviewer->>CLI: analyze [--llm MODE]
+  CLI->>Rules: extract, normalize, STRIDE/ATT&CK, questions
+  Rules-->>CLI: system model and findings
+  CLI->>Files: system_model.json and deterministic reports
+  alt No --llm (default)
+    Note over CLI,LLM: No external request
+  else --llm refine-questions
+    CLI->>LLM: Question IDs, categories, wording
+    LLM-->>CLI: Proposed wording JSON
+    CLI->>CLI: Validate schema and exact IDs
+    CLI->>Files: questions_refined.md (review-only)
+  else --llm extract-readme
+    CLI->>LLM: README text and short source label
+    LLM-->>CLI: Structured candidate JSON
+    CLI->>CLI: Validate schema, references, source paths
+    CLI->>Files: llm_candidates.json (review-only)
+  end
+  opt Separate command after human review
+    Reviewer->>CLI: candidates merge
+    CLI->>Files: system_model.merged.json
+  end
+  opt Separate opt-in shadow command
+    Reviewer->>CLI: hypotheses propose --element ... --allow-external-llm
+    CLI->>LLM: Scoped graph facts and direct Evidence handles
+    LLM-->>CLI: Proposed hypothesis JSON
+    CLI->>CLI: Validate model snapshot, scope, and citations
+    CLI->>Files: threat_hypotheses.json (review-only)
+  end
+```
+
 To refine deterministic clarification questions into a separate review artifact:
 
 ```bash
@@ -311,7 +403,10 @@ uv run tm-ai analyze ./examples/sample-system \
 This writes `llm_candidates.json`. These candidates are review-only and are not
 merged into `system_model.json`. Unlike question refinement, this mode sends raw
 README text to the LLM, so use it only for inputs that are approved for external
-processing.
+processing. The request uses a project-relative source label, or
+`external-input/README.md` for an explicitly supplied file outside the target,
+instead of sending the local absolute path. Returned source paths must match
+that label. This does not anonymize the README content itself.
 
 Recommended review flow:
 
@@ -343,8 +438,90 @@ uv run tm-ai candidates merge ./out/system_model.json ./out/llm_candidates.json 
 
 The merge command validates candidate schema, evidence, references, confidence,
 and the final `SystemModel`. It does not overwrite deterministic model IDs.
+The command currently relies on the operator to perform the stated human review;
+it does not verify a separate review attestation. Do not run it as an automatic
+promotion step based solely on LLM confidence.
 Rejected or ambiguous candidates become review unknowns, which can then surface
 as clarification questions after `tm-ai render`.
+
+### Threat-hypothesis contract (first implementation slice)
+
+The CLI can now export and validate the schema for a separate,
+`threat_hypotheses.json` review artifact:
+
+```bash
+uv run tm-ai hypotheses schema --out ./threat_hypotheses.schema.json
+uv run tm-ai hypotheses validate ./threat_hypotheses.json \
+  --model ./out/system_model.json
+```
+
+This validates the artifact version, unique candidate IDs, the exact model
+snapshot, affected element IDs, and direct Evidence references. Each candidate
+must keep established prerequisites, assumptions, missing facts, and
+verification steps separate. Evidence pointers identify sources for review;
+validation cannot prove that a source actually entails a written premise.
+To ask the optional challenger for hypotheses about a specific model element:
+
+```bash
+# Inspect the exact model fields that would be sent; this makes no API call.
+uv run tm-ai hypotheses preview-context ./out/system_model.json \
+  --element api:post:payments \
+  --out ./out/challenger_context.preview.json
+
+# Set OPENAI_API_KEY through your approved secret-management method first.
+uv run tm-ai hypotheses propose ./out/system_model.json \
+  --element api:post:payments \
+  --classification internal-approved \
+  --allow-external-llm \
+  --out ./out/threat_hypotheses.json
+```
+
+Use `--classification public` only for public architecture. The classification
+and `--allow-external-llm` flag are an explicit operator decision that the
+selected context may leave the machine; they are not an automatic privacy
+assessment. The challenger sends a one-hop graph slice around each selected
+element: node IDs, names and types; edge IDs, endpoints, protocols, known
+authentication/authorization values and data-asset IDs; and direct Evidence
+indices. It does not send raw files, source paths, descriptions, arbitrary
+metadata, or Evidence details. IDs, names and security fields may still be
+confidential. The command rejects oversized scopes and existing output files.
+
+Generated IDs are repeatable for identical proposal text and affected IDs, but
+semantic rewording can change them. Invalid responses produce no new hypothesis
+artifact. The proposals are not findings. List candidate IDs, then record a
+human triage decision in a separate local history file:
+
+```bash
+uv run tm-ai hypotheses review-status ./out/threat_hypotheses.json \
+  --model ./out/system_model.json
+
+# Replace the example ID with one from review-status.
+uv run tm-ai hypotheses decide ./out/threat_hypotheses.json \
+  --model ./out/system_model.json \
+  --id hypothesis:0123456789abcdef \
+  --disposition needs_context \
+  --reviewer your-name \
+  --rationale "Ask the developer for implementation evidence" \
+  --state ./out/hypothesis_review.json
+
+uv run tm-ai hypotheses review-status ./out/threat_hypotheses.json \
+  --model ./out/system_model.json \
+  --state ./out/hypothesis_review.json
+```
+
+Decisions are `investigate`, `needs_context`, or `rejected`. They include a
+reviewer, rationale, UTC timestamp, and prior decision events inside the state
+artifact. This local history is not tamper-evident or authenticated. The state
+file is bound to exact model and hypothesis-batch
+fingerprints; stale decisions cannot silently carry forward. The reviewer name
+is operator-supplied, not an authenticated identity. Even `investigate` means
+follow-up work, not an accepted vulnerability. A finding-promotion workflow and
+comparative quality evaluation are still pending. Keep this local state file
+within the same confidentiality boundary as the model.
+
+Neither generation nor validation modifies the model, deterministic reports,
+or CI decisions. Schema export and validation never call an external LLM;
+only `propose` does after explicit approval. Review commands are local too.
 
 ## GitHub Action
 
@@ -484,28 +661,30 @@ Input Files
 Structured Extraction
   ↓
 system_model.json
-  ↓
-DFD
-  ↓
-STRIDE Rules
-  ↓
-LLM Refinement
-  ↓
-Reports
+  ├─> deterministic DFD / STRIDE / ATT&CK ─> reports
+  └─> optional LLM challenger ─> review-only hypotheses
 ```
 
-LLM usage, when added, must be optional and limited to:
+LLM usage must remain optional. Permitted uses include:
 
 * extracting structure from unstructured text
 * improving wording
 * generating missing questions
 * refining threat descriptions
+* proposing evidence-linked threat and attack-path hypotheses for human review
+
+An LLM hypothesis is neither an architecture fact nor a confirmed vulnerability.
+It must cite model elements and Evidence, expose assumptions and missing
+prerequisites, and remain separate from deterministic reports and CI gates.
+An opt-in shadow challenger is available for scoped model slices. Comparative
+quality evaluation and an explicit human-disposition workflow remain planned.
 
 ## Security Note
 
 This tool may process sensitive architecture and source-code information.
 
-External LLM calls are disabled by default and require an explicit `--llm` mode.
+External LLM calls are disabled by default. They require either an explicit
+`analyze --llm` mode or the approval flags on `hypotheses propose`.
 
 ## Threat Analysis
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
@@ -14,13 +15,28 @@ from threatmodel_ai.errors import ModelForgeError
 from threatmodel_ai.evaluation import evaluate_manifest
 from threatmodel_ai.ingest import discover_inputs
 from threatmodel_ai.llm import merge_llm_candidates, read_llm_candidates
+from threatmodel_ai.llm.challenger import build_challenger_context, propose_threat_hypotheses
+from threatmodel_ai.llm.client import OpenAIResponsesClient
+from threatmodel_ai.llm.hypotheses import (
+    read_threat_hypotheses,
+    threat_hypothesis_json_schema,
+)
+from threatmodel_ai.llm.review import (
+    HypothesisDisposition,
+    effective_dispositions,
+    read_review_state,
+    record_hypothesis_decision,
+    write_review_state,
+)
 from threatmodel_ai.model.identity import preview_legacy_mermaid_identities
 from threatmodel_ai.model.io import (
     read_system_model,
     read_versioned_system_model,
+    system_model_json_schema,
     write_system_model,
 )
 from threatmodel_ai.model.migration import migrate_system_model
+from threatmodel_ai.model.schema_v02 import SystemModelV02, audit_attribute_evidence
 from threatmodel_ai.pipeline import (
     analyze_project,
     build_artifact_preview,
@@ -32,8 +48,17 @@ from threatmodel_ai.stride import generate_threats
 app = typer.Typer(help="Generate threat modeling artifacts from repository inputs.")
 candidates_app = typer.Typer(help="Review and merge LLM candidate artifacts.")
 model_app = typer.Typer(help="Validate and inspect system model artifacts.")
+hypotheses_app = typer.Typer(help="Inspect non-authoritative threat hypothesis artifacts.")
 app.add_typer(candidates_app, name="candidates")
 app.add_typer(model_app, name="model")
+app.add_typer(hypotheses_app, name="hypotheses")
+
+
+class ExternalDataClass(StrEnum):
+    """Operator-attested data classes allowed for external LLM transmission."""
+
+    PUBLIC = "public"
+    APPROVED_INTERNAL = "internal-approved"
 
 
 @app.callback()
@@ -130,8 +155,7 @@ def analyze(
     _echo_next_steps(result.review_path, result.questions_path)
     if result.questions_refined_path:
         typer.echo(
-            "LLM: question wording proposals require human review; "
-            "questions.md is authoritative."
+            "LLM: question wording proposals require human review; questions.md is authoritative."
         )
     elif result.llm_candidates_path:
         typer.echo("LLM: README candidates require human review and explicit merge.")
@@ -404,6 +428,273 @@ def identity_preview(
     )
 
 
+@hypotheses_app.command("validate")
+def validate_hypotheses(
+    hypotheses: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    system_model: Annotated[
+        Path,
+        typer.Option(
+            "--model",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="Exact 0.1 or 0.2 model snapshot cited by the hypotheses.",
+        ),
+    ],
+) -> None:
+    """Validate a hypothesis artifact without accepting findings or writing files."""
+
+    try:
+        model = read_versioned_system_model(system_model)
+        batch = read_threat_hypotheses(hypotheses, model=model)
+    except ValidationError as exc:
+        _echo_error("Threat hypotheses failed validation.", detail=_validation_detail(exc))
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Threat hypotheses failed validation.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Valid review-only hypotheses: {len(batch.hypotheses)} candidate(s).")
+    typer.echo("No model facts, reports, or CI decisions were changed.")
+
+
+@hypotheses_app.command("propose")
+def propose_hypotheses(
+    system_model: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    elements: Annotated[
+        list[str],
+        typer.Option("--element", help="Focus element ID. Repeat for multiple IDs."),
+    ],
+    classification: Annotated[
+        ExternalDataClass,
+        typer.Option(
+            "--classification",
+            help="Operator-attested class: public or internal-approved.",
+        ),
+    ],
+    out: Annotated[
+        Path,
+        typer.Option("--out", "-o", help="New review-only threat_hypotheses.json path."),
+    ],
+    allow_external_llm: Annotated[
+        bool,
+        typer.Option(
+            "--allow-external-llm",
+            help="Confirm this scoped architecture data is approved for external LLM use.",
+        ),
+    ] = False,
+) -> None:
+    """Run the opt-in shadow challenger; never accept or gate on its proposals."""
+
+    if not allow_external_llm:
+        _echo_error(
+            "External LLM approval is required.",
+            hint="Review the selected model context and pass --allow-external-llm explicitly.",
+        )
+        raise typer.Exit(code=1)
+    if out.exists():
+        _echo_error("Hypothesis output already exists.", hint="Choose a new --out path.")
+        raise typer.Exit(code=1)
+
+    try:
+        model = read_versioned_system_model(system_model)
+        client = OpenAIResponsesClient.from_env()
+        batch = propose_threat_hypotheses(
+            model=model,
+            element_ids=elements,
+            client=client,
+            model_name=client.model,
+        )
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with out.open("x", encoding="utf-8") as destination:
+            destination.write(
+                json.dumps(batch.model_dump(mode="json"), indent=2, sort_keys=True) + "\n"
+            )
+    except ModelForgeError as exc:
+        _echo_error(exc.message, detail=exc.detail, hint=exc.hint)
+        raise typer.Exit(code=1) from exc
+    except ValidationError as exc:
+        _echo_error("Input system model failed validation.", detail=_validation_detail(exc))
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Threat challenger failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {out}: {len(batch.hypotheses)} review-only hypothesis candidate(s).")
+    typer.echo(f"External data classification attested: {classification.value}.")
+    typer.echo("Deterministic reports and CI decisions were not changed.")
+
+
+@hypotheses_app.command("preview-context")
+def preview_hypothesis_context(
+    system_model: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    elements: Annotated[
+        list[str],
+        typer.Option("--element", help="Focus element ID. Repeat for multiple IDs."),
+    ],
+    out: Annotated[
+        Path,
+        typer.Option("--out", "-o", help="New local context preview JSON path."),
+    ],
+) -> None:
+    """Preview the exact model fields sent by the opt-in challenger; no API call."""
+
+    if out.exists():
+        _echo_error("Context preview already exists.", hint="Choose a new --out path.")
+        raise typer.Exit(code=1)
+    try:
+        model = read_versioned_system_model(system_model)
+        context = build_challenger_context(model, elements)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with out.open("x", encoding="utf-8") as destination:
+            destination.write(json.dumps(context, indent=2, sort_keys=True) + "\n")
+    except ModelForgeError as exc:
+        _echo_error(exc.message, detail=exc.detail, hint=exc.hint)
+        raise typer.Exit(code=1) from exc
+    except ValidationError as exc:
+        _echo_error("Input system model failed validation.", detail=_validation_detail(exc))
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Context preview failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {out}. No external API was called.")
+
+
+@hypotheses_app.command("schema")
+def export_hypothesis_schema(
+    out: Annotated[Path, typer.Option("--out", "-o", help="New JSON Schema output path.")],
+) -> None:
+    """Write the structural hypothesis schema without overwriting files."""
+
+    try:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with out.open("x", encoding="utf-8") as destination:
+            destination.write(
+                json.dumps(threat_hypothesis_json_schema(), indent=2, sort_keys=True) + "\n"
+            )
+    except FileExistsError as exc:
+        _echo_error("Schema output already exists.", hint="Choose a new --out path.")
+        raise typer.Exit(code=1) from exc
+    except OSError as exc:
+        _echo_error("Schema export failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {out} (structural hypothesis schema 0.1).")
+    typer.echo("Use 'tm-ai hypotheses validate' for model-bound Evidence checks.")
+
+
+@hypotheses_app.command("decide")
+def decide_hypothesis(
+    hypotheses: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    system_model: Annotated[
+        Path,
+        typer.Option("--model", exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    hypothesis_id: Annotated[str, typer.Option("--id", help="Exact hypothesis ID to review.")],
+    disposition: Annotated[
+        HypothesisDisposition,
+        typer.Option("--disposition", help="Investigate, needs_context, or rejected."),
+    ],
+    reviewer: Annotated[str, typer.Option("--reviewer", help="Human reviewer identifier.")],
+    rationale: Annotated[str, typer.Option("--rationale", help="Reason for this decision.")],
+    state_path: Annotated[
+        Path,
+        typer.Option("--state", help="Explicit local review-state JSON path."),
+    ],
+) -> None:
+    """Record human triage without promoting a hypothesis to a finding."""
+
+    if state_path.resolve() in {hypotheses.resolve(), system_model.resolve()}:
+        _echo_error("Review state must not overwrite the model or hypothesis file.")
+        raise typer.Exit(code=1)
+    try:
+        model = read_versioned_system_model(system_model)
+        batch = read_threat_hypotheses(hypotheses, model=model)
+        previous = (
+            read_review_state(state_path, batch=batch, model=model) if state_path.exists() else None
+        )
+        updated = record_hypothesis_decision(
+            batch=batch,
+            model=model,
+            state=previous,
+            hypothesis_id=hypothesis_id,
+            disposition=disposition,
+            reviewer=reviewer,
+            rationale=rationale,
+        )
+        write_review_state(updated, state_path)
+    except ValidationError as exc:
+        _echo_error("Hypothesis review failed validation.", detail=_validation_detail(exc))
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Hypothesis review failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Recorded {disposition.value} for {hypothesis_id} in {state_path}.")
+    typer.echo("This is triage only; no finding, model fact, report, or CI gate was changed.")
+
+
+@hypotheses_app.command("review-status")
+def hypothesis_review_status(
+    hypotheses: Annotated[
+        Path,
+        typer.Argument(exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    system_model: Annotated[
+        Path,
+        typer.Option("--model", exists=True, file_okay=True, dir_okay=False, readable=True),
+    ],
+    state_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--state",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="Existing review-state JSON; omit to list unreviewed candidates.",
+        ),
+    ] = None,
+) -> None:
+    """List candidate IDs and latest human triage without calling an LLM."""
+
+    try:
+        model = read_versioned_system_model(system_model)
+        batch = read_threat_hypotheses(hypotheses, model=model)
+        state = (
+            read_review_state(state_path, batch=batch, model=model)
+            if state_path is not None
+            else None
+        )
+    except ValidationError as exc:
+        _echo_error("Hypothesis review failed validation.", detail=_validation_detail(exc))
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Hypothesis review failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    latest = effective_dispositions(state) if state is not None else {}
+    for item in batch.hypotheses:
+        status = latest.get(item.id)
+        typer.echo(f"{item.id}: {status.value if status else 'unreviewed'} — {item.title}")
+    event_count = len(state.events) if state is not None else 0
+    typer.echo(f"{event_count} recorded review event(s); no finding was accepted.")
+
+
 @model_app.command("validate")
 def validate_model(
     system_model: Annotated[
@@ -415,6 +706,13 @@ def validate_model(
         typer.Option(
             "--check-generators",
             help="Exercise all deterministic artifact generators in memory; write nothing.",
+        ),
+    ] = False,
+    require_attribute_evidence: Annotated[
+        bool,
+        typer.Option(
+            "--require-attribute-evidence",
+            help="For 0.2, fail when accepted elements or known security attributes lack evidence.",
         ),
     ] = False,
 ) -> None:
@@ -429,6 +727,23 @@ def validate_model(
         _echo_error("Input system model failed validation.", detail=str(exc))
         raise typer.Exit(code=1) from exc
 
+    if require_attribute_evidence:
+        if not isinstance(model, SystemModelV02):
+            _echo_error(
+                "Attribute evidence check requires a 0.2 model.",
+                hint="Migrate to 0.2 first, then review its source evidence.",
+            )
+            raise typer.Exit(code=1)
+        gaps = audit_attribute_evidence(model)
+        if gaps:
+            preview = ", ".join(f"{gap.element_id} {gap.path}" for gap in gaps[:5])
+            _echo_error(
+                "Attribute evidence check failed.",
+                detail=f"{len(gaps)} gap(s); first: {preview}.",
+                hint="Add direct evidence for accepted facts or leave unsupported values unknown.",
+            )
+            raise typer.Exit(code=1)
+
     if check_generators:
         try:
             build_artifact_preview(model)
@@ -437,8 +752,36 @@ def validate_model(
             raise typer.Exit(code=1) from exc
 
     typer.echo(f"Valid system model: schema {model.schema_version}.")
+    if require_attribute_evidence:
+        typer.echo("Attribute evidence check passed.")
     if check_generators:
         typer.echo("All deterministic artifact generators passed; no files were written.")
+
+
+@model_app.command("schema")
+def export_model_schema(
+    schema_version: Annotated[
+        str,
+        typer.Option("--schema-version", help="Model schema version: 0.1 or 0.2."),
+    ],
+    out: Annotated[Path, typer.Option("--out", "-o", help="New JSON Schema output path.")],
+) -> None:
+    """Write the versioned structural JSON Schema without overwriting files."""
+
+    try:
+        schema = system_model_json_schema(schema_version)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        with out.open("x", encoding="utf-8") as destination:
+            destination.write(json.dumps(schema, indent=2, sort_keys=True) + "\n")
+    except FileExistsError as exc:
+        _echo_error("Schema output already exists.", hint="Choose a new --out path.")
+        raise typer.Exit(code=1) from exc
+    except (ValueError, OSError) as exc:
+        _echo_error("Schema export failed.", detail=str(exc))
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Wrote {out} (structural schema {schema_version}).")
+    typer.echo("Use 'tm-ai model validate' for cross-element and provenance checks.")
 
 
 @model_app.command("migrate")

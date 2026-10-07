@@ -59,6 +59,12 @@ def render_review_markdown(
         f"| {rating_counts[RiskRating.HIGH]} | {rating_counts[RiskRating.MEDIUM]} | "
         f"{rating_counts[RiskRating.LOW]} | {len(risks)} |",
         "",
+        "STRIDE/ATT&CK confidence (high/medium/low) describes how strongly a "
+        "candidate matches its deterministic rule and evidence. Risk rating "
+        "(High/Medium/Low) and score order review attention from modeled facts. "
+        "These are separate scales: neither is CVSS, confirmed vulnerability "
+        "severity, or exploitability proof.",
+        "",
     ]
 
     if ordered_risks:

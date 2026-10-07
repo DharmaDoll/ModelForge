@@ -160,15 +160,18 @@ class LLMCandidateModel(BaseModel):
         return self
 
 
-def extract_readme_candidates(path: Path, client: LLMClient) -> LLMCandidateModel:
-    """Extract structured candidates from README text using an optional LLM."""
+def extract_readme_candidates(
+    path: Path, client: LLMClient, *, project_root: Path | None = None
+) -> LLMCandidateModel:
+    """Extract candidates while keeping the local absolute path out of the request."""
 
     readme_text = path.read_text(encoding="utf-8")
+    source_label = _outbound_source_label(path, project_root)
     response = client.generate_text(
         instructions=_INSTRUCTIONS,
         input_text=json.dumps(
             {
-                "source_path": str(path),
+                "source_path": source_label,
                 "source_type": SourceType.README.value,
                 "readme_text": readme_text,
             },
@@ -188,7 +191,7 @@ def extract_readme_candidates(path: Path, client: LLMClient) -> LLMCandidateMode
             ),
         ) from exc
     try:
-        return LLMCandidateModel.model_validate(payload)
+        candidates = LLMCandidateModel.model_validate(payload)
     except ValidationError as exc:
         raise LLMCandidateValidationError(
             "LLM README candidates failed validation.",
@@ -198,6 +201,28 @@ def extract_readme_candidates(path: Path, client: LLMClient) -> LLMCandidateMode
                 "--llm extract-readme."
             ),
         ) from exc
+    if candidates.source_path != source_label or any(
+        evidence.source_path != source_label
+        for candidate in (*candidates.nodes, *candidates.edges, *candidates.unknowns)
+        for evidence in candidate.evidence
+    ):
+        raise LLMCandidateValidationError(
+            "LLM README candidates failed validation.",
+            detail="Candidate source paths must match the supplied README identifier.",
+            hint="Review the LLM response before using or merging its candidates.",
+        )
+    return candidates
+
+
+def _outbound_source_label(path: Path, project_root: Path | None) -> str:
+    """Use a project-relative path or an opaque external-input label."""
+
+    if project_root is not None:
+        try:
+            return path.resolve().relative_to(project_root.resolve()).as_posix()
+        except ValueError:
+            return f"external-input/{path.name}"
+    return path.name
 
 
 def read_llm_candidates(

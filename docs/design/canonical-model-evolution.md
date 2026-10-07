@@ -96,6 +96,10 @@ An observation may become a fact only when all of the following are true:
 
 Confidence alone never promotes a generated observation. A generated observation
 must be reviewed and reissued as `human_reviewed` before normalization.
+An inference's `based_on` reference must point to a supported, known fact value;
+missing paths, `unknown`, and empty collections cannot support an inference.
+References to bookkeeping fields such as an element ID or Evidence array are
+not valid substitutes for a source claim.
 
 ### Fact versus inference examples
 
@@ -105,6 +109,37 @@ must be reviewed and reissued as `human_reviewed` before normalization.
 | OpenAPI declares an `apiKey` security scheme | The scheme is declared | The implementation enforces the scheme |
 | Mermaid label contains `Orders DB` | A node named `Orders DB` exists | The node is a database unless the diagram syntax states the type explicitly |
 | A public API has no documented authorization | Authorization is unknown | Authorization bypass is a STRIDE candidate, not a fact |
+
+### Optional LLM threat hypotheses
+
+An opt-in LLM may inspect approved context from the canonical model and propose
+additional threat or attack-path hypotheses. These are assessment candidates,
+not architecture observations or accepted facts. Each hypothesis must cite
+existing element IDs and supporting Evidence, separate established
+prerequisites from assumptions, and identify missing facts or verification
+questions. A conditional scenario must not be phrased as a confirmed weakness.
+
+Hypotheses are written to a separate review artifact. They cannot mutate the
+canonical model, replace deterministic STRIDE/ATT&CK findings, change review
+priority, or trigger CI gates without validation and explicit human disposition.
+The no-LLM path remains complete. The current CLI exports the structural
+schema, validates review-only artifacts against an exact model snapshot, and
+offers an opt-in shadow challenger for explicitly selected one-hop graph slices.
+It does not accept findings. The artifact records affected element IDs,
+evidence-index citations for established prerequisites, assumptions, missing
+facts, verification steps, and LLM provenance. A model SHA-256 prevents using
+index-based Evidence citations with a changed snapshot. On 0.2 models,
+citations may target attribute-level Evidence; on 0.1 they cite element-level
+Evidence. This validates pointer existence, not semantic support for the claim.
+The shadow challenger sends only IDs, node names/types, selected edge security
+fields, and direct Evidence indices; classification and external transmission
+approval are required from the operator. It does not send raw files, paths,
+descriptions, or Evidence details. IDs and field values can still be sensitive.
+A separate local hypothesis-review state records operator-supplied reviewer,
+rationale, UTC time, and one of `investigate`, `needs_context`, or `rejected`.
+Each decision remains tied to the exact model and hypothesis-batch fingerprints;
+later decisions preserve prior events. This is triage, not finding acceptance,
+and it is separate from the future deterministic-finding lifecycle below.
 
 ## Target 0.2 Canonical Model
 
@@ -210,6 +245,17 @@ For 0.2, security-relevant attributes include at least:
 * internet exposure and deployment placement;
 * edge protocol, authentication, authorization, and data assets; and
 * data classification and modeled controls when those concepts are introduced.
+
+The current 0.2 reader keeps ordinary validation compatible with migrated 0.1
+models, whose old facts may not have attribute-level provenance. The opt-in
+`tm-ai model validate --require-attribute-evidence` audit fails on accepted
+elements or known security-relevant attributes without direct Evidence. It also
+requires direct attribute Evidence for each known fact cited by an inference's
+`based_on` reference, including names and Mermaid aliases; this requirement is
+not imposed by ordinary legacy-compatible validation. Derived-only pointers do
+not satisfy this direct Evidence audit. It does not prove that a cited source
+actually supports the claim; adapter-specific fact acceptance remains a
+separate requirement before making 0.2 the default.
 
 ## Schema Versioning and Compatibility
 

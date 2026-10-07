@@ -40,7 +40,7 @@ Total threats: 24
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: GET /payments/{paymentId} receives requests from API Client, and rate limiting or capacity controls are not proven.
 
@@ -57,7 +57,7 @@ Mitigation: Apply rate limits, request size limits, timeouts, backpressure, and 
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: POST /payments receives requests from API Client, and rate limiting or capacity controls are not proven.
 
@@ -74,7 +74,7 @@ Mitigation: Apply rate limits, request size limits, timeouts, backpressure, and 
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: payments-public-lb receives requests from Internet, and rate limiting or capacity controls are not proven.
 
@@ -91,7 +91,7 @@ Mitigation: Apply rate limits, request size limits, timeouts, backpressure, and 
 - Status: candidate
 - Affected elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Payments Gateway receives requests from Web Client, and rate limiting or capacity controls are not proven.
 
@@ -108,7 +108,7 @@ Mitigation: Apply rate limits, request size limits, timeouts, backpressure, and 
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: Authorization requirements for this flow are not fully proven by the system model.
 
@@ -125,7 +125,7 @@ Mitigation: Define authorization rules per operation and enforce them server-sid
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: Authorization requirements for this flow are not fully proven by the system model.
 
@@ -142,7 +142,7 @@ Mitigation: Define authorization rules per operation and enforce them server-sid
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: Authorization requirements for this flow are not fully proven by the system model.
 
@@ -159,7 +159,7 @@ Mitigation: Define authorization rules per operation and enforce them server-sid
 - Status: candidate
 - Affected elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Authorization requirements for this flow are not fully proven by the system model.
 
@@ -176,7 +176,7 @@ Mitigation: Define authorization rules per operation and enforce them server-sid
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: The flow may expose response data, and transport or data classification details are incomplete.
 
@@ -193,7 +193,7 @@ Mitigation: Use TLS, minimize responses, classify referenced data assets, and en
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: The flow may expose response data, and transport or data classification details are incomplete.
 
@@ -210,7 +210,7 @@ Mitigation: Use TLS, minimize responses, classify referenced data assets, and en
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: The flow may expose response data, and transport or data classification details are incomplete.
 
@@ -227,7 +227,7 @@ Mitigation: Use TLS, minimize responses, classify referenced data assets, and en
 - Status: candidate
 - Affected elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: The flow may expose response data, and transport or data classification details are incomplete.
 
@@ -244,7 +244,7 @@ Mitigation: Use TLS, minimize responses, classify referenced data assets, and en
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: Audit logging for this externally reachable flow is not proven by the system model.
 
@@ -261,7 +261,7 @@ Mitigation: Record authenticated principal, request metadata, decision outcomes,
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: Audit logging for this externally reachable flow is not proven by the system model.
 
@@ -278,7 +278,7 @@ Mitigation: Record authenticated principal, request metadata, decision outcomes,
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: Audit logging for this externally reachable flow is not proven by the system model.
 
@@ -295,7 +295,7 @@ Mitigation: Record authenticated principal, request metadata, decision outcomes,
 - Status: candidate
 - Affected elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Audit logging for this externally reachable flow is not proven by the system model.
 
@@ -312,7 +312,7 @@ Mitigation: Record authenticated principal, request metadata, decision outcomes,
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: Authentication is documented as apiKey header:X-API-Key. A caller may impersonate another principal when reaching GET /payments/{paymentId}.
 
@@ -329,7 +329,7 @@ Mitigation: Require explicit authentication, validate credentials server-side, a
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: Authentication is documented as apiKey header:X-API-Key. A caller may impersonate another principal when reaching POST /payments.
 
@@ -346,7 +346,7 @@ Mitigation: Require explicit authentication, validate credentials server-side, a
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: Authentication is not specified for this data flow. A caller may impersonate another principal when reaching payments-public-lb.
 
@@ -363,7 +363,7 @@ Mitigation: Require explicit authentication, validate credentials server-side, a
 - Status: candidate
 - Affected elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Authentication is not specified for this data flow. A caller may impersonate another principal when reaching Payments Gateway.
 
@@ -380,7 +380,7 @@ Mitigation: Require explicit authentication, validate credentials server-side, a
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: API Client sends input to GET /payments/{paymentId}. The model does not prove input integrity or validation.
 
@@ -397,7 +397,7 @@ Mitigation: Validate all inputs, enforce schema constraints, and use integrity p
 - Status: candidate
 - Affected elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Scenario: API Client sends input to POST /payments. The model does not prove input integrity or validation.
 
@@ -414,7 +414,7 @@ Mitigation: Validate all inputs, enforce schema constraints, and use integrity p
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: This flow crosses a trust boundary. Internet sends input to payments-public-lb. The model does not prove input integrity or validation.
 
@@ -431,7 +431,7 @@ Mitigation: Validate all inputs, enforce schema constraints, and use integrity p
 - Status: candidate
 - Affected elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Scenario: Web Client sends input to Payments Gateway. The model does not prove input integrity or validation.
 

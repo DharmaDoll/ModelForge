@@ -244,6 +244,7 @@ def test_markdown_reports_are_reviewable() -> None:
     assert "| 2 | 1 | 1 | 1 | 1 | 1 |" in review_md
     assert "| 1 | 0 | 0 | 1 |" in review_md
     assert "| High | 8 | Review public API authorization |" in review_md
+    assert "These are separate scales: neither is CVSS" in review_md
     assert "| authentication | 1 |" in review_md
 
 

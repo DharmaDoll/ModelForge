@@ -20,7 +20,7 @@ Total ATT&CK findings: 2
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: payments-public-lb is reachable from Internet. The model does not prove patching, WAF coverage, or exploit prevention controls.
 
@@ -39,7 +39,7 @@ Mitigation: Patch exposed software, minimize exposed endpoints, validate inputs,
 - Status: candidate
 - Affected elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Scenario: payments-public-lb receives traffic from Internet, and rate limiting or capacity controls are not proven in the model.
 

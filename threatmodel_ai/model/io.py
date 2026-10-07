@@ -4,9 +4,27 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from threatmodel_ai.model.schema import SystemModel
 from threatmodel_ai.model.schema_v02 import SystemModelV02
+
+
+def system_model_json_schema(version: str) -> dict[str, Any]:
+    """Export a structural schema; semantic checks still require model validation."""
+
+    models = {"0.1": SystemModel, "0.2": SystemModelV02}
+    model_type = models.get(version)
+    if model_type is None:
+        raise ValueError(f"unsupported model schema version {version!r}; supported: 0.1, 0.2")
+    schema = model_type.model_json_schema(mode="validation")
+    schema["required"] = sorted({*schema.get("required", []), "schema_version"})
+    schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    schema["$comment"] = (
+        "Structural contract only. Use 'tm-ai model validate' for cross-element "
+        "references, provenance, and other semantic checks."
+    )
+    return schema
 
 
 def read_versioned_system_model(path: Path) -> SystemModel | SystemModelV02:

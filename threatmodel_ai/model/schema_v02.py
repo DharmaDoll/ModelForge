@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -13,6 +14,7 @@ from threatmodel_ai.model.schema import (
     Evidence,
     Node,
     NodeType,
+    SourceType,
     SystemModel,
 )
 
@@ -32,8 +34,55 @@ _ATTRIBUTE_POINTERS = (
     | {
         "/name",
         "/description",
+        "/metadata/mermaid_alias",
     }
 )
+_INFERENCE_BASIS_POINTERS = _ATTRIBUTE_POINTERS
+_NODE_EVIDENCE_POINTERS = _NODE_PREDICATES | _METADATA_PREDICATES
+_EDGE_EVIDENCE_POINTERS = _EDGE_PREDICATES | _METADATA_PREDICATES
+
+
+@dataclass(frozen=True, order=True)
+class EvidenceGap:
+    """One accepted element or known security attribute lacking direct evidence."""
+
+    element_id: str
+    path: str
+
+
+def audit_attribute_evidence(model: SystemModelV02) -> list[EvidenceGap]:
+    """List missing 0.2 fact and inference-basis evidence, preserving legacy validation."""
+
+    gaps: set[EvidenceGap] = set()
+    if (model.name != "unknown" or model.description != "unknown") and not _has_direct_evidence(
+        model.evidence
+    ):
+        gaps.add(EvidenceGap(model.id, "/evidence"))
+    basis_pointers: dict[str, set[str]] = {}
+    for inference in model.inferences:
+        for reference in inference.based_on:
+            basis_pointers.setdefault(reference.element_id, set()).add(reference.path)
+    for element in (*model.nodes, *model.edges):
+        if not _has_direct_evidence(element.evidence):
+            gaps.add(EvidenceGap(element.id, "/evidence"))
+        pointers = (
+            _NODE_EVIDENCE_POINTERS
+            if isinstance(element, NodeV02)
+            else _EDGE_EVIDENCE_POINTERS
+        )
+        for pointer in sorted(pointers | basis_pointers.get(element.id, set())):
+            value = _pointer_value(element, pointer)
+            if value is _MISSING or value in (None, "unknown", []):
+                continue
+            if not _has_direct_evidence(element.attribute_evidence.get(pointer, [])):
+                gaps.add(EvidenceGap(element.id, pointer))
+    return sorted(gaps)
+
+
+def _has_direct_evidence(items: list[Evidence]) -> bool:
+    """Derived migration or rule pointers cannot substantiate a direct fact."""
+
+    return any(item.source_type != SourceType.DERIVED for item in items)
 
 
 class ModelReference(BaseModel):
@@ -121,7 +170,7 @@ class SystemModelV02(SystemModel):
                 if not evidence:
                     raise ValueError(f"attribute evidence for {element.id} {pointer} is empty")
                 value = _pointer_value(element, pointer)
-                if value is _MISSING or value is None or value == "unknown":
+                if not _is_known_value(value):
                     raise ValueError(
                         f"attribute evidence for {element.id} {pointer} has no known value"
                     )
@@ -133,12 +182,17 @@ class SystemModelV02(SystemModel):
                 raise ValueError(f"inference {inference.id!r} has missing subject")
             _validate_inference_value(inference, subject, elements)
             current = _pointer_value(subject, inference.predicate)
-            if current is not _MISSING and current not in (None, "unknown", []):
+            if _is_known_value(current):
                 raise ValueError(f"inference {inference.id!r} would overwrite a known fact")
             for reference in inference.based_on:
+                if reference.path not in _INFERENCE_BASIS_POINTERS:
+                    raise ValueError(f"inference {inference.id!r} has unsupported based_on path")
                 source = elements.get(reference.element_id)
-                if source is None or _pointer_value(source, reference.path) is _MISSING:
+                basis = _pointer_value(source, reference.path) if source is not None else _MISSING
+                if basis is _MISSING:
                     raise ValueError(f"inference {inference.id!r} has missing based_on reference")
+                if not _is_known_value(basis):
+                    raise ValueError(f"inference {inference.id!r} has unknown based_on value")
             claims.setdefault((inference.subject_id, inference.predicate), []).append(inference)
 
         unknown_by_id = {unknown.id: unknown for unknown in self.unknowns}
@@ -238,3 +292,9 @@ def _canonical_value(value: Any) -> str:
     """Use canonical JSON to compare inference values deterministically."""
 
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _is_known_value(value: Any) -> bool:
+    """Treat absent, explicitly unknown, and empty collection claims as unknown."""
+
+    return value is not _MISSING and value not in (None, "unknown", [])

@@ -23,6 +23,7 @@ from threatmodel_ai.model.schema import (
     Unknown,
 )
 from threatmodel_ai.model.schema_v02 import (
+    EdgeV02,
     IdentityAlias,
     Inference,
     ModelReference,
@@ -206,6 +207,50 @@ def test_v02_schema_rejects_missing_inference_reference() -> None:
         )
 
 
+def test_v02_schema_rejects_unknown_or_unsupported_inference_basis() -> None:
+    node = NodeV02(id="node:db", name="DB", type=NodeType.UNKNOWN)
+    unknown_basis = _type_inference(node.id).model_copy(
+        update={"based_on": [ModelReference(element_id=node.id, path="/type")]}
+    )
+    with pytest.raises(ValidationError, match="unknown based_on value"):
+        SystemModelV02(nodes=[node], inferences=[unknown_basis])
+
+    unsupported_basis = _type_inference(node.id).model_copy(
+        update={"based_on": [ModelReference(element_id=node.id, path="/id")]}
+    )
+    with pytest.raises(ValidationError, match="unsupported based_on path"):
+        SystemModelV02(nodes=[node], inferences=[unsupported_basis])
+
+
+def test_v02_schema_rejects_empty_collection_as_inference_basis() -> None:
+    edge = EdgeV02(
+        id="edge:request",
+        source="node:client",
+        target="node:db",
+        type=EdgeType.COMMUNICATES_WITH,
+    )
+    inference = Inference(
+        id="inference:auth",
+        subject_id=edge.id,
+        predicate="/authentication",
+        value="none",
+        based_on=[ModelReference(element_id=edge.id, path="/data_assets")],
+        rule_id="test-v1",
+        confidence=0.7,
+        provenance_class="deterministic",
+        evidence=[_evidence()],
+    )
+    with pytest.raises(ValidationError, match="unknown based_on value"):
+        SystemModelV02(
+            nodes=[
+                NodeV02(id="node:client", name="Client", type=NodeType.ACTOR),
+                NodeV02(id="node:db", name="DB", type=NodeType.DATABASE),
+            ],
+            edges=[edge],
+            inferences=[inference],
+        )
+
+
 def test_v02_schema_rejects_invalid_inference_target_and_value() -> None:
     node = NodeV02(id="node:db", name="DB", type=NodeType.UNKNOWN)
     bad_value = _type_inference(node.id).model_copy(update={"value": ["database"]})
@@ -275,6 +320,23 @@ def test_v02_attribute_evidence_requires_a_known_value() -> None:
                     attribute_evidence={"/type": [_evidence()]},
                 )
             ]
+        )
+
+    with pytest.raises(ValidationError, match="has no known value"):
+        SystemModelV02(
+            nodes=[
+                NodeV02(id="node:client", name="Client", type=NodeType.ACTOR),
+                NodeV02(id="node:db", name="DB", type=NodeType.DATABASE),
+            ],
+            edges=[
+                EdgeV02(
+                    id="edge:request",
+                    source="node:client",
+                    target="node:db",
+                    type=EdgeType.COMMUNICATES_WITH,
+                    attribute_evidence={"/data_assets": [_evidence()]},
+                )
+            ],
         )
 
 

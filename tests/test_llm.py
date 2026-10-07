@@ -245,6 +245,8 @@ def test_extract_readme_candidates_validates_structured_llm_output() -> None:
     assert candidates.edges[0].authentication == "unknown"
     assert candidates.unknowns[0].category == "authentication"
     assert "readme_text" in client.input_text
+    assert json.loads(client.input_text)["source_path"] == "README.md"
+    assert str(FIXTURE.resolve()) not in client.input_text
 
 
 def test_extract_readme_candidates_rejects_invalid_json() -> None:
@@ -252,6 +254,96 @@ def test_extract_readme_candidates_rejects_invalid_json() -> None:
 
     with pytest.raises(LLMCandidateValidationError):
         extract_readme_candidates(FIXTURE / "README.md", client)
+
+
+@pytest.mark.parametrize("wrong_path", ["/private/operator/README.md", "other.md"])
+def test_extract_readme_candidates_rejects_unexpected_evidence_path(wrong_path: str) -> None:
+    client = FakeLLMClient(
+        json.dumps(
+            {
+                "source_path": "README.md",
+                "source_type": "readme",
+                "nodes": [
+                    {
+                        "id": "node:proposed",
+                        "name": "Proposed",
+                        "type": "component",
+                        "confidence": 0.8,
+                        "evidence": [
+                            {
+                                "source_path": wrong_path,
+                                "detail": "README",
+                                "excerpt": "Proposed",
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+    )
+
+    with pytest.raises(LLMCandidateValidationError) as error:
+        extract_readme_candidates(FIXTURE / "README.md", client)
+    assert "source paths must match" in error.value.detail
+
+
+def test_external_readme_path_is_not_sent_to_llm(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    external = tmp_path / "private" / "README.md"
+    external.parent.mkdir()
+    external.write_text("# Private Service\n", encoding="utf-8")
+    client = FakeLLMClient(
+        json.dumps(
+            {
+                "source_path": "external-input/README.md",
+                "source_type": "readme",
+                "nodes": [],
+                "edges": [],
+                "unknowns": [],
+                "warnings": [],
+            }
+        )
+    )
+
+    result = analyze_project(
+        discover_inputs(project, readme=external),
+        tmp_path / "out",
+        llm_mode="extract-readme",
+        llm_client=client,
+    )
+
+    assert str(external) not in client.input_text
+    assert json.loads(client.input_text)["source_path"] == "external-input/README.md"
+    assert result.llm_candidates_path is not None
+    assert "external-input/README.md" in result.llm_candidates_path.read_text(
+        encoding="utf-8"
+    )
+
+
+def test_nested_readme_uses_project_relative_llm_source_label(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    readme = project / "docs" / "README.md"
+    readme.parent.mkdir(parents=True)
+    readme.write_text("# Service\n", encoding="utf-8")
+    client = FakeLLMClient(
+        json.dumps(
+            {
+                "source_path": "docs/README.md",
+                "source_type": "readme",
+                "nodes": [],
+                "edges": [],
+                "unknowns": [],
+                "warnings": [],
+            }
+        )
+    )
+
+    candidates = extract_readme_candidates(readme, client, project_root=project)
+
+    assert candidates.source_path == "docs/README.md"
+    assert json.loads(client.input_text)["source_path"] == "docs/README.md"
+    assert str(project) not in client.input_text
 
 
 def test_pipeline_writes_llm_candidates_without_changing_system_model(tmp_path: Path) -> None:
@@ -297,3 +389,4 @@ def test_pipeline_writes_llm_candidates_without_changing_system_model(tmp_path: 
     assert "Review Only Service" in result.llm_candidates_path.read_text(encoding="utf-8")
     assert all(node.name != "Review Only Service" for node in model.nodes)
     assert result.questions_refined_path is None
+    assert str(FIXTURE.resolve()) not in client.input_text

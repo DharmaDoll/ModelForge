@@ -111,7 +111,7 @@ Underlying questions: 1
 - Category: authentication
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Authentication is unknown for this external entry point.
 
@@ -126,7 +126,7 @@ Underlying questions: 1
 - Category: authentication
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:authentication`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
+- Evidence: `docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
 
 Rationale: Authentication for Mermaid flow Processor to Payment Store is unknown.
 
@@ -141,7 +141,7 @@ Underlying questions: 1
 - Category: authentication
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:authentication`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authentication for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -156,7 +156,7 @@ Underlying questions: 1
 - Category: authentication
 - Related elements: `terraform:aws-lb:public`
 - Derived from: `unknown:terraform:terraform-aws-lb-public:authentication`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public")
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public")
 
 Rationale: Authentication for internet-exposed resource payments-public-lb is unknown.
 
@@ -171,7 +171,7 @@ Underlying questions: 1
 - Category: authentication
 - Related elements: `component:readme:sample-payments-api`
 - Derived from: `unknown:readme:authentication`, `component:readme:sample-payments-api`
-- Evidence: `tests/fixtures/sample-system/README.md` (readme/readme, README)
+- Evidence: `README.md` (readme/readme, README)
 
 Rationale: Authentication behavior is not described in the README.
 
@@ -186,7 +186,7 @@ Underlying questions: 2
 - Category: authentication
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authentication is unknown for this external entry point.
 
@@ -196,7 +196,7 @@ Rationale: Authentication is unknown for this external entry point.
 - Category: authentication
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client--c8b7536671:authentication`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2)
 
 Rationale: Authentication for Mermaid flow Web Client to Payments Gateway is unknown.
 
@@ -211,7 +211,7 @@ Underlying questions: 2
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -221,7 +221,7 @@ Rationale: Authorization is unknown for this external entry point.
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`
 - Derived from: `unknown:openapi:api-get-payments-paymentid:authorization`, `edge:actor-openapi-api-client:api-get-payments-paymentid:request`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId})
+- Evidence: `openapi.yaml` (openapi/openapi, OpenAPI); `openapi.yaml` (openapi/openapi, GET /payments/{paymentId})
 
 Rationale: Authorization requirements for GET /payments/{paymentId} are not specified.
 
@@ -236,7 +236,7 @@ Underlying questions: 2
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -246,7 +246,7 @@ Rationale: Authorization is unknown for this external entry point.
 - Category: authorization
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`
 - Derived from: `unknown:openapi:api-post-payments:authorization`, `edge:actor-openapi-api-client:api-post-payments:request`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments)
+- Evidence: `openapi.yaml` (openapi/openapi, OpenAPI); `openapi.yaml` (openapi/openapi, POST /payments)
 
 Rationale: Authorization requirements for POST /payments are not specified.
 
@@ -261,7 +261,7 @@ Underlying questions: 1
 - Category: authorization
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -276,7 +276,7 @@ Underlying questions: 1
 - Category: authorization
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:authorization`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
+- Evidence: `docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
 
 Rationale: Authorization for Mermaid flow Processor to Payment Store is unknown.
 
@@ -291,7 +291,7 @@ Underlying questions: 1
 - Category: authorization
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:authorization`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authorization for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -306,7 +306,7 @@ Underlying questions: 1
 - Category: authorization
 - Related elements: `component:readme:sample-payments-api`
 - Derived from: `unknown:readme:authorization`, `component:readme:sample-payments-api`
-- Evidence: `tests/fixtures/sample-system/README.md` (readme/readme, README)
+- Evidence: `README.md` (readme/readme, README)
 
 Rationale: Authorization behavior is not described in the README.
 
@@ -321,7 +321,7 @@ Underlying questions: 2
 - Category: authorization
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Authorization is unknown for this external entry point.
 
@@ -331,7 +331,7 @@ Rationale: Authorization is unknown for this external entry point.
 - Category: authorization
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client--c8b7536671:authorization`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2)
 
 Rationale: Authorization for Mermaid flow Web Client to Payments Gateway is unknown.
 
@@ -346,7 +346,7 @@ Underlying questions: 2
 - Category: data_classification
 - Related elements: `data-asset:openapi:payment`
 - Derived from: `data-asset:openapi:payment`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.Payment)
+- Evidence: `openapi.yaml` (openapi/openapi, components.schemas.Payment)
 
 Rationale: Data asset classification is not present in the model.
 
@@ -356,7 +356,7 @@ Rationale: Data asset classification is not present in the model.
 - Category: data_classification
 - Related elements: `data-asset:openapi:payment`
 - Derived from: `unknown:openapi:payment:data-classification`, `data-asset:openapi:payment`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.Payment)
+- Evidence: `openapi.yaml` (openapi/openapi, OpenAPI); `openapi.yaml` (openapi/openapi, components.schemas.Payment)
 
 Rationale: Data classification for schema Payment is unknown.
 
@@ -371,7 +371,7 @@ Underlying questions: 2
 - Category: data_classification
 - Related elements: `data-asset:openapi:paymentrequest`
 - Derived from: `data-asset:openapi:paymentrequest`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
+- Evidence: `openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
 
 Rationale: Data asset classification is not present in the model.
 
@@ -381,7 +381,7 @@ Rationale: Data asset classification is not present in the model.
 - Category: data_classification
 - Related elements: `data-asset:openapi:paymentrequest`
 - Derived from: `unknown:openapi:paymentrequest:data-classification`, `data-asset:openapi:paymentrequest`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
+- Evidence: `openapi.yaml` (openapi/openapi, OpenAPI); `openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
 
 Rationale: Data classification for schema PaymentRequest is unknown.
 
@@ -396,7 +396,7 @@ Underlying questions: 1
 - Category: encryption
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Transport protection is not proven by the model.
 
@@ -411,7 +411,7 @@ Underlying questions: 1
 - Category: encryption
 - Related elements: `data-asset:openapi:payment`
 - Derived from: `data-asset:openapi:payment`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.Payment)
+- Evidence: `openapi.yaml` (openapi/openapi, components.schemas.Payment)
 
 Rationale: Storage protection details are not present in the model.
 
@@ -426,7 +426,7 @@ Underlying questions: 1
 - Category: encryption
 - Related elements: `data-asset:openapi:paymentrequest`
 - Derived from: `data-asset:openapi:paymentrequest`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
+- Evidence: `openapi.yaml` (openapi/openapi, components.schemas.PaymentRequest)
 
 Rationale: Storage protection details are not present in the model.
 
@@ -441,7 +441,7 @@ Underlying questions: 1
 - Category: encryption
 - Related elements: `database:readme:payments-db`
 - Derived from: `database:readme:payments-db`
-- Evidence: `tests/fixtures/sample-system/README.md:15` (readme/readme, README section: Databases)
+- Evidence: `README.md:15` (readme/readme, README section: Databases)
 
 Rationale: Storage protection details are not present in the model.
 
@@ -456,7 +456,7 @@ Underlying questions: 2
 - Category: encryption
 - Related elements: `terraform:aws-db-instance:payments`
 - Derived from: `terraform:aws-db-instance:payments`
-- Evidence: `tests/fixtures/sample-system/main.tf:10` (terraform/terraform, resource "aws_db_instance" "payments")
+- Evidence: `main.tf:10` (terraform/terraform, resource "aws_db_instance" "payments")
 
 Rationale: Storage protection details are not present in the model.
 
@@ -466,7 +466,7 @@ Rationale: Storage protection details are not present in the model.
 - Category: encryption
 - Related elements: `terraform:aws-db-instance:payments`
 - Derived from: `unknown:terraform:terraform-aws-db-instance-payments:encryption`, `terraform:aws-db-instance:payments`
-- Evidence: `tests/fixtures/sample-system/main.tf:10` (terraform/terraform, resource "aws_db_instance" "payments")
+- Evidence: `main.tf:10` (terraform/terraform, resource "aws_db_instance" "payments")
 
 Rationale: Encryption configuration for payments-db is unknown.
 
@@ -481,7 +481,7 @@ Underlying questions: 1
 - Category: encryption
 - Related elements: `component:readme:sample-payments-api`
 - Derived from: `unknown:readme:encryption`, `component:readme:sample-payments-api`
-- Evidence: `tests/fixtures/sample-system/README.md` (readme/readme, README)
+- Evidence: `README.md` (readme/readme, README)
 
 Rationale: Transport or storage encryption is not described in the README.
 
@@ -496,7 +496,7 @@ Underlying questions: 1
 - Category: logging
 - Related elements: `component:readme:sample-payments-api`
 - Derived from: `unknown:readme:logging`, `component:readme:sample-payments-api`
-- Evidence: `tests/fixtures/sample-system/README.md` (readme/readme, README)
+- Evidence: `README.md` (readme/readme, README)
 
 Rationale: Logging or audit behavior is not described in the README.
 
@@ -511,7 +511,7 @@ Underlying questions: 1
 - Category: logging_monitoring
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -526,7 +526,7 @@ Underlying questions: 1
 - Category: logging_monitoring
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -541,7 +541,7 @@ Underlying questions: 1
 - Category: logging_monitoring
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -556,7 +556,7 @@ Underlying questions: 1
 - Category: logging_monitoring
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Audit logging and monitoring are not proven for this external entry point.
 
@@ -571,7 +571,7 @@ Underlying questions: 1
 - Category: monitoring
 - Related elements: `component:readme:sample-payments-api`
 - Derived from: `unknown:readme:monitoring`, `component:readme:sample-payments-api`
-- Evidence: `tests/fixtures/sample-system/README.md` (readme/readme, README)
+- Evidence: `README.md` (readme/readme, README)
 
 Rationale: Monitoring behavior is not described in the README.
 
@@ -586,7 +586,7 @@ Underlying questions: 1
 - Category: protocol
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-process-0f9d98a5e7:protocol`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-store-0d8a7046:mermaid:9fc9265cbb`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
+- Evidence: `docs/architecture.md:8` (mermaid/markdown, mermaid block 1, line 5)
 
 Rationale: Protocol for Mermaid flow Processor to Payment Store is unknown.
 
@@ -601,7 +601,7 @@ Underlying questions: 1
 - Category: protocol
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb`
 - Derived from: `unknown:mermaid:edge-mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-fdffe1fe54:protocol`, `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-processor-b74d0d4b:mermaid:9fc9265cbb`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Protocol for Mermaid flow Gateway to Payment Processor is unknown.
 
@@ -616,7 +616,7 @@ Underlying questions: 1
 - Category: rate_limiting
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -631,7 +631,7 @@ Underlying questions: 1
 - Category: rate_limiting
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -646,7 +646,7 @@ Underlying questions: 1
 - Category: rate_limiting
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -661,7 +661,7 @@ Underlying questions: 1
 - Category: rate_limiting
 - Related elements: `terraform:aws-lb:public`
 - Derived from: `unknown:terraform:terraform-aws-lb-public:rate-limiting`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public")
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public")
 
 Rationale: Rate limiting for internet-exposed resource payments-public-lb is unknown.
 
@@ -676,7 +676,7 @@ Underlying questions: 1
 - Category: rate_limiting
 - Related elements: `component:readme:sample-payments-api`
 - Derived from: `unknown:readme:rate-limiting`, `component:readme:sample-payments-api`
-- Evidence: `tests/fixtures/sample-system/README.md` (readme/readme, README)
+- Evidence: `README.md` (readme/readme, README)
 
 Rationale: Rate limiting behavior is not described in the README.
 
@@ -691,7 +691,7 @@ Underlying questions: 1
 - Category: rate_limiting
 - Related elements: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
 - Derived from: `edge:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-client-1bdd79b1:mermaid-node-docs-architecture-md-f48b101bb900-diagram-1-gateway-5a0e1818:mermaid:2a74d5a30a`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:client:1bdd79b1`, `mermaid:node:docs-architecture-md-f48b101bb900:diagram-1:gateway:5a0e1818`
-- Evidence: `tests/fixtures/sample-system/docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `tests/fixtures/sample-system/docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
+- Evidence: `docs/architecture.md:5` (mermaid/markdown, mermaid block 1, line 2); `docs/architecture.md:7` (mermaid/markdown, mermaid block 1, line 4)
 
 Rationale: Rate limiting is not proven for this external entry point.
 
@@ -706,7 +706,7 @@ Underlying questions: 1
 - Category: trust_boundary
 - Related elements: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
 - Derived from: `edge:actor-openapi-api-client:api-get-payments-paymentid:request`, `actor:openapi:api-client`, `api:get:payments-paymentid`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, GET /payments/{paymentId}); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Trust boundary membership is not present for this external entry point.
 
@@ -721,7 +721,7 @@ Underlying questions: 1
 - Category: trust_boundary
 - Related elements: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
 - Derived from: `edge:actor-openapi-api-client:api-post-payments:request`, `actor:openapi:api-client`, `api:post:payments`
-- Evidence: `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, POST /payments); `tests/fixtures/sample-system/openapi.yaml` (openapi/openapi, OpenAPI)
+- Evidence: `openapi.yaml` (openapi/openapi, POST /payments); `openapi.yaml` (openapi/openapi, OpenAPI)
 
 Rationale: Trust boundary membership is not present for this external entry point.
 
@@ -736,6 +736,6 @@ Underlying questions: 1
 - Category: trust_boundary
 - Related elements: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
 - Derived from: `edge:actor-terraform-internet:terraform-aws-lb-public:public-access`, `actor:terraform:internet`, `terraform:aws-lb:public`
-- Evidence: `tests/fixtures/sample-system/main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
+- Evidence: `main.tf:28` (terraform/terraform, resource "aws_lb" "public"); `derived` (terraform/terraform, internet exposure)
 
 Rationale: Trust boundary membership is not present for this external entry point.

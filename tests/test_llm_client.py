@@ -16,9 +16,7 @@ def test_structured_response_request_uses_text_format(monkeypatch) -> None:
         assert timeout == 60.0
         requests.append(request)
         return io.BytesIO(
-            json.dumps(
-                {"output": [{"content": [{"text": '{"questions": []}'}]}]}
-            ).encode("utf-8")
+            json.dumps({"output": [{"content": [{"text": '{"questions": []}'}]}]}).encode("utf-8")
         )
 
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
@@ -49,7 +47,7 @@ def test_structured_response_request_uses_text_format(monkeypatch) -> None:
     payload = json.loads(request.data or b"{}")
     assert payload["text"]["format"] == {
         "type": "json_schema",
-        "name": "question_refinement",
+        "name": "model_forge_output",
         "strict": True,
         "schema": schema,
     }

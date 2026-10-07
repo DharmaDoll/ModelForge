@@ -66,9 +66,11 @@ Good
 
 Bad
 
-* Asking an LLM to "perform threat modeling"
+* Asking an LLM for an authoritative threat model without structured facts or evidence
 
-LLMs should enhance deterministic outputs, not replace them.
+Deterministic analysis remains the reproducible baseline. An opt-in LLM may
+analyze the same structured model in parallel and propose additional threat
+hypotheses for review; its output does not replace accepted facts or rule results.
 
 ---
 
@@ -205,12 +207,14 @@ Never generate reports directly from raw files.
 
 # LLM Usage Policy
 
-LLMs are allowed only for:
+LLMs are allowed for:
 
 * extracting structured information
 * refining descriptions
 * writing documentation
 * generating clarification questions
+* proposing evidence-linked threat hypotheses, attack paths, and verification
+  questions as separate review candidates
 
 LLMs must never:
 
@@ -218,6 +222,18 @@ LLMs must never:
 * assume authentication
 * infer trust boundaries without evidence
 * create components that do not exist
+* promote a hypothesis to an architecture fact, confirmed vulnerability, or
+  accepted threat without source validation and explicit human review
+
+Every LLM threat hypothesis must cite existing model element IDs and supporting
+Evidence, state assumptions and missing prerequisites, and remain distinguishable
+from deterministic findings. If a prerequisite is not established, label the
+scenario conditional or ask a clarification question; do not turn the missing
+fact into an assertion. LLM confidence is not proof. Hypotheses must not alter
+`system_model.json`, deterministic reports, risk ratings, or CI gates automatically.
+
+External LLM calls remain opt-in and subject to approved-data and minimum-context
+rules. The no-LLM workflow must continue to work in full.
 
 ---
 
@@ -244,7 +260,9 @@ Automatically evaluates
 * Denial of Service
 * Elevation of Privilege
 
-The LLM should improve descriptions—not decide whether a threat exists.
+An LLM may propose additional STRIDE or attack-path hypotheses in a separate
+review artifact. It must not decide that a threat is confirmed, silently add a
+rule finding, or override a deterministic result.
 
 ---
 

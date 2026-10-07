@@ -18,7 +18,45 @@ The following rules apply to every phase:
 * Preserve unknowns instead of filling gaps with assumptions.
 * Treat all LLM output as a candidate until it passes validation and explicit
   human review.
+* Permit an opt-in LLM challenger to propose grounded threat hypotheses in a
+  separate review artifact. It cannot establish architecture facts, confirm
+  vulnerabilities, alter deterministic findings, or drive CI gates by itself.
 * Call risk output **review priority**, not vulnerability severity or CVSS.
+
+## Progress Tracking
+
+**ROADMAP.md is the strategy and dependency map.** It records why a capability
+matters, its order, design constraints, release gates, and the technical boundary
+observed in the working tree. Its "Current implementation" notes are snapshots,
+not task checklists or claims that local work has shipped. Long-range input ideas
+stay here without an Issue until they have a bounded delivery slice.
+
+**GitHub Issues are the execution tracker.** Open an Issue when a current or
+next-up slice has a concrete outcome, acceptance criteria, and test/documentation
+work. Keep task checkboxes and blockers there, not in this roadmap. Link the
+Issue to the relevant roadmap section and avoid duplicate Issues for the same
+slice. Check off work only after code, tests, and documentation are verified and
+committed; close the Issue with the completing commit or PR. Update this
+roadmap's technical-boundary note when a milestone ships or its direction
+changes. Local uncommitted work remains in progress.
+
+| Roadmap delivery track | Execution tracker |
+| --- | --- |
+| P0 inference precision | [Issue #6 — evaluated baseline](https://github.com/DharmaDoll/ModelForge/issues/6) includes negative-case regression |
+| P0 conflicts and identity | [Issue #4](https://github.com/DharmaDoll/ModelForge/issues/4) |
+| P0 canonical 0.2 | [Issue #3](https://github.com/DharmaDoll/ModelForge/issues/3) |
+| P1 first-run review usability | [Issue #5](https://github.com/DharmaDoll/ModelForge/issues/5) |
+| P1 evaluated baseline | [Issue #6](https://github.com/DharmaDoll/ModelForge/issues/6) |
+| P1 developer-answer review loop | [Issue #7](https://github.com/DharmaDoll/ModelForge/issues/7) |
+| P1 business context and ingestion visibility | [Issue #2](https://github.com/DharmaDoll/ModelForge/issues/2) |
+| P1 opt-in LLM threat challenger | [Issue #1](https://github.com/DharmaDoll/ModelForge/issues/1) |
+| P1 Model Diff and threat delta | Roadmap only until stable identity and canonical 0.2 acceptance are ready |
+| P1 reviewer lifecycle and CI | Roadmap only until Model Diff semantics are ready |
+| P1 playbook-guided review questions | Roadmap only until the expert-reviewed baseline is ready |
+
+Graph abstraction, additional adapters, and later phases remain roadmap-only
+until a specific next delivery slice meets the Issue criteria above. An Issue
+is not required for every paragraph or future input idea.
 
 ## Next Delivery Milestones
 
@@ -63,7 +101,16 @@ unverified extraction claims:
    and opt-in `model validate` / `model migrate` commands are implemented with
    unit and sample-system parity tests. `model validate --check-generators`
    exercises all deterministic lenses and report renderers in memory without
-   publishing 0.2 artifacts. The internal 0.2 preview now cites applied
+   publishing 0.2 artifacts. Versioned structural JSON Schema export is also
+   available through `model schema`; semantic validation still requires
+   `model validate`. An opt-in `model validate --require-attribute-evidence`
+   audit now identifies missing element and security-attribute pointers in 0.2
+   models; default validation remains compatible with legacy migrations until
+   native fact acceptance can enforce the policy. Inference `based_on` now
+   rejects unsupported paths and absent, unknown, or empty source claims. The
+   opt-in audit also checks direct attribute Evidence on every cited inference
+   basis, including names and Mermaid aliases.
+   The internal 0.2 preview now cites applied
    inference IDs for candidates that change when those inferences are removed;
    this conservative lineage check is not yet a scalable, field-level trace.
    `analyze`, `render`, `check`, and
@@ -91,7 +138,9 @@ unverified extraction claims:
    plus recognized/skipped Mermaid syntax and OpenAPI path/HTTP-operation
    declarations. Terraform now reports recognized resource blocks and ID
    collisions; unsupported HCL syntax and comparable coverage metrics remain
-   pending.
+   pending. `architecture.md` and `spec.md` are already discovered as Markdown
+   files, but only supported Mermaid flowcharts in them are modeled today;
+   prose extraction and a typed business-context input remain pending.
 8. **P1 — Model Diff:** stabilize semantic IDs and fingerprints, then compare a
    reviewed baseline with the current model. Initially produce a full,
    deterministic diff; optimize affected-graph re-analysis only after parity
@@ -105,6 +154,12 @@ unverified extraction claims:
    supported model facts and unknowns. Evaluate usefulness and false prompts
    against expert-reviewed fixtures before expanding the catalog or adding an
    optional LLM discussion assistant.
+11. **P1 — opt-in LLM threat challenger:** generate evidence-linked, conditional
+    threat hypotheses in a separate review artifact, with explicit assumptions
+    and verification steps. Evaluate against the deterministic baseline and
+    require human disposition before any promotion to an accepted finding.
+    Default reports and CI gates remain unchanged; see Phase 5 for delivery
+    and evaluation criteria.
 
 Each stage needs unit tests, reviewed regression fixtures, an unchanged default
 no-LLM path, and documentation of known unknowns before moving to the next.
@@ -198,18 +253,30 @@ Delivery order and acceptance criteria:
    vulnerability severity or proof of exploitability. Keep the scoring rules
    unchanged in this documentation/presentation step and add a regression
    assertion for the sample's mixed-scale output.
+   Implemented as a short `review.md` legend and a Quick Start example showing
+   high ATT&CK confidence alongside Low review priority for the same entry point.
 4. **Cold-start verification:** run the documented clone and
    `uv run tm-ai analyze` commands from a clean checkout and Python 3.12+
    environment without preinstalled project dependencies or an LLM key. Verify
    the expected artifacts, `model validate`, deterministic rerun, and the documented
    high/low risk-check exit codes. Add an automated smoke test where practical
    and record any platform or network prerequisite that cannot be CI-tested.
+   Verified in an isolated source copy without `.venv` or an LLM key using
+   Python 3.13.5 and uv 0.11.21. All eight artifacts matched a rerun byte for
+   byte; model validation and documented gate exit codes passed. Initial
+   dependency download required network access. The Quick Start regression test
+   now covers artifacts, validation, rerun equality, and exit codes; it does
+   not emulate a fresh package download in CI.
 5. **Evidence-path portability:** replace machine-specific absolute paths in
    generated Evidence for files inside the analyzed project with stable
    project-relative paths. Define how explicit inputs outside that root are
    represented before changing their output, and update golden fixtures and
    compatibility tests. Reports must not disclose the operator's home path
    merely because they are shared for review.
+   Implemented for `analyze` output: in-project Evidence and known file-path
+   metadata are project-relative. Explicit out-of-root inputs keep absolute
+   pointers for traceability and require a sharing check; `render` preserves
+   existing model paths.
 
 Do not add an LLM dependency to any of these tasks. Re-run the Japanese Quick
 Start as a reader after each presentation change; preserve the no-LLM path and
@@ -217,8 +284,9 @@ the existing model/DFD semantics.
 
 ### P1: Gold Standard Evaluation
 
-Move regression measurement ahead of adding LLM-generated threat context or many
-new extractors.
+Move reviewed measurement ahead of production use of LLM-generated threat
+hypotheses or many new extractors. A shadow-mode prototype may help build the
+evaluation set but must not change default reports or gates.
 
 Current seed implementation: `tm-ai evaluate` runs six deterministic fixture
 projects against 61 authored positive/negative probes. It reports confusion
@@ -234,8 +302,10 @@ Deliverables:
 * Report threat recall, false-candidate rate, question usefulness, and model
   extraction precision/recall. Where labels permit, also report TPR, FPR, and
   FNR.
-* Compare deterministic-only and deterministic-plus-LLM runs without requiring
-  an LLM in the default unit-test suite.
+* Compare deterministic-only, LLM-only experimental, and combined runs on the
+  same inputs without requiring an LLM in the default unit-test suite. Record
+  unsupported-claim rate, expert-reviewed usefulness, reviewer time, run-to-run
+  variance, latency, and cost in addition to precision and recall.
 * Make rule, schema, and prompt regressions visible in CI while keeping approval
   thresholds explicitly configured.
 
@@ -268,7 +338,66 @@ Deliverables and acceptance criteria:
 [Threat Thinker](https://github.com/melonattacker/threat-thinker) shows the
 practical value of business context and diagram-import metrics. Adapt those
 ideas to ModelForge's evidence-backed, no-LLM-default pipeline rather than
-adopting LLM-completed architecture or threat generation.
+adopting LLM-completed architecture as fact or unreviewed threat generation.
+
+Current boundary: auto-discovery already selects project-tree `*.md` files
+(including `architecture.md` and `spec.md`) except the selected README and
+ignored directories. The Markdown adapter currently models supported Mermaid
+flowcharts, not surrounding prose. There is no dedicated business-context
+input, CLI option, or typed canonical field. README title, summary, and named
+lists are only limited architecture hints, not a substitute for business
+context. Update the README's auto-discovery wording to distinguish file
+selection from structured extraction.
+
+Implementation order:
+
+1. **Version the context contract.** Define a root auto-discovered
+   `business_context.yaml` input, plus `--business-context` for an explicit
+   YAML or JSON file. Include review scope/environment, business objectives,
+   critical assets and classification, important workflows, availability
+   needs, constraints, and assumptions.
+   Give each claim a stable ID, source location, and status distinguishing a
+   declared intention from independently verified behavior. Export a schema
+   and add a read-only validation/preview command before any model mutation.
+   Use a separate candidate artifact while the 0.2 writer and fact-acceptance
+   policy are unfinished; do not hide typed context in arbitrary 0.1 metadata.
+2. **Connect reviewed context to the canonical model.** Add typed 0.2 storage
+   and an explicit accept/reject path by extending `CandidateObservation` with
+   typed context claims and direct Evidence. Business priorities may guide
+   questions and review ordering only after acceptance; a declared control or
+   intended deployment must never override observed topology or count as an
+   implemented safeguard. Conflicts become reviewable Unknowns/questions. Keep
+   0.1 default outputs unchanged
+   until 0.2 acceptance and migration are tested.
+3. **Extract deliberately structured Markdown.** Keep recursive Markdown
+   discovery, including `architecture.md` and `spec.md`, but initially parse
+   only an explicit context block or narrowly specified headings/tables with
+   line-level Evidence. Reuse the context contract and observation policy.
+   Ordinary prose, examples, negations, future plans, and unsupported diagram
+   syntax must not silently become architecture facts. Preserve explicit
+   `--doc`, add exclude/auto-discovery controls, generated-output avoidance,
+   and bounded file/size handling before enabling automatic prose extraction
+   across the project tree.
+4. **Make coverage and omissions visible.** Extend `ingestion.json` with counts
+   of selected Markdown files, recognized structured sections, accepted or
+   rejected proposals, and skipped/unsupported sections. Report parser
+   coverage only where a defensible denominator exists; do not imply overall
+   architecture completeness. Keep source text and machine-specific paths out
+   of shared diagnostics.
+5. **Evaluate before broadening free text.** Add authored positive/negative
+   fixtures for `architecture.md`/`spec.md`, missing context, planned versus
+   implemented controls, negation, conflicting sources, repeated runs, and
+   adversarial text. Compare extraction precision, unsupported-fact rate,
+   question usefulness, and reviewer effort against the current baseline.
+   Only then consider an opt-in LLM prose extractor that emits separate,
+   evidence-linked candidates under the External LLM Data Policy. It must not
+   silently merge candidates or become a requirement for ordinary analysis.
+
+Release gates: every stage has schema/CLI/golden tests, deterministic output,
+portable Evidence, and Quick Start coverage. The first user-visible slice is
+context validation and preview; report/risk/CI changes wait for reviewed 0.2
+facts and measured benefit. A Markdown file with no recognized structure is
+reported as unmodeled input, not treated as an error or invented topology.
 
 Deliverables and acceptance criteria:
 
@@ -485,6 +614,8 @@ Recommended initial uses:
 * Optionally discuss approved model context and developer answers to propose
   follow-up questions, attack paths, and verification steps; retain every
   suggestion as a review candidate, never an accepted fact or closed finding
+* Run an opt-in, read-only threat-hypothesis challenger over the canonical model
+  to find plausible scenarios missed by deterministic rules
 
 Constraints:
 
@@ -498,7 +629,25 @@ Constraints:
 * Unit tests must mock LLM interactions
 * Threat-context candidates must state supporting facts, missing facts, and
   confidence; unsupported hypotheses should become clarification questions
+* Hypotheses must cite model element IDs and Evidence, distinguish established
+  prerequisites from assumptions, and remain separate from `threats.md`,
+  `system_model.json`, review-priority scores, and CI gates until reviewed
 * Every external transmission must follow the External LLM Data Policy above
+
+Challenger delivery sequence:
+
+1. Define a versioned `threat_hypotheses.json` candidate schema with cited model
+   IDs, Evidence pointers, assumptions, missing prerequisites, and proposed
+   verification steps. Reject nonexistent references and unsupported certainty.
+2. Add an opt-in shadow mode that uses only approved, minimum-necessary context;
+   keep deterministic output and no-LLM operation unchanged.
+3. Evaluate rules-only, LLM-only experimental, and combined outputs against
+   independently reviewed positive and negative cases, including repeated runs
+   and adversarial source text. Publish quality, reviewer-effort, latency, and
+   cost tradeoffs before considering any default workflow change.
+4. Require explicit human disposition before a hypothesis can become an
+   accepted finding. Never promote its architectural assumptions to facts by
+   confidence alone.
 
 Current implementation:
 
@@ -506,6 +655,15 @@ Current implementation:
 * `llm_candidates.json` is an optional README extraction artifact for human review
 * `tm-ai candidates merge` explicitly merges reviewed candidates into a separate model
 * LLM candidates are not automatically merged into `system_model.json`
+* The versioned `threat_hypotheses.json` contract has structural schema export,
+  read-only exact-model Evidence validation, and an opt-in shadow generator for
+  selected one-hop model slices. It requires operator-attested classification
+  and explicit external-LLM approval. A separate local review-state JSON now
+  records `investigate`, `needs_context`, or `rejected` events with a reviewer,
+  rationale, timestamp, and exact model/batch binding. This is triage, not
+  accepted-finding promotion. Comparative evaluation and promotion remain
+  pending; hypothesis IDs are stable for identical normalized proposal text,
+  not semantic paraphrases.
 
 Candidate merge policy:
 

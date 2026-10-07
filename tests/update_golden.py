@@ -1,4 +1,4 @@
-"""Regenerate deterministic sample-system goldens after reviewing semantic changes."""
+"""Regenerate deterministic sample-system goldens after reviewing changes."""
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -20,15 +20,14 @@ ARTIFACTS = (
 
 
 def main() -> None:
-    """Rebuild artifacts and remove environment-specific fixture prefixes."""
+    """Rebuild artifacts with project-relative evidence paths."""
 
     with TemporaryDirectory() as temporary_directory:
         output = Path(temporary_directory)
         analyze_project(discover_inputs(FIXTURE), output)
         for artifact in ARTIFACTS:
             content = (output / artifact).read_text(encoding="utf-8")
-            normalized = content.replace(str(FIXTURE.resolve()), "tests/fixtures/sample-system")
-            (GOLDEN / artifact).write_text(normalized, encoding="utf-8")
+            (GOLDEN / artifact).write_text(content, encoding="utf-8")
 
 
 if __name__ == "__main__":
